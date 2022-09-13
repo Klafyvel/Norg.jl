@@ -1,0 +1,13 @@
+name = "Norg"
+uuid = "64228516-68de-4e23-8112-6940bc1970d1"
+authors = ["Hugo Levy-Falk <hugo@klafyvel.me> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
