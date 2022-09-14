@@ -68,4 +68,19 @@ using Compat
         @test Norg.Scanners.scan("foo") isa Norg.Token{Norg.Tokens.Word}
         @test Norg.Scanners.scan(Norg.Tokens.Word(), "}foo") |> isnothing
     end
+    @testset "Tokenize.jl" begin
+        tokens = collect(Norg.Tokenize.tokenize("..  .\nBonjour"))
+        @test tokens[1] isa Norg.Token{Norg.Tokens.Punctuation}
+        @test length(tokens[1]) == 1
+        @test tokens[3] isa Norg.Token{Norg.Tokens.Whitespace}
+        @test length(tokens[3]) == 2
+        @test Norg.line(tokens[4]) == 1
+        @test Norg.char(tokens[4]) == 5
+        @test tokens[5] isa Norg.Token{Norg.Tokens.LineEnding}
+        @test tokens[6] isa Norg.Token{Norg.Tokens.Word}
+        @test length(tokens[6]) == 7
+        @test tokens[6].value == "Bonjour"
+        @test Norg.line(tokens[6]) == 2
+        @test Norg.char(tokens[6]) == 1
+    end
 end
