@@ -10,8 +10,10 @@ used in [NeoVim's neorg](https://github.com/nvim-neorg/neorg).
 ## End goal
 
 * Parse Norg files,
+* Terminal display using julia's nice features such as `printstyled` and others.
 * Output HTML,
 * Output Markdown,
 * Add a FileIO interface,
 * Allow Franklin.jl to use Norg file format, because NeoVim+Julia = <3
-
+* Documenter.jl plugin ?
+* Term.jl plugin ?
