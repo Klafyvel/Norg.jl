@@ -1,7 +1,7 @@
 """
 Provides the tokens for the tokenizer.
 
-A `Token` stores its value, a `TokenType` and a `TokenPosition`
+A [`Token`](@ref) stores its value, a [`TokenType`](@ref) and a [`TokenPosition`](@ref)
 """
 module Tokens
 

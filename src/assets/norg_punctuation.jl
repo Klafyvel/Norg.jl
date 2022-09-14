@@ -1,6 +1,6 @@
 """
 All the UTF-8 characters that are punctuation in Norg specification.
-See : https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg
+See [the norg specification](https://github.com/nvim-neorg/norg-specs/blob/main/1.0-specification.norg)
 """
 const NORG_PUNCTUATION = Set(Char[
 0x005F,  0x203F, 0x2040, 0x2054, 0xFE33, 0xFE34, 0xFE4D, 0xFE4E, 0xFE4F, 0xFF3F,

@@ -2,7 +2,7 @@
 Provides the scanners for the tokenizer.
 
 The role of a scanner is to recognize a sequence of characters and to produce a
-`Token` or `nothing` from that.
+[`Token`](@ref) or `nothing` from that.
 """
 module Scanners
 
@@ -11,12 +11,12 @@ using ..Tokens
 """
     scan([[pattern,] tokentype,] input; line=nothing, charnum=nothing)
 
-Scan the given `input` for the given `tokentype`. It will produce a `Token` or
-`nothing` if the input does not match the `scanner`.
+Scan the given `input` for the given `tokentype`. It will produce a [`Token`](@ref) or
+`nothing` if the input does not match the `tokentype`.
 
 `line` and `charnum` are intended to give the current position in the buffer.
 
-If no `tokentype` is provided, will try the ones in `REGISTERED_TOKENTYPES` until one returns a `Token` or throw an error if none succeed.
+If no `tokentype` is provided, will try the ones in [`REGISTERED_TOKENTYPES`](@ref) until one returns a [`Token`](@ref) or throw an error if none succeed.
 
 If `pattern` is given, then try to fit the given patter at the start of `input`.
 If `pattern` is :
@@ -43,10 +43,10 @@ function scan(s::AbstractString, token_type, input; line=nothing, charnum=nothin
     end
 end
 
-function scan(list::AbstractArray, token_type, input; line=nothing, charnum=nothing)
+function scan(list::AbstractArray, token_type, input; kwargs...)
     res = nothing
     for pattern in list
-        res = scan(pattern, token_type, input; line=nothing, charnum=nothing)
+        res = scan(pattern, token_type, input; kwargs...)
         if !isnothing(res)
             break
         end
@@ -63,10 +63,19 @@ function scan(set::Set{Char}, token_type, input; line=nothing, charnum=nothing)
 end
 
 include("assets/norg_line_ending.jl")
-scan(::Tokens.LineEnding, input; kwargs...) = scan(NORG_LINE_ENDING, Tokens.LineEnding(), input; kwargs...)
+scan(t::Tokens.LineEnding, input; kwargs...) = scan(NORG_LINE_ENDING, t, input; kwargs...)
 
 include("assets/norg_punctuation.jl")
-scan(::Tokens.Punctuation, input; kwargs...) = scan(NORG_PUNCTUATION, Tokens.Punctuation(), input; kwargs...)
+scan(t::Tokens.Punctuation, input; kwargs...) = scan(NORG_PUNCTUATION, t, input; kwargs...)
+
+scan(t::Tokens.Star, input; kwargs...) = scan('*', t, input; kwargs...)
+scan(t::Tokens.Slash, input; kwargs...) = scan('/', t, input; kwargs...)
+scan(t::Tokens.Underscore, input; kwargs...) = scan('_', t, input; kwargs...)
+scan(t::Tokens.Minus, input; kwargs...) = scan('-', t, input; kwargs...)
+scan(t::Tokens.Circumflex, input; kwargs...) = scan('^', t, input; kwargs...)
+scan(t::Tokens.VerticalBar, input; kwargs...) = scan('|', t, input; kwargs...)
+scan(t::Tokens.BackApostrophe, input; kwargs...) = scan('`', t, input; kwargs...)
+scan(t::Tokens.BackSlash, input; kwargs...) = scan('\\', t, input; kwargs...)
 
 include("assets/norg_whitespace.jl")
 function scan(::Tokens.Whitespace, input; line=nothing, charnum=nothing)
@@ -86,7 +95,18 @@ function scan(::Tokens.Whitespace, input; line=nothing, charnum=nothing)
     end
 end
 
+"""
+All the registered [`TokenType`](@ref) that [`scan`](@ref) will try when consuming entries.
+"""
 const REGISTERED_TOKENTYPES = [
+    Tokens.Star(),
+    Tokens.Slash(),
+    Tokens.Underscore(),
+    Tokens.Minus(),
+    Tokens.Circumflex(),
+    Tokens.VerticalBar(),
+    Tokens.BackApostrophe(),
+    Tokens.BackSlash(),
     Tokens.LineEnding(),
     Tokens.Whitespace(),
     Tokens.Punctuation(),
