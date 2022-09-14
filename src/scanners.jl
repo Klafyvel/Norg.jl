@@ -8,17 +8,22 @@ module Scanners
 
 using ..Tokens
 
-abstract type Scanner end
-
 """
-    scan([scanner,] input; line=nothing, charnum=nothing)
+    scan([[pattern,] tokentype,] input; line=nothing, charnum=nothing)
 
-Scan the given `input` using the given `scanner`. It will produce a `Token` or
+Scan the given `input` for the given `tokentype`. It will produce a `Token` or
 `nothing` if the input does not match the `scanner`.
 
 `line` and `charnum` are intended to give the current position in the buffer.
 
-If no `scanner` is provided, will try the ones in `REGISTERED_SCANNERS` until one returns a `Token` or throw an error if none succeed.
+If no `tokentype` is provided, will try the ones in `REGISTERED_TOKENTYPES` until one returns a `Token` or throw an error if none succeed.
+
+If `pattern` is given, then try to fit the given patter at the start of `input`.
+If `pattern` is :
+- a `Char` : first character must be `pattern` for a match.
+- an `AbstractString` : `input` must `startswith` `pattern`.
+- an `AbstractArray` : call `scan` on each element of `pattern` until one matches.
+- a `Set{Char}` : first character must be included in `pattern`.
 """
 function scan end
 
@@ -58,16 +63,13 @@ function scan(set::Set{Char}, token_type, input; line=nothing, charnum=nothing)
 end
 
 include("assets/norg_line_ending.jl")
-struct LineEnding <: Scanner end
-scan(::LineEnding, input; kwargs...) = scan(NORG_LINE_ENDING, Tokens.LineEnding(), input; kwargs...)
+scan(::Tokens.LineEnding, input; kwargs...) = scan(NORG_LINE_ENDING, Tokens.LineEnding(), input; kwargs...)
 
 include("assets/norg_punctuation.jl")
-struct Punctuation <: Scanner end
-scan(::Punctuation, input; kwargs...) = scan(NORG_PUNCTUATION, Tokens.Punctuation(), input; kwargs...)
+scan(::Tokens.Punctuation, input; kwargs...) = scan(NORG_PUNCTUATION, Tokens.Punctuation(), input; kwargs...)
 
 include("assets/norg_whitespace.jl")
-struct Whitespace <: Scanner end
-function scan(::Whitespace, input; line=nothing, charnum=nothing)
+function scan(::Tokens.Whitespace, input; line=nothing, charnum=nothing)
     trial_start = firstindex(input)
     trial_stop = nothing
     for i in eachindex(input)
@@ -77,22 +79,22 @@ function scan(::Whitespace, input; line=nothing, charnum=nothing)
             break
         end
     end
-    if !isnothing(trial_stop)    
+    if !isnothing(trial_stop)
         Token(Tokens.Whitespace(), line, charnum, input[trial_start:trial_stop])
     else
         nothing
     end
 end
 
-const REGISTERED_SCANNERS = [
-                             LineEnding(),
-                             Whitespace(),
-                             Punctuation(),
+const REGISTERED_TOKENTYPES = [
+    Tokens.LineEnding(),
+    Tokens.Whitespace(),
+    Tokens.Punctuation(),
 ]
 
 function scan(input; line=nothing, charnum=nothing)
     res = nothing
-    for scanner in REGISTERED_SCANNERS
+    for scanner in REGISTERED_TOKENTYPES
         res = scan(scanner, input; line=line, charnum=charnum)
         if !isnothing(res)
             break
