@@ -5,6 +5,8 @@ files in pure Julia.
 """
 module Norg
 
+using Compat
+
 include("tokens.jl")
 include("scanners.jl")
 include("tokenize.jl")

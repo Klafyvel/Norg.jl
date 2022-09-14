@@ -1,5 +1,6 @@
 using Norg
 using Test
+using Compat
 
 @testset "Norg.jl" begin
     @testset "tokens.jl" begin
