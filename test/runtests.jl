@@ -25,10 +25,14 @@ using Compat
         @test Norg.Scanners.scan(["\r\n", "\n"], Norg.Tokens.LineEnding(), "\r\nfoo") isa Norg.Tokens.Token{Norg.Tokens.LineEnding}
         @compat @test Norg.Scanners.scan(["\r\n", "\n"], Norg.Tokens.LineEnding(), "foo") |> isnothing
         @test Norg.Scanners.scan(Norg.Scanners.LineEnding(), "\r\nfoo") isa Norg.Tokens.Token{Norg.Tokens.LineEnding}
+        @test Norg.Scanners.scan("\r\nfoo") isa Norg.Tokens.Token{Norg.Tokens.LineEnding}
         @compat @test Norg.Scanners.scan(Norg.Scanners.LineEnding(), "foo") |> isnothing
         @test Norg.Scanners.scan(Norg.Scanners.Whitespace(), " foo") isa Norg.Tokens.Token{Norg.Tokens.Whitespace}
         @test Norg.Scanners.scan(Norg.Scanners.Whitespace(), String([' ', Char(0x2006)]) * "foo") isa Norg.Tokens.Token{Norg.Tokens.Whitespace}
+        @test Norg.Scanners.scan(String([' ', Char(0x2006)]) * "foo") isa Norg.Tokens.Token{Norg.Tokens.Whitespace}
         @compat @test Norg.Scanners.scan(Norg.Scanners.Whitespace(), "foo") |> isnothing
-        # TODO: write test for Norg.Scanners.scan(input; line, charnum)
+        @test Norg.Scanners.scan(Norg.Scanners.Punctuation(), string(rand(Norg.Scanners.NORG_PUNCTUATION)) * "foo") isa Norg.Tokens.Token{Norg.Tokens.Punctuation}
+        @test Norg.Scanners.scan(string(rand(Norg.Scanners.NORG_PUNCTUATION)) * "foo") isa Norg.Tokens.Token{Norg.Tokens.Punctuation}
+        @compat @test Norg.Scanners.scan(Norg.Scanners.Punctuation(), "foo") |> isnothing
     end
 end

@@ -31,9 +31,8 @@ function scan(c::Char, token_type, input; line=nothing, charnum=nothing)
 end
 
 function scan(s::AbstractString, token_type, input; line=nothing, charnum=nothing)
-    l = length(s)
-    if input[1:l] == s
-        Token(token_type, line, charnum, input[1:l])
+    if startswith(input, s)
+        Token(token_type, line, charnum, s)
     else
         nothing
     end
@@ -50,38 +49,23 @@ function scan(list::AbstractArray, token_type, input; line=nothing, charnum=noth
     res
 end
 
-const NORG_LINE_ENDING = [
-                              Char(0x000A),
-                              Char(0x000D),
-                              String([Char(0x000D), Char(0x000A)])
-                             ]
+function scan(set::Set{Char}, token_type, input; line=nothing, charnum=nothing)
+    if first(input) ∈ set
+        Token(token_type, line, charnum, input[1:1])
+    else
+        nothing
+    end
+end
+
+include("assets/norg_line_ending.jl")
 struct LineEnding <: Scanner end
 scan(::LineEnding, input; kwargs...) = scan(NORG_LINE_ENDING, Tokens.LineEnding(), input; kwargs...)
 
-const NORG_WHITESPACES = Set([
-        Char(0x0009), # tab
-        Char(0x000A), # line feed
-        Char(0x000C), # form feed
-        Char(0x000D), # carriage return
-        Char(0x0020), # space
-        Char(0x00A0), # no-break space
-        Char(0x1680), # Ogham space mark
-        Char(0x2000), # en quad
-        Char(0x2001), # em quad
-        Char(0x2002), # en space
-        Char(0x2003), # em space
-        Char(0x2004), # three-per-em space
-        Char(0x2005), # four-per-em space
-        Char(0x2006), # six-per-em space
-        Char(0x2007), # figure space
-        Char(0x2008), # punctuation space
-        Char(0x2009), # thin space
-        Char(0x200A), # hair space
-        Char(0x202F), # narrow no-break space
-        Char(0x205F), # medium mathematical space
-        Char(0x3000), # ideographic space
-    ])
+include("assets/norg_punctuation.jl")
+struct Punctuation <: Scanner end
+scan(::Punctuation, input; kwargs...) = scan(NORG_PUNCTUATION, Tokens.Punctuation(), input; kwargs...)
 
+include("assets/norg_whitespace.jl")
 struct Whitespace <: Scanner end
 function scan(::Whitespace, input; line=nothing, charnum=nothing)
     trial_start = firstindex(input)
@@ -102,13 +86,14 @@ end
 
 const REGISTERED_SCANNERS = [
                              LineEnding(),
-                             Whitespace()
+                             Whitespace(),
+                             Punctuation(),
 ]
 
 function scan(input; line=nothing, charnum=nothing)
     res = nothing
     for scanner in REGISTERED_SCANNERS
-        res = scan(scanner, input, line; line=line, charnum=charnum)
+        res = scan(scanner, input; line=line, charnum=charnum)
         if !isnothing(res)
             break
         end
