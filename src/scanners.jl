@@ -76,6 +76,8 @@ scan(t::Tokens.Circumflex, input; kwargs...) = scan('^', t, input; kwargs...)
 scan(t::Tokens.VerticalBar, input; kwargs...) = scan('|', t, input; kwargs...)
 scan(t::Tokens.BackApostrophe, input; kwargs...) = scan('`', t, input; kwargs...)
 scan(t::Tokens.BackSlash, input; kwargs...) = scan('\\', t, input; kwargs...)
+scan(t::Tokens.LeftBrace, input; kwargs...) = scan('{', t, input; kwargs...)
+scan(t::Tokens.RightBrace, input; kwargs...) = scan('}', t, input; kwargs...)
 
 include("assets/norg_whitespace.jl")
 function scan(::Tokens.Whitespace, input; line=nothing, charnum=nothing)
@@ -107,6 +109,8 @@ const REGISTERED_TOKENTYPES = [
     Tokens.VerticalBar(),
     Tokens.BackApostrophe(),
     Tokens.BackSlash(),
+    Tokens.LeftBrace(),
+    Tokens.RightBrace(),
     Tokens.LineEnding(),
     Tokens.Whitespace(),
     Tokens.Punctuation(),

@@ -58,5 +58,11 @@ using Compat
         @test Norg.Scanners.scan(Norg.Tokens.BackSlash(), "\\foo") isa Norg.Token{Norg.Tokens.BackSlash}
         @test Norg.Scanners.scan("\\foo") isa Norg.Token{Norg.Tokens.BackSlash}
         @test Norg.Scanners.scan(Norg.Tokens.BackSlash(), "foo") |> isnothing
+        @test Norg.Scanners.scan(Norg.Tokens.LeftBrace(), "{foo") isa Norg.Token{Norg.Tokens.LeftBrace}
+        @test Norg.Scanners.scan("{foo") isa Norg.Token{Norg.Tokens.LeftBrace}
+        @test Norg.Scanners.scan(Norg.Tokens.LeftBrace(), "foo") |> isnothing
+        @test Norg.Scanners.scan(Norg.Tokens.RightBrace(), "}foo") isa Norg.Token{Norg.Tokens.RightBrace}
+        @test Norg.Scanners.scan("}foo") isa Norg.Token{Norg.Tokens.RightBrace}
+        @test Norg.Scanners.scan(Norg.Tokens.RightBrace(), "foo") |> isnothing
     end
 end
