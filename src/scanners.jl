@@ -97,6 +97,23 @@ function scan(::Tokens.Whitespace, input; line=nothing, charnum=nothing)
     end
 end
 
+function scan(t::Tokens.Word, input; line=nothing, charnum=nothing)
+    trial_start = firstindex(input)
+    trial_stop = nothing
+    for i in eachindex(input)
+        if input[i] ∉ NORG_WHITESPACES && input[i] ∉ NORG_PUNCTUATION
+            trial_stop = i
+        else
+            break
+        end
+    end
+    if !isnothing(trial_stop)
+        Token(t, line, charnum, input[trial_start:trial_stop])
+    else
+        nothing
+    end
+end
+
 """
 All the registered [`TokenType`](@ref) that [`scan`](@ref) will try when consuming entries.
 """
@@ -114,6 +131,7 @@ const REGISTERED_TOKENTYPES = [
     Tokens.LineEnding(),
     Tokens.Whitespace(),
     Tokens.Punctuation(),
+    Tokens.Word()
 ]
 
 function scan(input; line=nothing, charnum=nothing)

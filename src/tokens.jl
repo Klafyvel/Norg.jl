@@ -21,6 +21,7 @@ struct BackApostrophe <: AbstractPunctuation end
 struct BackSlash <: AbstractPunctuation end
 struct LeftBrace <: AbstractPunctuation end
 struct RightBrace <: AbstractPunctuation end
+struct Word <: TokenType end
 
 struct TokenPosition
     line

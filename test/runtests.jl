@@ -64,5 +64,8 @@ using Compat
         @test Norg.Scanners.scan(Norg.Tokens.RightBrace(), "}foo") isa Norg.Token{Norg.Tokens.RightBrace}
         @test Norg.Scanners.scan("}foo") isa Norg.Token{Norg.Tokens.RightBrace}
         @test Norg.Scanners.scan(Norg.Tokens.RightBrace(), "foo") |> isnothing
+        @test Norg.Scanners.scan(Norg.Tokens.Word(), "foo") isa Norg.Token{Norg.Tokens.Word}
+        @test Norg.Scanners.scan("foo") isa Norg.Token{Norg.Tokens.Word}
+        @test Norg.Scanners.scan(Norg.Tokens.Word(), "}foo") |> isnothing
     end
 end
