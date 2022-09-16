@@ -3,17 +3,14 @@ The role of this module is solely to produce a `DataStructures.Queue` of tokens 
 """
 module Tokenize
 
-using DataStructures
-
 using ..Tokens
 using ..Scanners
 
 function tokenize(input::AbstractString)
     linenum = 1
-    linestart = firstindex(input)
     charnum = firstindex(input) 
     i = firstindex(input)
-    result = Queue{Token}()
+    result = Vector{Token}()
     while i <= lastindex(input)
         sub = SubString(input, i)
         token = Scanners.scan(sub, line=linenum, charnum=charnum)
@@ -23,7 +20,7 @@ function tokenize(input::AbstractString)
         else
             charnum += length(token)
         end
-        enqueue!(result, token)
+        push!(result, token)
         i = nextind(input, i, length(token))
     end
     result

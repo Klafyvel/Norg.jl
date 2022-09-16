@@ -13,7 +13,6 @@ using Compat
         @test Norg.Tokens.Token(Norg.Tokens.Underscore(), 1, 1, "") isa Norg.Tokens.Token
         @test Norg.Tokens.Token(Norg.Tokens.Minus(), 1, 1, "") isa Norg.Tokens.Token
         @test Norg.Tokens.Token(Norg.Tokens.Circumflex(), 1, 1, "") isa Norg.Tokens.Token
-        @test Norg.Tokens.Token(Norg.Tokens.VerticalBar(), 1, 1, "") isa Norg.Tokens.Token
         @test Norg.Tokens.Token(Norg.Tokens.BackApostrophe(), 1, 1, "") isa Norg.Tokens.Token
         @test Norg.Tokens.Token(Norg.Tokens.BackSlash(), 1, 1, "") isa Norg.Tokens.Token
     end

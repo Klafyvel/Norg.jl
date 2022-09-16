@@ -11,18 +11,19 @@ struct LineEnding <: AbstractWhitespace end
 struct Whitespace <: AbstractWhitespace end
 abstract type AbstractPunctuation <: TokenType end
 struct Punctuation <: AbstractPunctuation end
-struct Star <: AbstractPunctuation  end
-struct Slash <: AbstractPunctuation end
-struct Underscore <: AbstractPunctuation end
-struct Minus <: AbstractPunctuation end
-struct ExclamationMark <: AbstractPunctuation end
-struct Circumflex <: AbstractPunctuation end
-struct Comma <: AbstractPunctuation end
-struct BackApostrophe <: AbstractPunctuation end
-struct Percent <: AbstractPunctuation end
-struct BackSlash <: AbstractPunctuation end
-struct LeftBrace <: AbstractPunctuation end
-struct RightBrace <: AbstractPunctuation end
+abstract type AttachedModifierPunctuation <: AbstractPunctuation end
+struct Star <: AttachedModifierPunctuation  end
+struct Slash <: AttachedModifierPunctuation end
+struct Underscore <: AttachedModifierPunctuation end
+struct Minus <: AttachedModifierPunctuation end
+struct ExclamationMark <: AttachedModifierPunctuation end
+struct Circumflex <: AttachedModifierPunctuation end
+struct Comma <: AttachedModifierPunctuation end
+struct BackApostrophe <: AttachedModifierPunctuation end
+struct Percent <: AttachedModifierPunctuation end
+struct BackSlash <: AttachedModifierPunctuation end
+struct LeftBrace <: AttachedModifierPunctuation end
+struct RightBrace <: AttachedModifierPunctuation end
 struct Word <: TokenType end
 
 struct TokenPosition
@@ -56,7 +57,6 @@ line(t::Token) = line(t.position)
 char(t::Token) = char(t.position)
 Base.length(t::Token) = length(t.value)
 value(t::Token) = t.value
-token_type(t::Token{T}) where T = T
 
-export line, char, value, token_type, Token
+export line, char, value, Token
 end

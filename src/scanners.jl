@@ -76,6 +76,7 @@ scan(t::Tokens.ExclamationMark, input; kwargs...) = scan('!', t, input; kwargs..
 scan(t::Tokens.Circumflex, input; kwargs...) = scan('^', t, input; kwargs...)
 scan(t::Tokens.Comma, input; kwargs...) = scan(',', t, input; kwargs...)
 scan(t::Tokens.BackApostrophe, input; kwargs...) = scan('`', t, input; kwargs...)
+scan(t::Tokens.Percent, input; kwargs...) = scan('%', t, input; kwargs...)
 scan(t::Tokens.BackSlash, input; kwargs...) = scan('\\', t, input; kwargs...)
 scan(t::Tokens.LeftBrace, input; kwargs...) = scan('{', t, input; kwargs...)
 scan(t::Tokens.RightBrace, input; kwargs...) = scan('}', t, input; kwargs...)
@@ -123,9 +124,11 @@ const REGISTERED_TOKENTYPES = [
     Tokens.Slash(),
     Tokens.Underscore(),
     Tokens.Minus(),
+    Tokens.ExclamationMark(),
     Tokens.Circumflex(),
-    Tokens.VerticalBar(),
+    Tokens.Comma(),
     Tokens.BackApostrophe(),
+    Tokens.Percent(),
     Tokens.BackSlash(),
     Tokens.LeftBrace(),
     Tokens.RightBrace(),
