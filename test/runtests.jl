@@ -46,15 +46,21 @@ using Compat
         @test Norg.Scanners.scan(Norg.Tokens.Minus(), "-foo") isa Norg.Token{Norg.Tokens.Minus}
         @test Norg.Scanners.scan("-foo") isa Norg.Token{Norg.Tokens.Minus}
         @test Norg.Scanners.scan(Norg.Tokens.Minus(), "foo") |> isnothing
+        @test Norg.Scanners.scan(Norg.Tokens.ExclamationMark(), "!foo") isa Norg.Token{Norg.Tokens.ExclamationMark}
+        @test Norg.Scanners.scan("!foo") isa Norg.Token{Norg.Tokens.ExclamationMark}
+        @test Norg.Scanners.scan(Norg.Tokens.ExclamationMark(), "foo") |> isnothing
         @test Norg.Scanners.scan(Norg.Tokens.Circumflex(), "^foo") isa Norg.Token{Norg.Tokens.Circumflex}
         @test Norg.Scanners.scan("^foo") isa Norg.Token{Norg.Tokens.Circumflex}
         @test Norg.Scanners.scan(Norg.Tokens.Circumflex(), "foo") |> isnothing
-        @test Norg.Scanners.scan(Norg.Tokens.VerticalBar(), "|foo") isa Norg.Token{Norg.Tokens.VerticalBar}
-        @test Norg.Scanners.scan("|foo") isa Norg.Token{Norg.Tokens.VerticalBar}
-        @test Norg.Scanners.scan(Norg.Tokens.VerticalBar(), "foo") |> isnothing
+        @test Norg.Scanners.scan(Norg.Tokens.Comma(), ",foo") isa Norg.Token{Norg.Tokens.Comma}
+        @test Norg.Scanners.scan(",foo") isa Norg.Token{Norg.Tokens.Comma}
+        @test Norg.Scanners.scan(Norg.Tokens.Comma(), "foo") |> isnothing
         @test Norg.Scanners.scan(Norg.Tokens.BackApostrophe(), "`foo") isa Norg.Token{Norg.Tokens.BackApostrophe}
         @test Norg.Scanners.scan("`foo") isa Norg.Token{Norg.Tokens.BackApostrophe}
         @test Norg.Scanners.scan(Norg.Tokens.BackApostrophe(), "foo") |> isnothing
+        @test Norg.Scanners.scan(Norg.Tokens.Percent(), "%foo") isa Norg.Token{Norg.Tokens.Percent}
+        @test Norg.Scanners.scan("%foo") isa Norg.Token{Norg.Tokens.Percent}
+        @test Norg.Scanners.scan(Norg.Tokens.Percent(), "foo") |> isnothing
         @test Norg.Scanners.scan(Norg.Tokens.BackSlash(), "\\foo") isa Norg.Token{Norg.Tokens.BackSlash}
         @test Norg.Scanners.scan("\\foo") isa Norg.Token{Norg.Tokens.BackSlash}
         @test Norg.Scanners.scan(Norg.Tokens.BackSlash(), "foo") |> isnothing

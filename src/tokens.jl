@@ -15,9 +15,11 @@ struct Star <: AbstractPunctuation  end
 struct Slash <: AbstractPunctuation end
 struct Underscore <: AbstractPunctuation end
 struct Minus <: AbstractPunctuation end
+struct ExclamationMark <: AbstractPunctuation end
 struct Circumflex <: AbstractPunctuation end
-struct VerticalBar <: AbstractPunctuation end
+struct Comma <: AbstractPunctuation end
 struct BackApostrophe <: AbstractPunctuation end
+struct Percent <: AbstractPunctuation end
 struct BackSlash <: AbstractPunctuation end
 struct LeftBrace <: AbstractPunctuation end
 struct RightBrace <: AbstractPunctuation end
@@ -53,6 +55,8 @@ Token(::T, line, char, value) where T<:TokenType = Token{T}(TokenPosition(line, 
 line(t::Token) = line(t.position)
 char(t::Token) = char(t.position)
 Base.length(t::Token) = length(t.value)
+value(t::Token) = t.value
+token_type(t::Token{T}) where T = T
 
-export line, char, Token
+export line, char, value, token_type, Token
 end
