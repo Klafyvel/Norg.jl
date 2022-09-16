@@ -11,6 +11,7 @@ struct LineEnding <: AbstractWhitespace end
 struct Whitespace <: AbstractWhitespace end
 abstract type AbstractPunctuation <: TokenType end
 struct Punctuation <: AbstractPunctuation end
+struct BackSlash <: AbstractPunctuation end
 abstract type AttachedModifierPunctuation <: AbstractPunctuation end
 struct Star <: AttachedModifierPunctuation  end
 struct Slash <: AttachedModifierPunctuation end
@@ -20,8 +21,6 @@ struct ExclamationMark <: AttachedModifierPunctuation end
 struct Circumflex <: AttachedModifierPunctuation end
 struct Comma <: AttachedModifierPunctuation end
 struct BackApostrophe <: AttachedModifierPunctuation end
-struct Percent <: AttachedModifierPunctuation end
-struct BackSlash <: AttachedModifierPunctuation end
 struct LeftBrace <: AttachedModifierPunctuation end
 struct RightBrace <: AttachedModifierPunctuation end
 struct Word <: TokenType end

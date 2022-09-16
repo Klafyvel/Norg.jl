@@ -1,6 +1,7 @@
 using Norg
 using Test
 using Compat
+using AbstractTrees
 
 
 @testset "Norg.jl" begin
@@ -12,5 +13,8 @@ using Compat
     end
     @testset "Tokenize.jl" begin
         include("test_tokenize.jl")
+    end
+    @testset "parser.jl" begin
+        include("ast_tests/test_markup.jl")
     end
 end
