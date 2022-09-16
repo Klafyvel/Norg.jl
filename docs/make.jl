@@ -6,7 +6,7 @@ DocMeta.setdocmeta!(Norg, :DocTestSetup, :(using Norg); recursive=true)
 makedocs(;
     modules=[Norg],
     authors="Hugo Levy-Falk <hugo@klafyvel.me> and contributors",
-    repo="https://github.com/klafyvel/Norg.jl/blob/{commit}{path}#{line}",
+    repo="https://github.com/Klafyvel/Norg.jl/blob/{commit}{path}#{line}",
     sitename="Norg.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
@@ -21,6 +21,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/klafyvel/Norg.jl",
+    repo="github.com/Klafyvel/Norg.jl",
     devbranch="main",
 )
