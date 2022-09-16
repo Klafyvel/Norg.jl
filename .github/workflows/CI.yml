@@ -54,3 +54,4 @@ jobs:
             using Norg
             DocMeta.setdocmeta!(Norg, :DocTestSetup, :(using Norg); recursive=true)
             doctest(Norg)'
+      - run: julia --project=docs/ docs/make.jl
