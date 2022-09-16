@@ -13,7 +13,10 @@ include("tokenize.jl")
 include("ast.jl")
 include("parser.jl")
 
-using .Tokens, .Scanners
-# Write your package code here.
+using .Tokens
+using .Scanners
+using .Tokenize
+using .AST
+using .Parser
 
 end
