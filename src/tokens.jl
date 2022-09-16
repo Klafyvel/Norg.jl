@@ -53,6 +53,7 @@ end
 Create a `Token` of type `type` with value `value` at `line` and char number `char`.
 """
 Token(::T, line, char, value) where T<:TokenType = Token{T}(TokenPosition(line, char), value)
+Base.show(io::IO, token::Token) = print(io, "$(repr(value(token))), line $(line(token)) col. $(char(token))")
 line(t::Token) = line(t.position)
 char(t::Token) = char(t.position)
 Base.length(t::Token) = length(t.value)
