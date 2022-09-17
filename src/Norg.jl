@@ -11,6 +11,7 @@ include("tokens.jl")
 include("scanners.jl")
 include("tokenize.jl")
 include("ast.jl")
+include("match.jl")
 include("parser.jl")
 
 using .Tokens
