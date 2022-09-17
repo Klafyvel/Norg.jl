@@ -8,6 +8,7 @@ AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 
 [compat]
+AbstractTrees = "0.4"
 Compat = "3.46, 4"
 julia = "1"
 
