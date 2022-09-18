@@ -26,6 +26,9 @@ julia> s = """
        """;
 
 julia> parse(HTMLTarget, s) |> Pretty
+# pretty HTML prints there, but have a look at its rendering below
+```
+
 <div class="norg">
   <p>Hi &#33; I am a Norg document. For now only
     <i>basic</i>
@@ -52,7 +55,6 @@ julia> parse(HTMLTarget, s) |> Pretty
     </a> &#33;
   </p>
 </div>
-```
 
 ## End goal
 
