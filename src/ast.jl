@@ -28,7 +28,8 @@ end
 struct Paragraph <: NodeData end
 abstract type TextContainer <: NodeData end
 struct ParagraphSegment <: TextContainer end
-abstract type AttachedModifier <: TextContainer end
+abstract type MatchedInline <: TextContainer end
+abstract type AttachedModifier <: MatchedInline end
 struct Bold <: AttachedModifier end
 struct Italic <: AttachedModifier end
 struct Underline <: AttachedModifier end
@@ -37,6 +38,11 @@ struct Spoiler <: AttachedModifier end
 struct Superscript <: AttachedModifier end
 struct Subscript <: AttachedModifier end
 struct InlineCode <: AttachedModifier end
+
+struct Link <: NodeData end
+abstract type LinkLocation <: MatchedInline end
+struct URLLocation <: LinkLocation end
+struct LinkDescription <: MatchedInline end
 
 Base.show(io::IO, t::Node{NorgDocument}) = print_tree(io, t)
 end

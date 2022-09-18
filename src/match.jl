@@ -26,8 +26,9 @@ const AllowedAfterAttachedModifier = Union{Token{Tokens.Whitespace},
                                            Token{<:Tokens.AbstractPunctuation},
                                            Nothing}
 
+# TODO: rewrite the matching to take all the parents in account.
 function match_attached_modifier(::Type{AST.ParagraphSegment}, tokens, i,
-                                 ast_node)
+                                 ast_node, parents)
     next_i = nextind(tokens, i)
     next_token = get(tokens, next_i, nothing)
     prev_i = prevind(tokens, i)
@@ -40,8 +41,13 @@ function match_attached_modifier(::Type{AST.ParagraphSegment}, tokens, i,
     end
 end
 
-function match_attached_modifier(T::Type{<:AST.AttachedModifier}, tokens, i,
-                                 ast_node)
+function match_attached_modifier(T::Type{AST.LinkLocation}, tokens, i, ast_node,
+                                 parents)
+    AST.Word
+end
+
+function match_attached_modifier(T::Type{<:AST.MatchedInline}, tokens, i,
+                                 ast_node, parents)
     next_i = nextind(tokens, i)
     next_token = get(tokens, next_i, nothing)
     prev_i = prevind(tokens, i)
@@ -51,7 +57,7 @@ function match_attached_modifier(T::Type{<:AST.AttachedModifier}, tokens, i,
         ast_node
     elseif !(last_token isa Token{Tokens.Whitespace}) &&
            next_token isa AllowedAfterAttachedModifier
-        if tokens[i] isa Token{tokentype(T)}
+        if any(t -> tokens[i] isa Token{tokentype(t)}, parents)
             nothing
         else
             AST.Word
@@ -61,7 +67,8 @@ function match_attached_modifier(T::Type{<:AST.AttachedModifier}, tokens, i,
     end
 end
 
-function match_attached_modifier(::Type{AST.InlineCode}, tokens, i, ast_node)
+function match_attached_modifier(::Type{AST.InlineCode}, tokens, i, ast_node,
+                                 parents)
     token = tokens[i]
     if !(token isa Token{Tokens.BackApostrophe})
         return AST.Word
@@ -82,40 +89,77 @@ function match_attached_modifier(::Type{AST.InlineCode}, tokens, i, ast_node)
 end
 
 """
-match_norg(token, parent, tokens, i)
+match_norg(token, parents, tokens, i)
 
 Find the appropriate [`AST.NodeData`](@reg) for a `token` when parser is inside
-a `parent` block parsing the `tokens` list at index `i`
+a `parents` block parsing the `tokens` list at index `i`
 """
 function match_norg end
 
-match_norg(::Token, parent, tokens, i) = AST.Word
-match_norg(::Token{Tokens.LineEnding}, parent, tokens, i) = nothing
-function match_norg(::Token{Tokens.Star}, parent, tokens, i)
-    match_attached_modifier(parent, tokens, i, AST.Bold)
+match_norg(::Token, parents, tokens, i) = AST.Word
+match_norg(::Token{Tokens.LineEnding}, parents, tokens, i) = nothing
+function match_norg(::Token{Tokens.Star}, parents, tokens, i)
+    match_attached_modifier(parents[1], tokens, i, AST.Bold, parents)
 end
-function match_norg(::Token{Tokens.Slash}, parent, tokens, i)
-    match_attached_modifier(parent, tokens, i, AST.Italic)
+function match_norg(::Token{Tokens.Slash}, parents, tokens, i)
+    match_attached_modifier(parents[1], tokens, i, AST.Italic, parents)
 end
-function match_norg(::Token{Tokens.Underscore}, parent, tokens, i)
-    match_attached_modifier(parent, tokens, i, AST.Underline)
+function match_norg(::Token{Tokens.Underscore}, parents, tokens, i)
+    match_attached_modifier(parents[1], tokens, i, AST.Underline, parents)
 end
-function match_norg(::Token{Tokens.Minus}, parent, tokens, i)
-    match_attached_modifier(parent, tokens, i, AST.Strikethrough)
+function match_norg(::Token{Tokens.Minus}, parents, tokens, i)
+    match_attached_modifier(parents[1], tokens, i, AST.Strikethrough, parents)
 end
-function match_norg(::Token{Tokens.ExclamationMark}, parent, tokens, i)
-    match_attached_modifier(parent, tokens, i, AST.Spoiler)
+function match_norg(::Token{Tokens.ExclamationMark}, parents, tokens, i)
+    match_attached_modifier(parents[1], tokens, i, AST.Spoiler, parents)
 end
-function match_norg(::Token{Tokens.Circumflex}, parent, tokens, i)
-    match_attached_modifier(parent, tokens, i, AST.Superscript)
+function match_norg(::Token{Tokens.Circumflex}, parents, tokens, i)
+    match_attached_modifier(parents[1], tokens, i, AST.Superscript, parents)
 end
-function match_norg(::Token{Tokens.Comma}, parent, tokens, i)
-    match_attached_modifier(parent, tokens, i, AST.Subscript)
+function match_norg(::Token{Tokens.Comma}, parents, tokens, i)
+    match_attached_modifier(parents[1], tokens, i, AST.Subscript, parents)
 end
-function match_norg(::Token{Tokens.BackApostrophe}, parent, tokens, i)
-    match_attached_modifier(parent, tokens, i, AST.InlineCode)
+function match_norg(::Token{Tokens.BackApostrophe}, parents, tokens, i)
+    match_attached_modifier(parents[1], tokens, i, AST.InlineCode, parents)
 end
-match_norg(::Token{Tokens.BackSlash}, parent, tokens, i) = AST.Escape
+match_norg(::Token{Tokens.BackSlash}, parents, tokens, i) = AST.Escape
+
+function match_norg(::Token{Tokens.LeftBrace}, parents, tokens, i)
+    if AST.Link ∈ parents
+        AST.Word
+    elseif AST.LinkDescription ∈ parents
+        AST.Word
+    else
+        AST.Link
+    end
+end
+
+function match_norg(::Token{Tokens.RightBrace}, parents, tokens, i)
+    if AST.LinkLocation ∈ parents
+        nothing
+    else
+        AST.Word
+    end
+end
+function match_norg(::Token{Tokens.RightSquareBracket}, parents, tokens, i)
+    if AST.LinkDescription ∈ parents
+        nothing
+    else
+        AST.Word
+    end
+end
+function match_norg(::Token{Tokens.LeftSquareBracket}, parents, tokens, i)
+    if AST.LinkDescription ∈ parents || AST.LinkLocation ∈ parents
+        return AST.Word
+    end
+    prev_i = prevind(tokens, i)
+    last_token = get(tokens, prev_i, nothing)
+    if last_token isa Token{Tokens.RightSquareBracket}
+        AST.LinkDescription
+    else
+        nothing
+    end
+end
 
 export match_norg
 end

@@ -109,6 +109,13 @@ end
     @test nodevalue(nodes[19]).value == "*"
 end
 
+@testset "First closing modifier has precedence" begin
+    s = "*This /is bold*/"
+    ast = parse(Norg.AST.NorgDocument, s)
+    nodes = collect(PreOrderDFS(ast))
+    @test nodes[4] isa Node{Norg.AST.Bold}
+end
+
 @testset "Verbatim precedence" begin
     s = "*not bold `because verbatim* has higher precedence`"
     ast = parse(Norg.AST.NorgDocument, s)

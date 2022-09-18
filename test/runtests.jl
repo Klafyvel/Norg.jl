@@ -10,6 +10,7 @@ using AbstractTrees
     @testset "parser.jl" begin
         include("ast_tests/test_markup.jl")
         include("ast_tests/test_paragraphs.jl")
+        include("ast_tests/test_links.jl")
     end
     @testset "codegen.jl" begin include("codegen_tests/html.jl") end
 end

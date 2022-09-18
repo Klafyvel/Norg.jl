@@ -21,8 +21,13 @@ struct ExclamationMark <: AttachedModifierPunctuation end
 struct Circumflex <: AttachedModifierPunctuation end
 struct Comma <: AttachedModifierPunctuation end
 struct BackApostrophe <: AttachedModifierPunctuation end
-struct LeftBrace <: AttachedModifierPunctuation end
-struct RightBrace <: AttachedModifierPunctuation end
+
+abstract type LinkPunctuation <: AbstractPunctuation end
+struct LeftBrace <: LinkPunctuation end
+struct RightBrace <: LinkPunctuation end
+struct LeftSquareBracket <: LinkPunctuation end
+struct RightSquareBracket <: LinkPunctuation end
+
 struct Word <: TokenType end
 
 struct TokenPosition
