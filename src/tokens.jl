@@ -13,7 +13,7 @@ abstract type AbstractPunctuation <: TokenType end
 struct Punctuation <: AbstractPunctuation end
 struct BackSlash <: AbstractPunctuation end
 abstract type AttachedModifierPunctuation <: AbstractPunctuation end
-struct Star <: AttachedModifierPunctuation  end
+struct Star <: AttachedModifierPunctuation end
 struct Slash <: AttachedModifierPunctuation end
 struct Underscore <: AttachedModifierPunctuation end
 struct Minus <: AttachedModifierPunctuation end
@@ -26,8 +26,8 @@ struct RightBrace <: AttachedModifierPunctuation end
 struct Word <: TokenType end
 
 struct TokenPosition
-    line
-    char
+    line::Any
+    char::Any
 end
 """
     line(x)
@@ -42,17 +42,22 @@ Return the character number in the line corresponding to position or token `x`.
 """
 char(p::TokenPosition) = p.char
 
-struct Token{T<:TokenType}
+struct Token{T <: TokenType}
     position::TokenPosition
-    value
+    value::Any
 end
 """
      Token(line, char, type, value)
 
 Create a `Token` of type `type` with value `value` at `line` and char number `char`.
 """
-Token(::T, line, char, value) where T<:TokenType = Token{T}(TokenPosition(line, char), value)
-Base.show(io::IO, token::Token{T}) where T = print(io, "$T: $(repr(value(token))), line $(line(token)) col. $(char(token))")
+function Token(::T, line, char, value) where {T <: TokenType}
+    Token{T}(TokenPosition(line, char), value)
+end
+function Base.show(io::IO, token::Token{T}) where {T}
+    print(io,
+          "$T: $(repr(value(token))), line $(line(token)) col. $(char(token))")
+end
 line(t::Token) = line(t.position)
 char(t::Token) = char(t.position)
 Base.length(t::Token) = length(t.value)

@@ -8,12 +8,12 @@ using ..Scanners
 
 function tokenize(input::AbstractString)
     linenum = 1
-    charnum = firstindex(input) 
+    charnum = firstindex(input)
     i = firstindex(input)
     result = Vector{Token}()
     while i <= lastindex(input)
         sub = SubString(input, i)
-        token = Scanners.scan(sub, line=linenum, charnum=charnum)
+        token = Scanners.scan(sub, line = linenum, charnum = charnum)
         if token isa Tokens.Token{Tokens.LineEnding}
             linenum += 1
             charnum = 1

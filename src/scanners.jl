@@ -20,14 +20,15 @@ If no `tokentype` is provided, will try the ones in [`REGISTERED_TOKENTYPES`](@r
 
 If `pattern` is given, then try to fit the given patter at the start of `input`.
 If `pattern` is :
-- a `Char` : first character must be `pattern` for a match.
-- an `AbstractString` : `input` must `startswith` `pattern`.
-- an `AbstractArray` : call `scan` on each element of `pattern` until one matches.
-- a `Set{Char}` : first character must be included in `pattern`.
+
+  - a `Char` : first character must be `pattern` for a match.
+  - an `AbstractString` : `input` must `startswith` `pattern`.
+  - an `AbstractArray` : call `scan` on each element of `pattern` until one matches.
+  - a `Set{Char}` : first character must be included in `pattern`.
 """
 function scan end
 
-function scan(c::Char, token_type, input; line=nothing, charnum=nothing)
+function scan(c::Char, token_type, input; line = nothing, charnum = nothing)
     if first(input) == c
         Token(token_type, line, charnum, input[1:1])
     else
@@ -35,7 +36,8 @@ function scan(c::Char, token_type, input; line=nothing, charnum=nothing)
     end
 end
 
-function scan(s::AbstractString, token_type, input; line=nothing, charnum=nothing)
+function scan(s::AbstractString, token_type, input; line = nothing,
+              charnum = nothing)
     if startswith(input, s)
         Token(token_type, line, charnum, s)
     else
@@ -54,7 +56,8 @@ function scan(list::AbstractArray, token_type, input; kwargs...)
     res
 end
 
-function scan(set::Set{Char}, token_type, input; line=nothing, charnum=nothing)
+function scan(set::Set{Char}, token_type, input; line = nothing,
+              charnum = nothing)
     if first(input) ∈ set
         Token(token_type, line, charnum, input[1:1])
     else
@@ -63,25 +66,33 @@ function scan(set::Set{Char}, token_type, input; line=nothing, charnum=nothing)
 end
 
 include("assets/norg_line_ending.jl")
-scan(t::Tokens.LineEnding, input; kwargs...) = scan(NORG_LINE_ENDING, t, input; kwargs...)
+function scan(t::Tokens.LineEnding, input; kwargs...)
+    scan(NORG_LINE_ENDING, t, input; kwargs...)
+end
 
 include("assets/norg_punctuation.jl")
-scan(t::Tokens.Punctuation, input; kwargs...) = scan(NORG_PUNCTUATION, t, input; kwargs...)
+function scan(t::Tokens.Punctuation, input; kwargs...)
+    scan(NORG_PUNCTUATION, t, input; kwargs...)
+end
 
 scan(t::Tokens.Star, input; kwargs...) = scan('*', t, input; kwargs...)
 scan(t::Tokens.Slash, input; kwargs...) = scan('/', t, input; kwargs...)
 scan(t::Tokens.Underscore, input; kwargs...) = scan('_', t, input; kwargs...)
 scan(t::Tokens.Minus, input; kwargs...) = scan('-', t, input; kwargs...)
-scan(t::Tokens.ExclamationMark, input; kwargs...) = scan('!', t, input; kwargs...)
+function scan(t::Tokens.ExclamationMark, input; kwargs...)
+    scan('!', t, input; kwargs...)
+end
 scan(t::Tokens.Circumflex, input; kwargs...) = scan('^', t, input; kwargs...)
 scan(t::Tokens.Comma, input; kwargs...) = scan(',', t, input; kwargs...)
-scan(t::Tokens.BackApostrophe, input; kwargs...) = scan('`', t, input; kwargs...)
+function scan(t::Tokens.BackApostrophe, input; kwargs...)
+    scan('`', t, input; kwargs...)
+end
 scan(t::Tokens.BackSlash, input; kwargs...) = scan('\\', t, input; kwargs...)
 scan(t::Tokens.LeftBrace, input; kwargs...) = scan('{', t, input; kwargs...)
 scan(t::Tokens.RightBrace, input; kwargs...) = scan('}', t, input; kwargs...)
 
 include("assets/norg_whitespace.jl")
-function scan(::Tokens.Whitespace, input; line=nothing, charnum=nothing)
+function scan(::Tokens.Whitespace, input; line = nothing, charnum = nothing)
     trial_start = firstindex(input)
     trial_stop = nothing
     for i in eachindex(input)
@@ -98,7 +109,7 @@ function scan(::Tokens.Whitespace, input; line=nothing, charnum=nothing)
     end
 end
 
-function scan(t::Tokens.Word, input; line=nothing, charnum=nothing)
+function scan(t::Tokens.Word, input; line = nothing, charnum = nothing)
     trial_start = firstindex(input)
     trial_stop = nothing
     for i in eachindex(input)
@@ -133,13 +144,13 @@ const REGISTERED_TOKENTYPES = [
     Tokens.LineEnding(),
     Tokens.Whitespace(),
     Tokens.Punctuation(),
-    Tokens.Word()
+    Tokens.Word(),
 ]
 
-function scan(input; line=nothing, charnum=nothing)
+function scan(input; line = nothing, charnum = nothing)
     res = nothing
     for scanner in REGISTERED_TOKENTYPES
-        res = scan(scanner, input; line=line, charnum=charnum)
+        res = scan(scanner, input; line = line, charnum = charnum)
         if !isnothing(res)
             break
         end

@@ -6,7 +6,9 @@ import ..CodegenTarget
 import ..codegen
 
 struct HTMLTarget <: CodegenTarget end
-codegen(t::HTMLTarget, node::AST.Node{AST.NorgDocument}) = m("div", class="norg", [codegen(t, c) for c ∈ children(node)])
+function codegen(t::HTMLTarget, node::AST.Node{AST.NorgDocument})
+    m("div", class = "norg", [codegen(t, c) for c in children(node)])
+end
 
 function codegen(t::HTMLTarget, node::AST.Node{AST.Paragraph})
     res = []
@@ -55,7 +57,7 @@ function codegen(t::HTMLTarget, node::AST.Node{<:AST.AttachedModifier})
     if isempty(class)
         m(html_node(node), res)
     else
-        m(html_node(node), class=join(html_class(node), " "), res)
+        m(html_node(node), class = join(html_class(node), " "), res)
     end
 end
 

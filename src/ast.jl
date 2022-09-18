@@ -7,22 +7,22 @@ using AbstractTrees
 
 abstract type NodeData end
 
-struct Node{T<:NodeData} 
+struct Node{T <: NodeData}
     children::Vector{Node}
     data::T
 end
-Node(data::T) where T<:NodeData = Node{T}(Node[], data)
+Node(data::T) where {T <: NodeData} = Node{T}(Node[], data)
 
 AbstractTrees.children(t::Node) = t.children
 AbstractTrees.nodevalue(t::Node) = t.data
 
 struct NorgDocument <: NodeData end
 
-struct Word <: NodeData 
-    value
+struct Word <: NodeData
+    value::Any
 end
 struct Escape <: NodeData
-    value
+    value::Any
 end
 
 struct Paragraph <: NodeData end

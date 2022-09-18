@@ -1,7 +1,6 @@
 """
-Norg.jl provides a way to parse [Neorg](https://github.com/nvim-neorg/neorg) 
+Norg.jl provides a way to parse [Neorg](https://github.com/nvim-neorg/neorg)
 files in pure Julia.
-
 """
 module Norg
 
@@ -21,7 +20,5 @@ using .Tokenize
 using .AST
 using .Parser
 using .Codegen
-
-
 
 end

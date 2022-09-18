@@ -13,7 +13,9 @@ using ..Match
 
 Produce an [`AST.NorgDocument`](@ref) from a string `s`. Calls [`Tokenize.tokenize`](@ref).
 """
-Base.parse(::Type{AST.NorgDocument}, s::AbstractString) = parse_norg(Tokenize.tokenize(s))
+function Base.parse(::Type{AST.NorgDocument}, s::AbstractString)
+    parse_norg(Tokenize.tokenize(s))
+end
 
 """
     parse_norg(nodetype, tokens, i)
@@ -28,7 +30,9 @@ function parse_norg end
 Try to parse the `tokens` sequence as an [`AST.NorgDocument`](@ref) starting
 from the begining of the sequence.
 """
-parse_norg(tokens) = last(parse_norg(AST.NorgDocument, tokens, firstindex(tokens)))
+function parse_norg(tokens)
+    last(parse_norg(AST.NorgDocument, tokens, firstindex(tokens)))
+end
 
 function parse_norg(::Type{AST.NorgDocument}, tokens, i)
     paragraphs = AST.Node[]
@@ -76,7 +80,7 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i)
     i, AST.Node(children, AST.ParagraphSegment())
 end
 
-function parse_norg(::Type{T}, tokens, i) where {T<:AST.AttachedModifier}
+function parse_norg(::Type{T}, tokens, i) where {T <: AST.AttachedModifier}
     children = AST.Node[]
     opening_token = tokens[i]
     i = nextind(tokens, i)
@@ -111,16 +115,20 @@ function parse_norg(::Type{T}, tokens, i) where {T<:AST.AttachedModifier}
     end
 end
 
-parse_norg(::Type{AST.Escape}, tokens, i) = begin
-    next_i = nextind(tokens, i)
-    if get(tokens, next_i, nothing) isa Union{Token{Tokens.Word},Nothing}
-        next_i, nothing
-    else
-        nextind(tokens, next_i), AST.Node(AST.Escape(value(tokens[next_i])))
+function parse_norg(::Type{AST.Escape}, tokens, i)
+    begin
+        next_i = nextind(tokens, i)
+        if get(tokens, next_i, nothing) isa Union{Token{Tokens.Word}, Nothing}
+            next_i, nothing
+        else
+            nextind(tokens, next_i), AST.Node(AST.Escape(value(tokens[next_i])))
+        end
     end
 end
 
-parse_norg(::Type{AST.Word}, tokens, i) = nextind(tokens, i), AST.Node(AST.Word(value(tokens[i])))
+function parse_norg(::Type{AST.Word}, tokens, i)
+    nextind(tokens, i), AST.Node(AST.Word(value(tokens[i])))
+end
 
 export parse_norg
 end
