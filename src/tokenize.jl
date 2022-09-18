@@ -26,4 +26,6 @@ function tokenize(input::AbstractString)
     result
 end
 
+export tokenize
+
 end

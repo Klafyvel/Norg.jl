@@ -13,11 +13,15 @@ include("tokenize.jl")
 include("ast.jl")
 include("match.jl")
 include("parser.jl")
+include("codegen.jl")
 
 using .Tokens
 using .Scanners
 using .Tokenize
 using .AST
 using .Parser
+using .Codegen
+
+
 
 end
