@@ -13,7 +13,7 @@ using ..Match
 
 Produce an [`AST.NorgDocument`](@ref) from a string `s`. Calls [`Tokenize.tokenize`](@ref).
 """
-Base.parse(::Type{AST.NorgDocument}, s::AbstractString) = last(parse_norg(Tokenize.tokenize(s)))
+Base.parse(::Type{AST.NorgDocument}, s::AbstractString) = parse_norg(Tokenize.tokenize(s))
 
 """
     parse_norg(nodetype, tokens, i)
@@ -28,7 +28,7 @@ function parse_norg end
 Try to parse the `tokens` sequence as an [`AST.NorgDocument`](@ref) starting
 from the begining of the sequence.
 """
-parse_norg(tokens) = parse_norg(AST.NorgDocument, tokens, firstindex(tokens))
+parse_norg(tokens) = last(parse_norg(AST.NorgDocument, tokens, firstindex(tokens)))
 
 function parse_norg(::Type{AST.NorgDocument}, tokens, i)
     paragraphs = AST.Node[]
@@ -58,6 +58,7 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i)
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, AST.ParagraphSegment, tokens, i)
+        @debug "paragrapgh segment loop" token i m
         if isnothing(m)
             i = nextind(tokens, i)
             break
@@ -67,6 +68,7 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i)
             append!(children, node)
             last_token = prevind(tokens, i)
         elseif !isnothing(node)
+            @debug "node is nothing"
             push!(children, node)
             last_token = token
         end

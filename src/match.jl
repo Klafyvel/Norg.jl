@@ -74,6 +74,7 @@ a `parent` block parsing the `tokens` list at index `i`
 function match_norg end
 
 match_norg(::Token, parent, tokens, i) = AST.Word
+match_norg(::Token{Tokens.LineEnding}, parent, tokens, i) = nothing
 match_norg(::Token{Tokens.Star}, parent, tokens, i) = match_attached_modifier(parent, tokens, i, AST.Bold)
 match_norg(::Token{Tokens.Slash}, parent, tokens, i) = match_attached_modifier(parent, tokens, i, AST.Italic)
 match_norg(::Token{Tokens.Underscore}, parent, tokens, i) = match_attached_modifier(parent, tokens, i, AST.Underline)
