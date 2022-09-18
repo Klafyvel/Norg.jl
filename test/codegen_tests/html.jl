@@ -46,3 +46,19 @@ end
         @test getfield(b, :attrs)["class"] == html_class
     end
 end
+
+@testset "Test links" begin
+    s = "{https://klafyvel.me}"
+    html = parse(HTMLTarget, s)
+    link = first(getfield(first(getfield(html, :children)), :children))
+    @test getfield(link, :attrs)["href"] == "https://klafyvel.me"
+    @test first(getfield(link, :children)) == "https://klafyvel.me"
+end
+
+@testset "Test links with description" begin
+    s = "{https://klafyvel.me}[website]"
+    html = parse(HTMLTarget, s)
+    link = first(getfield(first(getfield(html, :children)), :children))
+    @test getfield(link, :attrs)["href"] == "https://klafyvel.me"
+    @test first(getfield(link, :children)) == "website"
+end

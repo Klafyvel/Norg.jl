@@ -6,6 +6,7 @@ import ..CodegenTarget
 import ..codegen
 
 struct HTMLTarget <: CodegenTarget end
+
 function codegen(t::HTMLTarget, node::AST.Node{AST.NorgDocument})
     m("div", class = "norg", [codegen(t, c) for c in children(node)])
 end
@@ -63,6 +64,32 @@ end
 
 codegen(::HTMLTarget, node::AST.Node{AST.Word}) = node.data.value
 codegen(::HTMLTarget, node::AST.Node{AST.Escape}) = node.data.value
+
+function codegen(t::HTMLTarget, node::AST.Node{AST.Link})
+    target = codegen(t, first(node.children))
+    if length(node.children) > 1
+        text = codegen(t, last(node.children))
+    else
+        text = codegen(t, first(node.children))
+    end
+    m("a", href=target, text)
+end
+
+function codegen(::HTMLTarget, node::AST.Node{AST.URLLocation})
+    res = []
+    for c in children(node)
+        push!(res, c.data.value)
+    end
+    join(res)
+end
+
+function codegen(t::HTMLTarget, node::AST.Node{AST.LinkDescription})
+    res = []
+    for c in children(node)
+        push!(res, codegen(t, c))
+    end
+    res
+end
 
 export HTMLTarget
 
