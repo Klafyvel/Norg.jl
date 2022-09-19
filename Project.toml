@@ -10,6 +10,7 @@ Hyperscript = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
 
 [compat]
 Compat = "3.46, 4"
+Hyperscript = "0.0.4"
 julia = "1"
 
 [extras]
