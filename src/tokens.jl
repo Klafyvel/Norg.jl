@@ -12,21 +12,24 @@ struct Whitespace <: AbstractWhitespace end
 abstract type AbstractPunctuation <: TokenType end
 struct Punctuation <: AbstractPunctuation end
 struct BackSlash <: AbstractPunctuation end
-abstract type AttachedModifierPunctuation <: AbstractPunctuation end
-struct Star <: AttachedModifierPunctuation end
-struct Slash <: AttachedModifierPunctuation end
-struct Underscore <: AttachedModifierPunctuation end
-struct Minus <: AttachedModifierPunctuation end
-struct ExclamationMark <: AttachedModifierPunctuation end
-struct Circumflex <: AttachedModifierPunctuation end
-struct Comma <: AttachedModifierPunctuation end
-struct BackApostrophe <: AttachedModifierPunctuation end
+struct Star <: AbstractPunctuation end
+struct Slash <: AbstractPunctuation end
+struct Underscore <: AbstractPunctuation end
+struct Minus <: AbstractPunctuation end
+struct ExclamationMark <: AbstractPunctuation end
+struct Circumflex <: AbstractPunctuation end
+struct Comma <: AbstractPunctuation end
+struct BackApostrophe <: AbstractPunctuation end
 
-abstract type LinkPunctuation <: AbstractPunctuation end
-struct LeftBrace <: LinkPunctuation end
-struct RightBrace <: LinkPunctuation end
-struct LeftSquareBracket <: LinkPunctuation end
-struct RightSquareBracket <: LinkPunctuation end
+struct LeftBrace <: AbstractPunctuation end
+struct RightBrace <: AbstractPunctuation end
+struct LeftSquareBracket <: AbstractPunctuation end
+struct RightSquareBracket <: AbstractPunctuation end
+
+struct Tilde <: AbstractPunctuation end
+struct GreaterThanSign <: AbstractPunctuation end
+struct CommercialAtSign <: AbstractPunctuation end
+struct EqualSign <: AbstractPunctuation end
 
 struct Word <: TokenType end
 

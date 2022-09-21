@@ -96,6 +96,14 @@ end
 function scan(t::Tokens.RightSquareBracket, input; kwargs...)
     scan(']', t, input; kwargs...)
 end
+scan(t::Tokens.Tilde, input; kwargs...) = scan('~', t, input; kwargs...)
+function scan(t::Tokens.GreaterThanSign, input; kwargs...)
+    scan('>', t, input; kwargs...)
+end
+function scan(t::Tokens.CommercialAtSign, input; kwargs...)
+    scan('@', t, input; kwargs...)
+end
+scan(t::Tokens.EqualSign, input; kwargs...) = scan('=', t, input; kwargs...)
 
 include("assets/norg_whitespace.jl")
 function scan(::Tokens.Whitespace, input; line = nothing, charnum = nothing)
@@ -149,6 +157,10 @@ const REGISTERED_TOKENTYPES = [
     Tokens.RightBrace(),
     Tokens.LeftSquareBracket(),
     Tokens.RightSquareBracket(),
+    Tokens.Tilde(),
+    Tokens.GreaterThanSign(),
+    Tokens.CommercialAtSign(),
+    Tokens.EqualSign(),
     Tokens.LineEnding(),
     Tokens.Whitespace(),
     Tokens.Punctuation(),
