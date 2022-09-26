@@ -9,6 +9,7 @@ Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 Hyperscript = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
 
 [compat]
+AbstractTrees = "0.4"
 Compat = "3.46, 4"
 julia = "1"
 
