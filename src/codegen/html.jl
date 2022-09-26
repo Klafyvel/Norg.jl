@@ -72,7 +72,7 @@ function codegen(t::HTMLTarget, node::AST.Node{AST.Link})
     else
         text = codegen(t, first(node.children))
     end
-    m("a", href=target, text)
+    m("a", href = target, text)
 end
 
 function codegen(::HTMLTarget, node::AST.Node{AST.URLLocation})

@@ -22,9 +22,9 @@ end
 
 Consume tokens until a token of type T is encountered, or final token is reached.
 """
-function consume_until(::Type{T}, tokens, i) where T<:Tokens.TokenType
+function consume_until(::Type{T}, tokens, i) where {T <: Tokens.TokenType}
     token = get(tokens, i, nothing)
-    while i<lastindex(tokens) && !(token isa Token{T})
+    while i < lastindex(tokens) && !(token isa Token{T})
         i = nextind(tokens, i)
         token = tokens[i]
     end
@@ -54,7 +54,8 @@ end
 function parse_norg(::Type{AST.NorgDocument}, tokens, i)
     paragraphs = AST.Node[]
     while i <= lastindex(tokens)
-        i, paragraph = parse_norg(AST.FirstClassNode, tokens, i, [AST.NorgDocument])
+        i, paragraph = parse_norg(AST.FirstClassNode, tokens, i,
+                                  [AST.NorgDocument])
         if !isnothing(paragraph)
             push!(paragraphs, paragraph)
         end
@@ -70,10 +71,10 @@ function parse_norg(::Type{AST.FirstClassNode}, tokens, i, parents)
         i, nothing
     elseif m <: AST.Heading
         parse_norg(m, tokens, i, parents)
-    elseif m <: AST.HorizontalRule 
+    elseif m <: AST.HorizontalRule
         i = consume_until(Tokens.LineEnding, tokens, i)
         i, AST.Node(AST.Node[], m())
-    elseif m <: AST.DelimitingModifier 
+    elseif m <: AST.DelimitingModifier
         i = consume_until(Tokens.LineEnding, tokens, i)
         i, nothing
     else
@@ -92,7 +93,7 @@ function parse_norg(::Type{AST.Paragraph}, tokens, i, parents)
             break
         else
             i, segment = parse_norg(AST.ParagraphSegment, tokens, i,
-                                [AST.Paragraph, parents...])
+                                    [AST.Paragraph, parents...])
             push!(segments, segment)
         end
         if i <= lastindex(tokens) && tokens[i] isa Token{Tokens.LineEnding}
@@ -111,7 +112,7 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i, parents)
         if isnothing(m)
             i = nextind(tokens, i)
             break
-        elseif m <: AST.DelimitingModifier 
+        elseif m <: AST.DelimitingModifier
             break
         elseif m <: AST.Heading
             break
@@ -248,7 +249,9 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
         heading_level += 1
     end
     if token isa Token{Tokens.Whitespace}
-        i, title_segment = parse_norg(AST.ParagraphSegment, tokens, nextind(tokens, i), [AST.Heading, parents...])
+        i, title_segment = parse_norg(AST.ParagraphSegment, tokens,
+                                      nextind(tokens, i),
+                                      [AST.Heading, parents...])
         children = AST.Node[]
         while i < lastindex(tokens)
             token = get(tokens, i, nothing)
@@ -257,7 +260,7 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
                 break
             elseif m <: AST.Heading
                 i, child = parse_norg(m, tokens, i, [t, parents...])
-            elseif m <: AST.WeakDelimitingModifier 
+            elseif m <: AST.WeakDelimitingModifier
                 i = consume_until(Tokens.LineEnding, tokens, i)
                 break
             elseif m <: AST.StrongDelimitingModifier
@@ -269,7 +272,7 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
         end
         i, AST.Node(children, t(title_segment))
     else # if the stars are not followed by a whitespace, toss them aside and fall back on a paragraph.
-            parse_norg(AST.Paragraph, tokens, i, parents)
+        parse_norg(AST.Paragraph, tokens, i, parents)
     end
 end
 

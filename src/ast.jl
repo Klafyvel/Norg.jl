@@ -64,26 +64,26 @@ function printnode(io::IO, t::Node{ParagraphSegment})
     for child in t.children
         if child isa Node{Word}
             write(io, child.data.value)
-        else 
+        else
             printnode(io, child)
         end
     end
     write(io, "\")")
 end
-printnode(io::IO, n) = AbstractTrees.printnode(io,n)
+printnode(io::IO, n) = AbstractTrees.printnode(io, n)
 
 Base.show(io::IO, t::Node) = print_tree(printnode, io, t)
 Base.show(io::IO, t::Node{ParagraphSegment}) = printnode(io, t)
-function AbstractTrees.print_tree(f::Function, io::IO, t::Node{ParagraphSegment}; kw...)
+function AbstractTrees.print_tree(f::Function, io::IO,
+                                  t::Node{ParagraphSegment}; kw...)
     write(io, "ParagraphSegment(\"")
     for child in t.children
         if child isa Node{Word}
             write(io, child.data.value)
-        else 
+        else
             f(io, child)
         end
     end
     write(io, "\")\n")
 end
 end
-
