@@ -11,6 +11,7 @@ using AbstractTrees
         include("ast_tests/test_markup.jl")
         include("ast_tests/test_paragraphs.jl")
         include("ast_tests/test_links.jl")
+        include("ast_tests/test_headings.jl")
     end
     @testset "codegen.jl" begin include("codegen_tests/html.jl") end
 end
