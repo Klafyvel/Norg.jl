@@ -1,5 +1,10 @@
 """
-This module defines the [`Parser.parse`](@ref) function, which builds an AST from a token list.
+This module defines the [`Norg.Parser.parse_norg`](@ref) function, which builds
+an AST from a token list.
+
+The role of [`Norg.Parser.parse`](@ref) is to *consume* tokens. To do so, it 
+relies on [`Norg.Match.match_norg`](@ref) to take decisions on how to consume
+tokens.
 """
 module Parser
 
@@ -66,17 +71,18 @@ end
 function parse_norg(::Type{AST.FirstClassNode}, tokens, i, parents)
     token = get(tokens, i, nothing)
     m = match_norg(token, parents, tokens, i)
-    if isnothing(m)
-        i = nextind(tokens, i)
-        i, nothing
-    elseif m <: AST.Heading
-        parse_norg(m, tokens, i, parents)
-    elseif m <: AST.HorizontalRule
+    if isclosing(m) && matched(m) == AST.Paragraph
+        nextind(tokens, i), nothing
+    elseif isclosing(m)
+        @error "Closing token when parsing first class node" token m
+        error("This is a bug, please report it along with the text you are trying to parse.")
+    end
+    to_parse = matched(m)
+    if to_parse <: AST.Heading
+        parse_norg(to_parse, tokens, i, parents)
+    elseif to_parse <: AST.DelimitingModifier
         i = consume_until(Tokens.LineEnding, tokens, i)
-        i, AST.Node(AST.Node[], m())
-    elseif m <: AST.DelimitingModifier
-        i = consume_until(Tokens.LineEnding, tokens, i)
-        i, nothing
+        i, AST.Node(AST.Node[], to_parse())
     else
         parse_norg(AST.Paragraph, tokens, i, parents)
     end
@@ -84,47 +90,64 @@ end
 
 function parse_norg(::Type{AST.Paragraph}, tokens, i, parents)
     segments = AST.Node[]
+    m = Match.MatchClosing{AST.Paragraph}()
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, [AST.Paragraph, parents...], tokens, i)
-        if m <: AST.DelimitingModifier
+        if isclosing(m)
             break
-        elseif m <: AST.Heading
+        end
+        to_parse = matched(m)
+        if to_parse <: AST.DelimitingModifier
+            break
+        elseif to_parse <: AST.Heading
             break
         else
             i, segment = parse_norg(AST.ParagraphSegment, tokens, i,
                                     [AST.Paragraph, parents...])
-            push!(segments, segment)
+            if segment isa Vector 
+                append!(segments, segment)
+            else
+                push!(segments, segment)
+            end
         end
-        if i <= lastindex(tokens) && tokens[i] isa Token{Tokens.LineEnding}
-            i = nextind(tokens, i)
-            break
-        end
+    end
+    if isclosing(m) && matched(m) == AST.Paragraph
+        i = nextind(tokens, i)
     end
     i, AST.Node(segments, AST.Paragraph())
 end
 
 function parse_norg(::Type{AST.ParagraphSegment}, tokens, i, parents)
     children = AST.Node[]
+    m = Match.MatchClosing{AST.ParagraphSegment}()
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, [AST.ParagraphSegment, parents...], tokens, i)
-        if isnothing(m)
-            i = nextind(tokens, i)
-            break
-        elseif m <: AST.DelimitingModifier
-            break
-        elseif m <: AST.Heading
+        if isclosing(m)
             break
         end
-        i, node = parse_norg(m, tokens, i, [AST.ParagraphSegment, parents...])
+        to_parse = matched(m)
+        if to_parse <: AST.DelimitingModifier
+            break
+        elseif to_parse <: AST.Heading
+            break
+        end
+        i, node = parse_norg(to_parse, tokens, i, [AST.ParagraphSegment, parents...])
         if node isa Vector{AST.Node}
             append!(children, node)
         elseif !isnothing(node)
             push!(children, node)
         end
     end
-    i, AST.Node(children, AST.ParagraphSegment())
+    if isclosing(m) && matched(m) == AST.ParagraphSegment
+        i = nextind(tokens, i)
+    end
+    if matched(m) == AST.WeakDelimitingModifier
+        i, [AST.Node(children, AST.ParagraphSegment()), AST.Node(AST.Node[], AST.WeakDelimitingModifier())]
+    else
+        i, AST.Node(children, AST.ParagraphSegment())
+    end
 end
 
 function parse_norg(::Type{T}, tokens, i,
@@ -132,20 +155,21 @@ function parse_norg(::Type{T}, tokens, i,
     children = AST.Node[]
     opening_token = tokens[i]
     i = nextind(tokens, i)
+    m = Match.MatchClosing{T}()
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, [T, parents...], tokens, i)
-        if isnothing(m)
+        if isclosing(m)
             break
         end
-        i, node = parse_norg(m, tokens, i, [T, parents...])
+        i, node = parse_norg(matched(m), tokens, i, [T, parents...])
         if node isa Vector{AST.Node}
             append!(children, node)
         elseif !isnothing(node)
             push!(children, node)
         end
     end
-    if i > lastindex(tokens) || value(tokens[i]) != value(opening_token) # we've been tricked in thincking we were in a modifier.
+    if i > lastindex(tokens) || (isclosing(m) && matched(m) != T) # we've been tricked in thincking we were in a modifier.
         pushfirst!(children, AST.Node(AST.Word(value(opening_token))))
         i, children
     elseif isempty(children)
@@ -158,14 +182,12 @@ function parse_norg(::Type{T}, tokens, i,
 end
 
 function parse_norg(::Type{AST.Escape}, tokens, i, parents)
-    begin
         next_i = nextind(tokens, i)
         if get(tokens, next_i, nothing) isa Union{Token{Tokens.Word}, Nothing}
             next_i, nothing
         else
             nextind(tokens, next_i), AST.Node(AST.Escape(value(tokens[next_i])))
         end
-    end
 end
 
 function parse_norg(::Type{AST.Link}, tokens, i, parents)
@@ -198,10 +220,10 @@ function parse_norg(::Type{U}, tokens, i, parents) where {U <: AST.LinkLocation}
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, [U, parents...], tokens, i)
-        if isnothing(m)
+        if isclosing(m)
             break
         end
-        i, node = parse_norg(m, tokens, i, [U, parents...])
+        i, node = parse_norg(matched(m), tokens, i, [U, parents...])
         push!(children, node)
     end
     if i > lastindex(tokens) || tokens[i] isa Tokens.LineEnding
@@ -217,10 +239,10 @@ function parse_norg(::Type{AST.LinkDescription}, tokens, i, parents)
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, [AST.LinkDescription, parents...], tokens, i)
-        if isnothing(m)
+        if isclosing(m)
             break
         end
-        i, node = parse_norg(m, tokens, i, [AST.LinkDescription, parents...])
+        i, node = parse_norg(matched(m), tokens, i, [AST.LinkDescription, parents...])
         if node isa Vector{AST.Node}
             append!(children, node)
         else
@@ -253,22 +275,30 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
                                       nextind(tokens, i),
                                       [AST.Heading, parents...])
         children = AST.Node[]
+        m = Match.MatchClosing{AST.Heading{T}}()
         while i < lastindex(tokens)
             token = get(tokens, i, nothing)
             m = match_norg(token, [t, parents...], tokens, i)
-            if isnothing(m)
+            if isclosing(m)
                 break
-            elseif m <: AST.Heading
-                i, child = parse_norg(m, tokens, i, [t, parents...])
-            elseif m <: AST.WeakDelimitingModifier
+            end
+            to_parse = matched(m)
+            if to_parse <: AST.Heading
+                i, child = parse_norg(to_parse, tokens, i, [t, parents...])
+            elseif to_parse <: AST.WeakDelimitingModifier
                 i = consume_until(Tokens.LineEnding, tokens, i)
+                push!(children, AST.Node(AST.Node[], AST.WeakDelimitingModifier()))
                 break
-            elseif m <: AST.StrongDelimitingModifier
+            elseif to_parse <: AST.StrongDelimitingModifier
                 break
             else
                 i, child = parse_norg(AST.Paragraph, tokens, i, [t, parents...])
             end
-            push!(children, child)
+            if child isa Vector
+                append!(children, child)
+            else
+                push!(children, child)
+            end
         end
         i, AST.Node(children, t(title_segment))
     else # if the stars are not followed by a whitespace, toss them aside and fall back on a paragraph.

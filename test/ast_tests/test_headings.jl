@@ -92,10 +92,11 @@ end
 
     ast = parse(Norg.AST.NorgDocument, s)
 
-    p1, h1, p2 = children(ast)
+    p1, h1, strong_delimiter, p2 = children(ast)
 
     @test p1 isa Node{Norg.AST.Paragraph}
     @test h1 isa Node{Norg.AST.Heading{1}}
+    @test strong_delimiter isa Node{Norg.AST.StrongDelimitingModifier}
     @test p2 isa Node{Norg.AST.Paragraph}
 
     h2, p1, h3, p2, h3bis = children(h1)
@@ -105,8 +106,9 @@ end
     @test p2 isa Node{Norg.AST.Paragraph}
     @test h3bis isa Node{Norg.AST.Heading{3}}
 
-    p = first(children(h2))
+    p, weak_delimiter = children(h2)
     @test p isa Node{Norg.AST.Paragraph}
+    @test weak_delimiter isa Node{Norg.AST.WeakDelimitingModifier}
 end
 
 @testset "Malformed indentation reversion" begin

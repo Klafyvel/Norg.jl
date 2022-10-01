@@ -20,8 +20,8 @@ include("tokens.jl")
 include("scanners.jl")
 include("tokenize.jl")
 include("ast.jl")
-include("match.jl")
-include("parser.jl")
+include("match/match.jl")
+include("parser/parser.jl")
 include("codegen.jl")
 
 using .Tokens
