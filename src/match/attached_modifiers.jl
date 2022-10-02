@@ -19,6 +19,10 @@ const AllowedAfterAttachedModifier = Union{Token{Tokens.Whitespace},
                                            Token{<:Tokens.AbstractPunctuation},
                                            Nothing}
 
+function match_norg(ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
+    match_norg(first(parents), ast_node, token, parents, tokens, i)
+end
+
 function match_norg(::Type{AST.NorgDocument}, ast_node, token, parents, tokens, i)
     match_norg(AST.ParagraphSegment, ast_node, token, parents, tokens, i)
 end

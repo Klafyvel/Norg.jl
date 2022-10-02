@@ -71,11 +71,11 @@ end
 function parse_norg(::Type{AST.FirstClassNode}, tokens, i, parents)
     token = get(tokens, i, nothing)
     m = match_norg(token, parents, tokens, i)
-    if isclosing(m) && matched(m) == AST.Paragraph
-        nextind(tokens, i), nothing
-    elseif isclosing(m)
+    if isclosing(m)
         @error "Closing token when parsing first class node" token m
         error("This is a bug, please report it along with the text you are trying to parse.")
+    elseif iscontinue(m)
+        return nextind(tokens, i), nothing
     end
     to_parse = matched(m)
     if to_parse <: AST.Heading
@@ -83,6 +83,8 @@ function parse_norg(::Type{AST.FirstClassNode}, tokens, i, parents)
     elseif to_parse <: AST.DelimitingModifier
         i = consume_until(Tokens.LineEnding, tokens, i)
         i, AST.Node(AST.Node[], to_parse())
+    elseif to_parse <: AST.NestableDetachedModifier
+        parse_norg(to_parse, tokens, i, parents)
     else
         parse_norg(AST.Paragraph, tokens, i, parents)
     end
@@ -96,6 +98,9 @@ function parse_norg(::Type{AST.Paragraph}, tokens, i, parents)
         m = match_norg(token, [AST.Paragraph, parents...], tokens, i)
         if isclosing(m)
             break
+        elseif iscontinue(m)
+            i = nextind(tokens, i)
+            continue
         end
         to_parse = matched(m)
         if to_parse <: AST.DelimitingModifier
@@ -112,7 +117,7 @@ function parse_norg(::Type{AST.Paragraph}, tokens, i, parents)
             end
         end
     end
-    if isclosing(m) && matched(m) == AST.Paragraph
+    if isclosing(m) && matched(m) == AST.Paragraph && m.consume
         i = nextind(tokens, i)
     end
     i, AST.Node(segments, AST.Paragraph())
@@ -140,7 +145,7 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i, parents)
             push!(children, node)
         end
     end
-    if isclosing(m) && matched(m) == AST.ParagraphSegment
+    if isclosing(m) && matched(m) == AST.ParagraphSegment && m.consume
         i = nextind(tokens, i)
     end
     if matched(m) == AST.WeakDelimitingModifier
@@ -291,6 +296,8 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
                 break
             elseif to_parse <: AST.StrongDelimitingModifier
                 break
+            elseif to_parse <: AST.NestableDetachedModifier
+                i, child = parse_norg(to_parse, tokens, i, [t, parents...])
             else
                 i, child = parse_norg(AST.Paragraph, tokens, i, [t, parents...])
             end
@@ -304,6 +311,35 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
     else # if the stars are not followed by a whitespace, toss them aside and fall back on a paragraph.
         parse_norg(AST.Paragraph, tokens, i, parents)
     end
+end
+
+function parse_norg(t::Type{<:AST.NestableDetachedModifier{level}}, tokens, i, parents) where {level}
+    token = get(tokens, i, nothing)
+
+    children = AST.Node[]
+    while i < lastindex(tokens)
+        token = get(tokens, i, nothing)
+        m = match_norg(token, [t, parents...], tokens, i)
+        if isclosing(m)
+            if m.consume
+                i = nextind(tokens, i)
+            end
+            break
+        elseif iscontinue(m)
+            if token isa Token{Tokens.Whitespace} # consume leading whitespace
+                i = nextind(tokens, i)
+                token = get(tokens, i, nothing)
+            end
+            # Consume tokens creating the delimiter
+            i = consume_until(Tokens.Whitespace, tokens, i)
+            to_parse = AST.Paragraph 
+        else
+            to_parse = matched(m)
+        end
+        i, child = parse_norg(to_parse, tokens, i, [t, parents...])
+        push!(children, child)
+    end
+    i, AST.Node(children, t())
 end
 
 function parse_norg(::Type{AST.Word}, tokens, i, parents)

@@ -7,10 +7,15 @@ using ..Tokens
 
 abstract type MatchResult end
 struct MatchNotFound <: MatchResult end
-struct MatchClosing{T<:AST.NodeData} <: MatchResult end
+struct MatchClosing{T<:AST.NodeData} <: MatchResult 
+    consume::Bool
+end
+MatchClosing{T}() where {T} = MatchClosing{T}(true)
 struct MatchFound{T<:AST.NodeData} <: MatchResult end
+struct MatchContinue <: MatchResult end
 
 isclosing(m) = m isa MatchClosing
+iscontinue(m) = m isa MatchContinue
 matched(::MatchClosing{T}) where {T} = T
 matched(::MatchFound{T}) where {T} = T
 
@@ -47,7 +52,16 @@ function match_norg(::Token{Tokens.Whitespace}, parents, tokens, i)
         elseif next_token isa Token{Tokens.EqualSign}
             match_norg(AST.DelimitingModifier, next_token, parents, tokens, nextind(tokens, i))
         elseif next_token isa Token{Tokens.Minus}
-            match_norg(AST.DelimitingModifier, next_token, parents, tokens, nextind(tokens, i))
+            m_t = match_norg(AST.DelimitingModifier, next_token, parents, tokens, nextind(tokens, i))
+            if m_t isa MatchNotFound 
+                match_norg(AST.UnorderedList, next_token, parents, tokens, nextind(tokens, i))
+            else
+                m_t
+            end
+        elseif next_token isa Token{Tokens.Tilde}
+            match_norg(AST.OrderedList, next_token, parents, tokens, nextind(tokens, i))
+        elseif next_token isa Token{Tokens.GreaterThanSign}
+            match_norg(AST.GreaterThanSign, next_token, parents, tokens, nextind(tokens, i))
         else
             MatchFound{AST.Word}()
         end
@@ -63,8 +77,11 @@ end
 
 function match_norg(::Token{Tokens.LineEnding}, parents, tokens, i)
     prev_token = get(tokens, prevind(tokens, i), nothing)
-    if prev_token isa Token{Tokens.LineEnding}
-        MatchClosing{AST.Paragraph}()
+    if first(parents) == AST.NorgDocument 
+        MatchContinue()
+    elseif prev_token isa Token{Tokens.LineEnding}
+        nestable_parents = filter(x->x<:AST.NestableDetachedModifier, parents[2:end])
+        MatchClosing{first(parents)}(length(nestable_parents)==0)
     elseif any(isa.(parents, AST.AttachedModifier))
         MatchFound{AST.Word}()
     else
@@ -79,13 +96,13 @@ function match_norg(t::Token{Tokens.Star}, parents, tokens, i)
         m = match_norg(AST.Heading, t, parents, tokens, i)
     end
     if m isa MatchNotFound
-        m = match_norg(parents[1], AST.Bold, t, parents, tokens, i)
+        m = match_norg(AST.Bold, t, parents, tokens, i)
     end
     m
 end
 
 function match_norg(t::Token{Tokens.Slash}, parents, tokens, i)
-    match_norg(parents[1], AST.Italic, t, parents, tokens, i)
+    match_norg(AST.Italic, t, parents, tokens, i)
 end
 
 function match_norg(t::Token{Tokens.Underscore}, parents, tokens, i)
@@ -93,43 +110,45 @@ function match_norg(t::Token{Tokens.Underscore}, parents, tokens, i)
     if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
         m = match_norg(AST.DelimitingModifier, t, parents, tokens, i)
         if m isa MatchNotFound
-            match_norg(parents[1], AST.Underline, t, parents, tokens, i)
+            match_norg(AST.Underline, t, parents, tokens, i)
         else
             m
         end
     else
-        match_norg(parents[1], AST.Underline, t, parents, tokens, i)
+        match_norg(AST.Underline, t, parents, tokens, i)
     end
 end
 
 function match_norg(t::Token{Tokens.Minus}, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
     if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
-        m = match_norg(AST.DelimitingModifier, t, parents, tokens, i)
-        if m isa MatchNotFound
-            match_norg(parents[1], AST.Strikethrough, t, parents, tokens, i)
-        else
-            m
+        possible_node = [AST.DelimitingModifier, AST.UnorderedList, AST.Strikethrough]
+        for node ∈ possible_node 
+            m = match_norg(node, t, parents, tokens, i)
+            if !(m isa MatchNotFound)
+                return m
+            end
         end
+        AST.Word
     else
-        match_norg(parents[1], AST.Strikethrough, t, parents, tokens, i)
+        match_norg(AST.Strikethrough, t, parents, tokens, i)
     end
 end
 
 function match_norg(t::Token{Tokens.ExclamationMark}, parents, tokens, i)
-    match_norg(parents[1], AST.Spoiler, t, parents, tokens, i)
+    match_norg(AST.Spoiler, t, parents, tokens, i)
 end
 
 function match_norg(t::Token{Tokens.Circumflex}, parents, tokens, i)
-    match_norg(parents[1], AST.Superscript, t, parents, tokens, i)
+    match_norg(AST.Superscript, t, parents, tokens, i)
 end
 
 function match_norg(t::Token{Tokens.Comma}, parents, tokens, i)
-    match_norg(parents[1], AST.Subscript, t, parents, tokens, i)
+    match_norg(AST.Subscript, t, parents, tokens, i)
 end
 
 function match_norg(t::Token{Tokens.BackApostrophe}, parents, tokens, i)
-    match_norg(parents[1], AST.InlineCode, t, parents, tokens, i)
+    match_norg(AST.InlineCode, t, parents, tokens, i)
 end
 
 match_norg(::Token{Tokens.BackSlash}, parents, tokens, i) = MatchFound{AST.Escape}()
@@ -187,5 +206,33 @@ function match_norg(::Token{Tokens.LeftSquareBracket}, parents, tokens, i)
     end
 end
 
-export match_norg, isclosing, matched
+function match_norg(t::Token{Tokens.Tilde}, parents, tokens, i)
+    prev_token = get(tokens, i - 1, nothing)
+    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
+        m = match_norg(AST.OrderedList, t, parents, tokens, i)
+        if m isa MatchNotFound 
+            AST.Word
+        else
+            m
+        end
+    else
+        AST.Word
+    end
+end
+
+function match_norg(t::Token{Tokens.GreaterThanSign}, parents, tokens, i)
+    prev_token = get(tokens, i - 1, nothing)
+    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
+        m = match_norg(AST.Quote, t, parents, tokens, i)
+        if m isa MatchNotFound 
+            AST.Word
+        else
+            m
+        end
+    else
+        AST.Word
+    end
+end
+
+export match_norg, isclosing, iscontinue, matched
 end

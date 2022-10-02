@@ -52,12 +52,20 @@ struct Heading{T} <: StructuralDetachedModifier
 end
 headinglevel(::Type{Heading{T}}) where {T} = T
 
-const FirstClassNode = Union{Paragraph, StructuralDetachedModifier}
-
 abstract type DelimitingModifier <: DetachedModifier end
 struct WeakDelimitingModifier <: DelimitingModifier end
 struct StrongDelimitingModifier <: DelimitingModifier end
 struct HorizontalRule <: DelimitingModifier end
+
+abstract type NestableDetachedModifier{T} <: DetachedModifier end
+struct UnorderedList{T} <: NestableDetachedModifier{T} end
+struct OrderedList{T} <: NestableDetachedModifier{T} end
+struct Quote{T} <: NestableDetachedModifier{T} end
+nestlevel(::Type{<:NestableDetachedModifier{T}}) where {T} = T
+
+
+"""Type of nodes that can be direct child of a NorgDocument"""
+const FirstClassNode = Union{Paragraph, StructuralDetachedModifier, NestableDetachedModifier, StrongDelimitingModifier}
 
 function printnode(io::IO, t::Node{ParagraphSegment})
     write(io, "ParagraphSegment(\"")

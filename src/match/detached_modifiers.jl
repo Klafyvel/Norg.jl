@@ -1,4 +1,8 @@
 function match_norg(::Type{AST.Heading}, token, parents, tokens, i)
+    nestable_parents = filter(x->x <: AST.NestableDetachedModifier, parents)
+    if length(nestable_parents) > 0
+        return MatchClosing{first(nestable_parents)}(false)
+    end
     new_i = i
     heading_level = 0
     while new_i < lastindex(tokens) &&
@@ -39,13 +43,40 @@ function match_norg(::Type{AST.DelimitingModifier}, ::Token{T}, parents, tokens,
                 is_delimiting = false
                 break
             end
-            new_i = nextind(tokens, next_next_i)
+            new_i = nextind(tokens, new_i)
             token = get(tokens, new_i, nothing)
         end
         if is_delimiting
             MatchFound{delimitingmodifier(T)}()
         else
             MatchNotFound()
+        end
+    else
+        MatchNotFound()
+    end
+end
+
+function match_norg(nodetype::Type{<:AST.NestableDetachedModifier}, ::Token{T}, parents, tokens, i) where {T}
+    new_i = i
+    nest_level = 0
+    while new_i < lastindex(tokens) &&
+        get(tokens, new_i, nothing) isa Token{T}
+        new_i = nextind(tokens, new_i)
+        nest_level += 1
+    end
+    next_token = get(tokens, new_i, nothing)
+    if next_token isa Token{Tokens.Whitespace}
+        previous_nest_level = AST.nestlevel.(filter(x -> x <: AST.NestableDetachedModifier,
+                                                          parents))
+        if any(previous_nest_level .> nest_level)
+            closing_level = first(previous_nest_level[previous_nest_level .>= nest_level])
+            MatchClosing{nodetype{closing_level}}(false)
+        elseif first(parents) == nodetype{nest_level}
+            MatchContinue()
+        elseif first(parents) == AST.Paragraph
+            MatchClosing{first(parents)}(false)
+        else
+            MatchFound{nodetype{nest_level}}()
         end
     else
         MatchNotFound()

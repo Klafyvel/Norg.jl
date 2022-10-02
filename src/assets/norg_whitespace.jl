@@ -1,5 +1,5 @@
 const NORG_WHITESPACES = Set(Char[0x0009, # tab
-                                  0x000A, # line feed
+                                  # 0x000A, # line feed
                                   0x000C, # form feed
                                   0x000D, # carriage return
                                   0x0020, # space
