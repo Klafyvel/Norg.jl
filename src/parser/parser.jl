@@ -96,6 +96,7 @@ function parse_norg(::Type{AST.Paragraph}, tokens, i, parents)
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, [AST.Paragraph, parents...], tokens, i)
+        @debug "Paragraph loop" token m
         if isclosing(m)
             break
         elseif iscontinue(m)

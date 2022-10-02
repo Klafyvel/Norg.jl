@@ -129,7 +129,7 @@ function match_norg(t::Token{Tokens.Minus}, parents, tokens, i)
                 return m
             end
         end
-        AST.Word
+        MatchFound{AST.Word}()
     else
         match_norg(AST.Strikethrough, t, parents, tokens, i)
     end
@@ -211,12 +211,12 @@ function match_norg(t::Token{Tokens.Tilde}, parents, tokens, i)
     if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
         m = match_norg(AST.OrderedList, t, parents, tokens, i)
         if m isa MatchNotFound 
-            AST.Word
+            MatchFound{AST.Word}()
         else
             m
         end
     else
-        AST.Word
+        MatchFound{AST.Word}()
     end
 end
 
@@ -225,12 +225,12 @@ function match_norg(t::Token{Tokens.GreaterThanSign}, parents, tokens, i)
     if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
         m = match_norg(AST.Quote, t, parents, tokens, i)
         if m isa MatchNotFound 
-            AST.Word
+            MatchFound{AST.Word}()
         else
             m
         end
     else
-        AST.Word
+        MatchFound{AST.Word}()
     end
 end
 
