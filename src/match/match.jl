@@ -194,7 +194,7 @@ function match_norg(::Token{Tokens.RightSquareBracket}, parents, tokens, i)
 end
 
 function match_norg(::Token{Tokens.LeftSquareBracket}, parents, tokens, i)
-    if AST.LinkDescription ∈ parents || AST.LinkLocation ∈ parents
+    if AST.LinkDescription ∈ parents || AST.LinkLocation ∈ parents || AST.Link ∉ parents
         return MatchFound{AST.Word}()
     end
     prev_i = prevind(tokens, i)
