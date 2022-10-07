@@ -59,51 +59,51 @@ julia> parse(HTMLTarget, s) |> Pretty
 ## Roadmap
 
 ```
-  - [-] Layer 2 support
-  -- [x] Headings
-  -- [x] Nestable Detached Modifiers (quotes and lists)
-  -- [ ] Linkables (everything except timestamps, wiki links) and anchors
-  -- [ ] Verbatim ranged tags
-  -- [x] Delimiting modifiers
+  - (-) Layer 2 support
+  -- (x) Headings
+  -- (x) Nestable Detached Modifiers (quotes and lists)
+  -- ( ) Linkables (everything except timestamps, wiki links) and anchors
+  -- (x) Verbatim ranged tags
+  -- (x) Delimiting modifiers
   #waiting.for Layer 2 support
-  - [ ] Layer 3 Support
-  -- [ ] Timestamp links and inline link targets
-  -- [ ] Carryover tags
-  -- [ ] Detached modifier extensions
-  -- [ ] Range-able detached modifiers, excluding table cells
-  -- [ ] Trailing modifiers
-  -- [ ] Link modifiers
+  - ( ) Layer 3 Support
+  -- ( ) Timestamp links and inline link targets
+  -- ( ) Carryover tags
+  -- ( ) Detached modifier extensions
+  -- ( ) Range-able detached modifiers, excluding table cells
+  -- ( ) Trailing modifiers
+  -- ( ) Link modifiers
   #waiting.for Layer 3 support
-  - [ ] Layer 4 support
-  -- [ ] Standard Ranged Tags
-  -- [ ] Table cells
-  -- [ ] Free-form attached modifiers
-  -- [ ] Intersection modifiers
-  -- [ ] Attached modifier extensions
-  -- [ ] Inline mathematics and variable attached modifiers
+  - ( ) Layer 4 support
+  -- ( ) Standard Ranged Tags
+  -- ( ) Table cells
+  -- ( ) Free-form attached modifiers
+  -- ( ) Intersection modifiers
+  -- ( ) Attached modifier extensions
+  -- ( ) Inline mathematics and variable attached modifiers
   #waiting.for Layer 4 support
-  - [ ] Layer 5 support
-  -- [ ] Interpretation/Execution of macro tags
-  -- [ ] Semantic understanding/execution of carryover tags
-  -- [ ] Evaluation of `@code` blocs for the NIP language (if they are marked with `#eval`)
+  - ( ) Layer 5 support
+  -- ( ) Interpretation/Execution of macro tags
+  -- ( ) Semantic understanding/execution of carryover tags
+  -- ( ) Evaluation of `@code` blocs for the NIP language (if they are marked with `#eval`)
   #waiting.for Layer 4 support
-  - [ ] FileIO.jl integration
-  - [ ] Various code generation
-  -- [ ] HTML
-  -- [ ] Markdown
-  -- [ ] Pandoc JSON
-  -- [ ] Julia Terminal display using julia's nice features such as `printstyled` and others.
-  -- [ ] Norg
+  - ( ) FileIO.jl integration
+  - ( ) Various code generation
+  -- ( ) HTML
+  -- ( ) Markdown
+  -- ( ) Pandoc JSON
+  -- ( ) Julia Terminal display using julia's nice features such as `printstyled` and others.
+  -- ( ) Norg
   #waiting.for Layer 4 support
-  - [ ] Consume pandoc JSON to create a Norg AST.
+  - ( ) Consume pandoc JSON to create a Norg AST.
   #waiting.for Layer 4 support
-  - [ ] Export CLI utility
+  - ( ) Export CLI utility
   #contexts someday
-  - [ ] Allow Franklin.jl to use Norg file format, because NeoVim+Julia = <3
+  - ( ) Allow Franklin.jl to use Norg file format, because NeoVim+Julia = <3
   #contexts someday
-  - [ ] Documenter.jl plugin
+  - ( ) Documenter.jl plugin
   #contexts someday
-  - [ ] Term.jl plugin
+  - ( ) Term.jl plugin
 ```
 
 ## Installation 

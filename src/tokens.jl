@@ -30,6 +30,7 @@ struct Tilde <: AbstractPunctuation end
 struct GreaterThanSign <: AbstractPunctuation end
 struct CommercialAtSign <: AbstractPunctuation end
 struct EqualSign <: AbstractPunctuation end
+struct Dot <: AbstractPunctuation end
 
 struct Word <: TokenType end
 

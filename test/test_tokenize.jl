@@ -1,5 +1,5 @@
 tokens = collect(Norg.Tokenize.tokenize("..  .\nBonjour"))
-@test tokens[1] isa Norg.Token{Norg.Tokens.Punctuation}
+@test tokens[1] isa Norg.Token{Norg.Tokens.Dot}
 @test length(tokens[1]) == 1
 @test tokens[3] isa Norg.Token{Norg.Tokens.Whitespace}
 @test length(tokens[3]) == 2

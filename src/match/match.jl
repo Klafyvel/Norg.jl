@@ -39,6 +39,7 @@ function match_norg end
 
 include("attached_modifiers.jl")
 include("detached_modifiers.jl")
+include("tags.jl")
 
 # Default to matching a word.
 match_norg(::Token, parents, tokens, i) = MatchFound{AST.Word}()
@@ -62,6 +63,8 @@ function match_norg(::Token{Tokens.Whitespace}, parents, tokens, i)
             match_norg(AST.OrderedList, next_token, parents, tokens, nextind(tokens, i))
         elseif next_token isa Token{Tokens.GreaterThanSign}
             match_norg(AST.GreaterThanSign, next_token, parents, tokens, nextind(tokens, i))
+        elseif next_token isa Token{Tokens.CommercialAtSign}
+            match_norg(AST.Verbatim, next_token, parents, tokens, nextind(tokens, i))
         else
             MatchFound{AST.Word}()
         end
@@ -228,6 +231,20 @@ function match_norg(t::Token{Tokens.GreaterThanSign}, parents, tokens, i)
             MatchFound{AST.Word}()
         else
             m
+        end
+    else
+        MatchFound{AST.Word}()
+    end
+end
+
+function match_norg(t::Token{Tokens.CommercialAtSign}, parents, tokens, i)
+    prev_token = get(tokens, prevind(tokens, i), nothing)
+    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
+        m = match_norg(AST.Verbatim, t, parents, tokens, i)
+        if m isa MatchNotFound 
+            MatchFound{AST.Word}()
+        else 
+            m 
         end
     else
         MatchFound{AST.Word}()

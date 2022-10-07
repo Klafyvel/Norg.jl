@@ -63,9 +63,19 @@ struct OrderedList{T} <: NestableDetachedModifier{T} end
 struct Quote{T} <: NestableDetachedModifier{T} end
 nestlevel(::Type{<:NestableDetachedModifier{T}}) where {T} = T
 
+abstract type Tag <: NodeData end
+abstract type RangedTag <: Tag end
+struct Verbatim <: RangedTag
+    tag::String
+    subtag::Union{String, Nothing}
+    parameters::Vector{String}
+end
+struct VerbatimBody <: NodeData
+    value::String
+end
 
 """Type of nodes that can be direct child of a NorgDocument"""
-const FirstClassNode = Union{Paragraph, StructuralDetachedModifier, NestableDetachedModifier, StrongDelimitingModifier}
+const FirstClassNode = Union{Paragraph, StructuralDetachedModifier, NestableDetachedModifier, StrongDelimitingModifier, Heading, Tag}
 
 function printnode(io::IO, t::Node{ParagraphSegment})
     write(io, "ParagraphSegment(\"")

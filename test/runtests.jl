@@ -13,6 +13,7 @@ using AbstractTrees
         include("ast_tests/test_links.jl")
         include("ast_tests/test_headings.jl")
         include("ast_tests/test_nestable_detached_modifiers.jl")
+        include("ast_tests/test_tags.jl")
         include("ast_tests/misc_bugs.jl")
     end
     @testset "codegen.jl" begin include("codegen_tests/html.jl") end

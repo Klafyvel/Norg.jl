@@ -104,6 +104,7 @@ function scan(t::Tokens.CommercialAtSign, input; kwargs...)
     scan('@', t, input; kwargs...)
 end
 scan(t::Tokens.EqualSign, input; kwargs...) = scan('=', t, input; kwargs...)
+scan(t::Tokens.Dot, input; kwargs...) = scan('.', t, input; kwargs...)
 
 include("assets/norg_whitespace.jl")
 function scan(::Tokens.Whitespace, input; line = nothing, charnum = nothing)
@@ -161,6 +162,7 @@ const REGISTERED_TOKENTYPES = [
     Tokens.GreaterThanSign(),
     Tokens.CommercialAtSign(),
     Tokens.EqualSign(),
+    Tokens.Dot(),
     Tokens.LineEnding(),
     Tokens.Whitespace(),
     Tokens.Punctuation(),
