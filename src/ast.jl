@@ -42,7 +42,32 @@ struct InlineCode <: AttachedModifier end
 
 struct Link <: NodeData end
 abstract type LinkLocation <: MatchedInline end
-struct URLLocation <: LinkLocation end
+struct URLLocation <: LinkLocation
+    target::String
+end
+struct LineNumberLocation <: LinkLocation
+    target::Int
+end
+struct DetachedModifierLocation <: LinkLocation
+    target::String
+    targetlevel::Int
+end
+abstract type CustomDetachedModifierLocation <: LinkLocation end
+struct MagicLocation <: CustomDetachedModifierLocation
+    target::String
+end
+FileLinkableLocationSubTarget = Union{Node{LineNumberLocation}, Nothing}
+struct FileLinkableLocation <: CustomDetachedModifierLocation 
+    use_neorg_root::Bool
+    target::String
+    subtarget::FileLinkableLocationSubTarget
+end
+FileLocationSubTarget = Union{Node{LineNumberLocation}, Node{DetachedModifierLocation}, Node{MagicLocation}, Nothing}
+struct FileLocation <: LinkLocation 
+    use_neorg_root::Bool
+    target::String
+    subtarget::FileLocationSubTarget
+end
 struct LinkDescription <: MatchedInline end
 
 abstract type DetachedModifier <: NodeData end

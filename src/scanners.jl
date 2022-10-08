@@ -105,6 +105,9 @@ function scan(t::Tokens.CommercialAtSign, input; kwargs...)
 end
 scan(t::Tokens.EqualSign, input; kwargs...) = scan('=', t, input; kwargs...)
 scan(t::Tokens.Dot, input; kwargs...) = scan('.', t, input; kwargs...)
+scan(t::Tokens.Colon, input; kwargs...) = scan(':', t, input; kwargs...)
+scan(t::Tokens.NumberSign, input; kwargs...) = scan('#', t, input; kwargs...)
+scan(t::Tokens.DollarSign, input; kwargs...) = scan('$', t, input; kwargs...)
 
 include("assets/norg_whitespace.jl")
 function scan(::Tokens.Whitespace, input; line = nothing, charnum = nothing)
@@ -163,6 +166,9 @@ const REGISTERED_TOKENTYPES = [
     Tokens.CommercialAtSign(),
     Tokens.EqualSign(),
     Tokens.Dot(),
+    Tokens.Colon(),
+    Tokens.NumberSign(),
+    Tokens.DollarSign(),
     Tokens.LineEnding(),
     Tokens.Whitespace(),
     Tokens.Punctuation(),

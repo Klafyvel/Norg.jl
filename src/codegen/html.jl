@@ -76,11 +76,7 @@ function codegen(t::HTMLTarget, node::AST.Node{AST.Link})
 end
 
 function codegen(::HTMLTarget, node::AST.Node{AST.URLLocation})
-    res = []
-    for c in children(node)
-        push!(res, c.data.value)
-    end
-    join(res)
+    node.data.target
 end
 
 function codegen(t::HTMLTarget, node::AST.Node{AST.LinkDescription})

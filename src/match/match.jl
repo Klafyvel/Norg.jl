@@ -40,6 +40,7 @@ function match_norg end
 include("attached_modifiers.jl")
 include("detached_modifiers.jl")
 include("tags.jl")
+include("links.jl")
 
 # Default to matching a word.
 match_norg(::Token, parents, tokens, i) = MatchFound{AST.Word}()
