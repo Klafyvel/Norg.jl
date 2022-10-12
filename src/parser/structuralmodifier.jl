@@ -28,7 +28,8 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
                 i, child = parse_norg(to_parse, tokens, i, [t, parents...])
             elseif to_parse <: AST.WeakDelimitingModifier
                 i = consume_until(Tokens.LineEnding, tokens, i)
-                push!(children, AST.Node(AST.Node[], AST.WeakDelimitingModifier()))
+                push!(children,
+                      AST.Node(AST.Node[], AST.WeakDelimitingModifier()))
                 break
             elseif to_parse <: AST.StrongDelimitingModifier
                 break
@@ -48,5 +49,3 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
         parse_norg(AST.Paragraph, tokens, i, parents)
     end
 end
-
-

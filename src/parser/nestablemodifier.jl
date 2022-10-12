@@ -1,4 +1,5 @@
-function parse_norg(t::Type{<:AST.NestableDetachedModifier{level}}, tokens, i, parents) where {level}
+function parse_norg(t::Type{<:AST.NestableDetachedModifier{level}}, tokens, i,
+                    parents) where {level}
     token = get(tokens, i, nothing)
 
     children = AST.Node[]
@@ -17,7 +18,7 @@ function parse_norg(t::Type{<:AST.NestableDetachedModifier{level}}, tokens, i, p
             end
             # Consume tokens creating the delimiter
             i = consume_until(Tokens.Whitespace, tokens, i)
-            to_parse = AST.Paragraph 
+            to_parse = AST.Paragraph
         else
             to_parse = matched(m)
         end
@@ -26,5 +27,3 @@ function parse_norg(t::Type{<:AST.NestableDetachedModifier{level}}, tokens, i, p
     end
     i, AST.Node(children, t())
 end
-
-

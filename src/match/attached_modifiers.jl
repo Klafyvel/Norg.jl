@@ -19,11 +19,13 @@ const AllowedAfterAttachedModifier = Union{Token{Tokens.Whitespace},
                                            Token{<:Tokens.AbstractPunctuation},
                                            Nothing}
 
-function match_norg(ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
+function match_norg(ast_node::Type{<:AST.AttachedModifier}, token, parents,
+                    tokens, i)
     match_norg(first(parents), ast_node, token, parents, tokens, i)
 end
 
-function match_norg(::Type{AST.NorgDocument}, ast_node, token, parents, tokens, i)
+function match_norg(::Type{AST.NorgDocument}, ast_node, token, parents, tokens,
+                    i)
     match_norg(AST.ParagraphSegment, ast_node, token, parents, tokens, i)
 end
 
@@ -31,31 +33,34 @@ function match_norg(::Type{AST.Paragraph}, ast_node, token, parents, tokens, i)
     match_norg(AST.ParagraphSegment, ast_node, token, parents, tokens, i)
 end
 
-function match_norg(::Type{AST.ParagraphSegment}, ast_node, token, parents, tokens, i)
+function match_norg(::Type{AST.ParagraphSegment}, ast_node, token, parents,
+                    tokens, i)
     next_i = nextind(tokens, i)
     next_token = get(tokens, next_i, nothing)
     prev_i = prevind(tokens, i)
     last_token = get(tokens, prev_i, nothing)
     if last_token isa AllowedBeforeAttachedModifierOpening &&
        !(next_token isa ForbiddenAfterAttachedModifierOpening)
-       MatchFound{ast_node}()
+        MatchFound{ast_node}()
     else
         MatchFound{AST.Word}()
     end
 end
 
-function match_norg(::Type{AST.LinkLocation}, ast_node, token, parents, tokens, i)
+function match_norg(::Type{AST.LinkLocation}, ast_node, token, parents, tokens,
+                    i)
     MatchFound{AST.Word}()
 end
 
-function match_norg(::Type{<:AST.MatchedInline}, ast_node, token, parents, tokens, i)
+function match_norg(::Type{<:AST.MatchedInline}, ast_node, token, parents,
+                    tokens, i)
     next_i = nextind(tokens, i)
     next_token = get(tokens, next_i, nothing)
     prev_i = prevind(tokens, i)
     last_token = get(tokens, prev_i, nothing)
     if last_token isa AllowedBeforeAttachedModifierOpening &&
        !(next_token isa ForbiddenAfterAttachedModifierOpening)
-       MatchFound{ast_node}()
+        MatchFound{ast_node}()
     elseif !(last_token isa Token{Tokens.Whitespace}) &&
            next_token isa AllowedAfterAttachedModifier
         if any(t -> tokens[i] isa Token{tokentype(t)},
@@ -80,12 +85,11 @@ function match_norg(::Type{AST.InlineCode}, ast_node, token, parents, tokens, i)
     last_token = get(tokens, prev_i, nothing)
     if last_token isa AllowedBeforeAttachedModifierOpening &&
        !(next_token isa ForbiddenAfterAttachedModifierOpening)
-       MatchFound{ast_node}()
+        MatchFound{ast_node}()
     elseif !(last_token isa Token{Tokens.Whitespace}) &&
            next_token isa AllowedAfterAttachedModifier
-           MatchClosing{ast_node}()
+        MatchClosing{ast_node}()
     else
         MatchFound{AST.Word}()
     end
 end
-

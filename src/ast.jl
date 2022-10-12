@@ -57,20 +57,22 @@ struct MagicLocation <: CustomDetachedModifierLocation
     target::String
 end
 FileLinkableLocationSubTarget = Union{Node{LineNumberLocation}, Nothing}
-struct FileLinkableLocation <: CustomDetachedModifierLocation 
+struct FileLinkableLocation <: CustomDetachedModifierLocation
     use_neorg_root::Bool
     target::String
     subtarget::FileLinkableLocationSubTarget
 end
-FileLocationSubTarget = Union{Node{LineNumberLocation}, Node{DetachedModifierLocation}, Node{MagicLocation}, Nothing}
-struct FileLocation <: LinkLocation 
+FileLocationSubTarget = Union{Node{LineNumberLocation},
+                              Node{DetachedModifierLocation},
+                              Node{MagicLocation}, Nothing}
+struct FileLocation <: LinkLocation
     use_neorg_root::Bool
     target::String
     subtarget::FileLocationSubTarget
 end
 struct LinkDescription <: MatchedInline end
 struct Anchor <: NodeData
-    has_definition
+    has_definition::Any
 end
 
 abstract type DetachedModifier <: NodeData end
@@ -102,8 +104,12 @@ struct VerbatimBody <: NodeData
     value::String
 end
 
-"""Type of nodes that can be direct child of a NorgDocument"""
-const FirstClassNode = Union{Paragraph, StructuralDetachedModifier, NestableDetachedModifier, StrongDelimitingModifier, Heading, Tag}
+"""
+Type of nodes that can be direct child of a NorgDocument
+"""
+const FirstClassNode = Union{Paragraph, StructuralDetachedModifier,
+                             NestableDetachedModifier, StrongDelimitingModifier,
+                             Heading, Tag}
 
 function printnode(io::IO, t::Node{ParagraphSegment})
     write(io, "ParagraphSegment(\"")

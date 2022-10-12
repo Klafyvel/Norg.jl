@@ -56,13 +56,17 @@ function parse_norg(::Type{AST.Verbatim}, tokens, i, parents)
             prev_token = get(tokens, prev_i, nothing)
             prev_prev_i = prevind(tokens, i)
             prev_prev_token = get(tokens, prev_prev_i, nothing)
-            if prev_token isa Token{Tokens.LineEnding} || (prev_token isa Token{Tokens.Whitespace} && prev_prev_token isa Token{Tokens.LineEnding})
+            if prev_token isa Token{Tokens.LineEnding} ||
+               (prev_token isa Token{Tokens.Whitespace} &&
+                prev_prev_token isa Token{Tokens.LineEnding})
                 next_i = nextind(tokens, i)
                 next_token = get(tokens, next_i, nothing)
                 next_next_i = nextind(tokens, next_i)
                 next_next_token = get(tokens, next_next_i, nothing)
-                if next_token isa Token{Tokens.Word} && next_next_token isa Token{Tokens.LineEnding} && value(next_token) == "end"
-                    i = next_next_i 
+                if next_token isa Token{Tokens.Word} &&
+                   next_next_token isa Token{Tokens.LineEnding} &&
+                   value(next_token) == "end"
+                    i = next_next_i
                     break
                 end
             end
@@ -71,6 +75,7 @@ function parse_norg(::Type{AST.Verbatim}, tokens, i, parents)
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
-    i, AST.Node(AST.Node[AST.Node(AST.VerbatimBody(join(child_content)))], AST.Verbatim(tagname, subtag, parameters))
+    i,
+    AST.Node(AST.Node[AST.Node(AST.VerbatimBody(join(child_content)))],
+             AST.Verbatim(tagname, subtag, parameters))
 end
-

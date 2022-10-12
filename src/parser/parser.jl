@@ -2,7 +2,7 @@
 This module defines the [`Norg.Parser.parse_norg`](@ref) function, which builds
 an AST from a token list.
 
-The role of [`Norg.Parser.parse`](@ref) is to *consume* tokens. To do so, it 
+The role of [`Norg.Parser.parse`](@ref) is to *consume* tokens. To do so, it
 relies on [`Norg.Match.match_norg`](@ref) to take decisions on how to consume
 tokens.
 """
@@ -109,7 +109,7 @@ function parse_norg(::Type{AST.Paragraph}, tokens, i, parents)
         else
             i, segment = parse_norg(AST.ParagraphSegment, tokens, i,
                                     [AST.Paragraph, parents...])
-            if segment isa Vector 
+            if segment isa Vector
                 append!(segments, segment)
             else
                 push!(segments, segment)
@@ -137,7 +137,8 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i, parents)
         elseif to_parse <: AST.Heading
             break
         end
-        i, node = parse_norg(to_parse, tokens, i, [AST.ParagraphSegment, parents...])
+        i, node = parse_norg(to_parse, tokens, i,
+                             [AST.ParagraphSegment, parents...])
         if node isa Vector{AST.Node}
             append!(children, node)
         elseif !isnothing(node)
@@ -148,19 +149,23 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i, parents)
         i = nextind(tokens, i)
     end
     if matched(m) == AST.WeakDelimitingModifier
-        i, [AST.Node(children, AST.ParagraphSegment()), AST.Node(AST.Node[], AST.WeakDelimitingModifier())]
+        i,
+        [
+            AST.Node(children, AST.ParagraphSegment()),
+            AST.Node(AST.Node[], AST.WeakDelimitingModifier()),
+        ]
     else
         i, AST.Node(children, AST.ParagraphSegment())
     end
 end
 
 function parse_norg(::Type{AST.Escape}, tokens, i, parents)
-        next_i = nextind(tokens, i)
-        if get(tokens, next_i, nothing) isa Union{Token{Tokens.Word}, Nothing}
-            next_i, nothing
-        else
-            nextind(tokens, next_i), AST.Node(AST.Escape(value(tokens[next_i])))
-        end
+    next_i = nextind(tokens, i)
+    if get(tokens, next_i, nothing) isa Union{Token{Tokens.Word}, Nothing}
+        next_i, nothing
+    else
+        nextind(tokens, next_i), AST.Node(AST.Escape(value(tokens[next_i])))
+    end
 end
 
 include("attachedmodifier.jl")

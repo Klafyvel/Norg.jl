@@ -131,7 +131,8 @@ function scan(t::Tokens.Word, input; line = nothing, charnum = nothing)
     trial_start = firstindex(input)
     trial_stop = nothing
     for i in eachindex(input)
-        if input[i] ∉ NORG_WHITESPACES && input[i] ∉ NORG_PUNCTUATION && input[i] ∉ NORG_LINE_ENDING
+        if input[i] ∉ NORG_WHITESPACES && input[i] ∉ NORG_PUNCTUATION &&
+           input[i] ∉ NORG_LINE_ENDING
             trial_stop = i
         else
             break

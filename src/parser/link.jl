@@ -6,7 +6,8 @@ function parse_norg(::Type{AST.Link}, tokens, i, parents)
         @debug "nah"
         return parse_norg(AST.Word, tokens, i, parents)
     end
-    location_match = match_norg(AST.LinkLocation, token, [AST.Link, parents...], tokens, i)
+    location_match = match_norg(AST.LinkLocation, token, [AST.Link, parents...],
+                                tokens, i)
     i, location_node = parse_norg(matched(location_match), tokens, i,
                                   [AST.Link, parents...])
     token = get(tokens, i, nothing)
@@ -14,7 +15,8 @@ function parse_norg(::Type{AST.Link}, tokens, i, parents)
     if isnothing(token)
         return i, AST.Node(AST.Node[location_node], AST.Link())
     end
-    description_match = match_norg(AST.LinkDescription, token, [AST.Link, parents...], tokens, i)
+    description_match = match_norg(AST.LinkDescription, token,
+                                   [AST.Link, parents...], tokens, i)
     @debug "This matches" description_match
     if isclosing(description_match)
         if description_match.consume
@@ -22,14 +24,16 @@ function parse_norg(::Type{AST.Link}, tokens, i, parents)
         end
         return i, AST.Node(AST.Node[location_node], AST.Link())
     end
-    i, description_node = parse_norg(matched(description_match), tokens, i, [AST.Link, parents...])
+    i, description_node = parse_norg(matched(description_match), tokens, i,
+                                     [AST.Link, parents...])
     i, AST.Node(AST.Node[location_node, description_node], AST.Link())
 end
 
 function parse_norg(::Type{AST.URLLocation}, tokens, i, parents)
     content = String[]
     token = get(tokens, i, nothing)
-    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) && !isa(token, Token{Tokens.LineEnding})
+    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) &&
+              !isa(token, Token{Tokens.LineEnding})
         push!(content, value(token))
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
@@ -44,7 +48,8 @@ end
 function parse_norg(::Type{AST.LineNumberLocation}, tokens, i, parents)
     content = String[]
     token = get(tokens, i, nothing)
-    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) && !isa(token, Token{Tokens.LineEnding})
+    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) &&
+              !isa(token, Token{Tokens.LineEnding})
         push!(content, value(token))
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
@@ -74,7 +79,8 @@ function parse_norg(::Type{AST.DetachedModifierLocation}, tokens, i, parents)
         token = get(tokens, i, nothing)
     end
     content = String[]
-    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) && !isa(token, Token{Tokens.LineEnding})
+    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) &&
+              !isa(token, Token{Tokens.LineEnding})
         push!(content, value(token))
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
@@ -92,9 +98,10 @@ function parse_norg(::Type{AST.MagicLocation}, tokens, i, parents)
     if token isa Token{Tokens.Whitespace}
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
-end
+    end
     content = String[]
-    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) && !isa(token, Token{Tokens.LineEnding})
+    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) &&
+              !isa(token, Token{Tokens.LineEnding})
         push!(content, value(token))
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
@@ -106,7 +113,10 @@ end
     i, AST.Node(AST.Node[], AST.MagicLocation(content_str))
 end
 
-function parse_norg(::Type{T}, tokens, i, parents) where {T<:Union{AST.FileLinkableLocation, AST.FileLocation}}
+function parse_norg(::Type{T}, tokens, i,
+                    parents) where {
+                                    T <: Union{AST.FileLinkableLocation,
+                                          AST.FileLocation}}
     i = nextind(tokens, i)
     token = get(tokens, i, nothing)
     if token isa Token{Tokens.Whitespace}
@@ -120,7 +130,9 @@ function parse_norg(::Type{T}, tokens, i, parents) where {T<:Union{AST.FileLinka
         use_neorg_root = true
     end
     content = String[]
-    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) && !isa(token, Token{Tokens.LineEnding}) && !isa(token, Token{Tokens.Colon})
+    while !isnothing(token) && !isa(token, Token{Tokens.RightBrace}) &&
+              !isa(token, Token{Tokens.LineEnding}) &&
+              !isa(token, Token{Tokens.Colon})
         push!(content, value(token))
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
@@ -132,11 +144,14 @@ function parse_norg(::Type{T}, tokens, i, parents) where {T<:Union{AST.FileLinka
     elseif token isa Token{Tokens.Colon}
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
-        match = match_norg(T, AST.LinkDescription, token, tokens, i, [T, parents...])
+        match = match_norg(T, AST.LinkDescription, token, tokens, i,
+                           [T, parents...])
         if match isa Match.MatchFound
-            i,subtarget = parse_norg(matched(match), tokens, i, [T, parents...])
+            i, subtarget = parse_norg(matched(match), tokens, i,
+                                      [T, parents...])
         else
-            while !isnothing(token) && !isa(token, Token{Tokens.LineEnding}) && !isa(token, Token{Tokens.RightBrace})
+            while !isnothing(token) && !isa(token, Token{Tokens.LineEnding}) &&
+                      !isa(token, Token{Tokens.RightBrace})
                 i = nextind(tokens, i)
                 token = get(tokens, i, nothing)
             end
@@ -161,7 +176,8 @@ function parse_norg(::Type{AST.LinkDescription}, tokens, i, parents)
         if isclosing(m)
             break
         end
-        i, node = parse_norg(matched(m), tokens, i, [AST.LinkDescription, parents...])
+        i, node = parse_norg(matched(m), tokens, i,
+                             [AST.LinkDescription, parents...])
         if node isa Vector{AST.Node}
             append!(children, node)
         else
@@ -188,7 +204,7 @@ function parse_norg(::Type{AST.Anchor}, tokens, i, parents)
         return parse_norg(AST.Word, tokens, i, parents)
     end
     i, description_node = parse_norg(AST.LinkDescription, tokens, i,
-                                  [AST.Anchor, parents...])
+                                     [AST.Anchor, parents...])
     token = get(tokens, i, nothing)
     @debug "Got the description" description_node token
     if isnothing(token) || !(token isa Tokens.Token{Tokens.LeftBrace})
@@ -197,7 +213,8 @@ function parse_norg(::Type{AST.Anchor}, tokens, i, parents)
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
-    location_match = match_norg(AST.LinkLocation, token, [AST.Anchor, parents...], tokens, i)
+    location_match = match_norg(AST.LinkLocation, token,
+                                [AST.Anchor, parents...], tokens, i)
     @debug "This matches" location_match
     if isclosing(location_match)
         if location_match.consume
@@ -205,7 +222,7 @@ function parse_norg(::Type{AST.Anchor}, tokens, i, parents)
         end
         return i, AST.Node(AST.Node[description_node], AST.Anchor(false))
     end
-    i, location_node = parse_norg(matched(location_match), tokens, i, [AST.Anchor, parents...])
+    i, location_node = parse_norg(matched(location_match), tokens, i,
+                                  [AST.Anchor, parents...])
     i, AST.Node(AST.Node[description_node, location_node], AST.Anchor(true))
 end
-

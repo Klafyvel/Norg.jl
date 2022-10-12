@@ -2,11 +2,9 @@
 Node = Norg.AST.Node
 AST = Norg.AST
 
-nestable = [
-            ('-' , AST.UnorderedList)
+nestable = [('-', AST.UnorderedList)
             ('~', AST.OrderedList)
-            ('>', AST.Quote)
-           ]
+            ('>', AST.Quote)]
 
 @testset "$T should be grouping." for (m, T) in nestable
     s = """$m first item
@@ -35,7 +33,7 @@ end
     @test item2 isa Node{AST.Paragraph}
 end
 
-@testset "$T should be nestable." for (m,T) in nestable 
+@testset "$T should be nestable." for (m, T) in nestable
     s = """$m item1
     $m$m subitem1
     $m$m subitem2
@@ -53,14 +51,14 @@ end
     @test subitem2 isa Node{AST.Paragraph}
 end
 
-@testset "$T of level $i" for (m,T) in nestable, i in 1:6
-    s="$(repeat(m, i)) item"
+@testset "$T of level $i" for (m, T) in nestable, i in 1:6
+    s = "$(repeat(m, i)) item"
     ast = parse(AST.NorgDocument, s)
     nest = first(children(ast))
     @test nest isa Node{T{i}}
 end
 
-@testset "Structural modifiers have higher precedence than $T" for (m,T) in nestable
+@testset "Structural modifiers have higher precedence than $T" for (m, T) in nestable
     s = """$m item1
     * Not in item1
     """
@@ -70,25 +68,25 @@ end
     @test h1 isa Node{AST.Heading{1}}
 end
 
-@testset "Complicated example of $T" for (m,T) in nestable 
-    s="""
-    $m I am a lonesome $T.
-    $m sigh
-    yes you can multiple paragraph segments.
-    * Heading
-    $m List
-    $m List
-    still in the $T
-    $m$m In the $T and at a higher level
-    $m$m$m Wait
-    $m$m$m$m What are you trying to do here ?
-    $m$m$m$m$m Going higher ?
-    $m$m$m$m$m$m Ah, I see.
-    $m$m$m$m$m$m$m Did you really think you were going to break something here ?
-    Still there btw
-    $m In the first $T
-    * But $(T)s have to behave, for a heading shall break them.
-    """
+@testset "Complicated example of $T" for (m, T) in nestable
+    s = """
+      $m I am a lonesome $T.
+      $m sigh
+      yes you can multiple paragraph segments.
+      * Heading
+      $m List
+      $m List
+      still in the $T
+      $m$m In the $T and at a higher level
+      $m$m$m Wait
+      $m$m$m$m What are you trying to do here ?
+      $m$m$m$m$m Going higher ?
+      $m$m$m$m$m$m Ah, I see.
+      $m$m$m$m$m$m$m Did you really think you were going to break something here ?
+      Still there btw
+      $m In the first $T
+      * But $(T)s have to behave, for a heading shall break them.
+      """
     ast = parse(AST.NorgDocument, s)
     nest, h1, h1bis = children(ast)
     @test nest isa Node{T{1}}

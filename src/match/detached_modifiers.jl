@@ -1,5 +1,5 @@
 function match_norg(::Type{AST.Heading}, token, parents, tokens, i)
-    nestable_parents = filter(x->x <: AST.NestableDetachedModifier, parents)
+    nestable_parents = filter(x -> x <: AST.NestableDetachedModifier, parents)
     if length(nestable_parents) > 0
         return MatchClosing{first(nestable_parents)}(false)
     end
@@ -29,7 +29,8 @@ delimitingmodifier(::Type{Tokens.EqualSign}) = AST.StrongDelimitingModifier
 delimitingmodifier(::Type{Tokens.Minus}) = AST.WeakDelimitingModifier
 delimitingmodifier(::Type{Tokens.Underscore}) = AST.HorizontalRule
 
-function match_norg(::Type{AST.DelimitingModifier}, ::Token{T}, parents, tokens, i) where {T}
+function match_norg(::Type{AST.DelimitingModifier}, ::Token{T}, parents, tokens,
+                    i) where {T}
     next_i = nextind(tokens, i)
     next_next_i = nextind(tokens, next_i)
     next_token = get(tokens, next_i, nothing)
@@ -56,7 +57,8 @@ function match_norg(::Type{AST.DelimitingModifier}, ::Token{T}, parents, tokens,
     end
 end
 
-function match_norg(nodetype::Type{<:AST.NestableDetachedModifier}, ::Token{T}, parents, tokens, i) where {T}
+function match_norg(nodetype::Type{<:AST.NestableDetachedModifier}, ::Token{T},
+                    parents, tokens, i) where {T}
     new_i = i
     nest_level = 0
     while new_i < lastindex(tokens) &&
@@ -66,8 +68,9 @@ function match_norg(nodetype::Type{<:AST.NestableDetachedModifier}, ::Token{T}, 
     end
     next_token = get(tokens, new_i, nothing)
     if next_token isa Token{Tokens.Whitespace}
-        previous_nest_level = AST.nestlevel.(filter(x -> x <: AST.NestableDetachedModifier,
-                                                          parents))
+        previous_nest_level = AST.nestlevel.(filter(x -> x <:
+                                                         AST.NestableDetachedModifier,
+                                                    parents))
         if any(previous_nest_level .> nest_level)
             closing_level = first(previous_nest_level[previous_nest_level .>= nest_level])
             MatchClosing{nodetype{closing_level}}(false)
@@ -82,4 +85,3 @@ function match_norg(nodetype::Type{<:AST.NestableDetachedModifier}, ::Token{T}, 
         MatchNotFound()
     end
 end
-
