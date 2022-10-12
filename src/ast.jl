@@ -69,6 +69,9 @@ struct FileLocation <: LinkLocation
     subtarget::FileLocationSubTarget
 end
 struct LinkDescription <: MatchedInline end
+struct Anchor <: NodeData
+    has_definition
+end
 
 abstract type DetachedModifier <: NodeData end
 abstract type StructuralDetachedModifier <: DetachedModifier end

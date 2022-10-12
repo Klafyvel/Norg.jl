@@ -33,3 +33,6 @@ function match_norg(::Type{AST.FileLocation}, ::Type{AST.LinkDescription}, token
         MatchNotFound()
     end
 end
+
+match_norg(::Type{AST.Anchor}, ::Token{Tokens.LeftSquareBracket}, parents, tokens, i) = MatchFound{AST.Anchor}()
+match_norg(::Type{AST.Anchor}, token, parents, tokens, i) = MatchNotFound()

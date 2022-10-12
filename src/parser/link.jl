@@ -179,4 +179,33 @@ function parse_norg(::Type{AST.LinkDescription}, tokens, i, parents)
     end
 end
 
+function parse_norg(::Type{AST.Anchor}, tokens, i, parents)
+    i = nextind(tokens, i)
+    token = get(tokens, i, nothing)
+    @debug "Welcome in anchor parsing"
+    if isnothing(token)
+        @debug "nah"
+        return parse_norg(AST.Word, tokens, i, parents)
+    end
+    i, description_node = parse_norg(AST.LinkDescription, tokens, i,
+                                  [AST.Anchor, parents...])
+    token = get(tokens, i, nothing)
+    @debug "Got the description" description_node token
+    if isnothing(token) || !(token isa Tokens.Token{Tokens.LeftBrace})
+        return i, AST.Node(AST.Node[description_node], AST.Anchor(false))
+    else
+        i = nextind(tokens, i)
+        token = get(tokens, i, nothing)
+    end
+    location_match = match_norg(AST.LinkLocation, token, [AST.Anchor, parents...], tokens, i)
+    @debug "This matches" location_match
+    if isclosing(location_match)
+        if location_match.consume
+            i = nextind(tokens, i)
+        end
+        return i, AST.Node(AST.Node[description_node], AST.Anchor(false))
+    end
+    i, location_node = parse_norg(matched(location_match), tokens, i, [AST.Anchor, parents...])
+    i, AST.Node(AST.Node[description_node, location_node], AST.Anchor(true))
+end
 

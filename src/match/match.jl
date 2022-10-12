@@ -197,9 +197,16 @@ function match_norg(::Token{Tokens.RightSquareBracket}, parents, tokens, i)
     end
 end
 
-function match_norg(::Token{Tokens.LeftSquareBracket}, parents, tokens, i)
-    if AST.LinkDescription ∈ parents || AST.LinkLocation ∈ parents || AST.Link ∉ parents
+function match_norg(t::Token{Tokens.LeftSquareBracket}, parents, tokens, i)
+    if AST.LinkDescription ∈ parents || AST.LinkLocation ∈ parents 
         return MatchFound{AST.Word}()
+    elseif AST.Link ∉ parents
+        m = match_norg(AST.Anchor, t, parents, tokens, i)
+        if m isa MatchNotFound 
+            return MatchFound{AST.Word}()
+        else
+            return m
+        end
     end
     prev_i = prevind(tokens, i)
     last_token = get(tokens, prev_i, nothing)

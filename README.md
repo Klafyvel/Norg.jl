@@ -59,15 +59,15 @@ julia> parse(HTMLTarget, s) |> Pretty
 ## Roadmap
 
 ```
-  - (-) Layer 2 support
+  - (x) Layer 2 support
   -- (x) Headings
   -- (x) Nestable Detached Modifiers (quotes and lists)
-  -- (-) Linkables (everything except timestamps, wiki links) and anchors
+  -- (x) Linkables (everything except timestamps, wiki links) and anchors
   --- (x) file location
   --- (x) line number
   --- (x) detached modifier
   --- (x) custom detached modifiers
-  --- ( ) anchors
+  --- (x) anchors
   -- (x) Verbatim ranged tags
   -- (x) Delimiting modifiers
   #waiting.for Layer 2 support
