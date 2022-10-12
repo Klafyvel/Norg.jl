@@ -59,6 +59,7 @@ julia> parse(HTMLTarget, s) |> Pretty
 ## Roadmap
 
 ```
+  - (x) Layer 1 support
   - (x) Layer 2 support
   -- (x) Headings
   -- (x) Nestable Detached Modifiers (quotes and lists)
@@ -94,11 +95,36 @@ julia> parse(HTMLTarget, s) |> Pretty
   #waiting.for Layer 4 support
   - ( ) FileIO.jl integration
   - ( ) Various code generation
-  -- ( ) HTML
+  -- (-) HTML
+  --- (+) Layer 1 support
+  --- ( ) Layer 2 support
+  --- ( ) Layer 3 support
+  --- ( ) Layer 4 support
+  --- ( ) Layer 5 support
   -- ( ) Markdown
+  --- ( ) Layer 1 support
+  --- ( ) Layer 2 support
+  --- ( ) Layer 3 support
+  --- ( ) Layer 4 support
+  --- ( ) Layer 5 support
   -- ( ) Pandoc JSON
+  --- ( ) Layer 1 support
+  --- ( ) Layer 2 support
+  --- ( ) Layer 3 support
+  --- ( ) Layer 4 support
+  --- ( ) Layer 5 support
   -- ( ) Julia Terminal display using julia's nice features such as `printstyled` and others.
+  --- ( ) Layer 1 support
+  --- ( ) Layer 2 support
+  --- ( ) Layer 3 support
+  --- ( ) Layer 4 support
+  --- ( ) Layer 5 support
   -- ( ) Norg
+  --- ( ) Layer 1 support
+  --- ( ) Layer 2 support
+  --- ( ) Layer 3 support
+  --- ( ) Layer 4 support
+  --- ( ) Layer 5 support
   #waiting.for Layer 4 support
   - ( ) Consume pandoc JSON to create a Norg AST.
   #waiting.for Layer 4 support
