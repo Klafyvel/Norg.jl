@@ -38,8 +38,8 @@ struct NumberSign <: AbstractPunctuation end
 struct Word <: TokenType end
 
 struct TokenPosition
-    line::Any
-    char::Any
+    line::Int64
+    char::Int64
 end
 """
     line(x)
@@ -56,7 +56,7 @@ char(p::TokenPosition) = p.char
 
 struct Token{T <: TokenType}
     position::TokenPosition
-    value::Any
+    value::SubString
 end
 """
      Token(line, char, type, value)
@@ -66,14 +66,17 @@ Create a `Token` of type `type` with value `value` at `line` and char number `ch
 function Token(::T, line, char, value) where {T <: TokenType}
     Token{T}(TokenPosition(line, char), value)
 end
+function Token{T}(line, char, value) where {T <: TokenType}
+    Token{T}(TokenPosition(line, char), value)
+end
 function Base.show(io::IO, token::Token{T}) where {T}
     print(io,
           "$T: $(repr(value(token))), line $(line(token)) col. $(char(token))")
 end
 line(t::Token) = line(t.position)
 char(t::Token) = char(t.position)
-Base.length(t::Token) = length(t.value)
-value(t::Token) = t.value
+Base.length(t::Token) = length(t.value)::Int64
+value(t::Token) = string(t.value)
 
 export line, char, value, Token
 end

@@ -8,15 +8,19 @@ module Scanners
 
 using ..Tokens
 
+struct ScanResult
+    length::Int64
+end
+ScanResult(res::Bool) = if res ScanResult(1) else ScanResult(0) end
+success(scanresult::ScanResult) = scanresult.length > 0
+
 """
-    scan([[pattern,] tokentype,] input; line=nothing, charnum=nothing)
+    scan(::TokenType, input)
+    scan(pattern, input)
 
-Scan the given `input` for the given `tokentype`. It will produce a [`Token`](@ref) or
-`nothing` if the input does not match the `tokentype`.
+Scan the given `input` for the given `TokenType` or a `pattern`.
 
-`line` and `charnum` are intended to give the current position in the buffer.
-
-If no `tokentype` is provided, will try the ones in [`REGISTERED_TOKENTYPES`](@ref) until one returns a [`Token`](@ref) or throw an error if none succeed.
+It will produce a [`ScanResult`](@ref).
 
 If `pattern` is given, then try to fit the given patter at the start of `input`.
 If `pattern` is :
@@ -28,91 +32,66 @@ If `pattern` is :
 """
 function scan end
 
-function scan(c::Char, token_type, input; line = nothing, charnum = nothing)
-    if first(input) == c
-        Token(token_type, line, charnum, input[1:1])
-    else
-        nothing
-    end
-end
+scan(c::Char, input) = ScanResult(first(input) == c)
 
-function scan(s::AbstractString, token_type, input; line = nothing,
-              charnum = nothing)
+function scan(s::AbstractString, input)
     if startswith(input, s)
-        Token(token_type, line, charnum, s)
+        ScanResult(length(s))
     else
-        nothing
+        ScanResult(false)
     end
 end
 
-function scan(list::AbstractArray, token_type, input; kwargs...)
-    res = nothing
+function scan(list::AbstractArray, input)
+    res = ScanResult(false)
     for pattern in list
-        res = scan(pattern, token_type, input; kwargs...)
-        if !isnothing(res)
+        res = scan(pattern, input)::ScanResult
+        if success(res)
             break
         end
     end
     res
 end
 
-function scan(set::Set{Char}, token_type, input; line = nothing,
-              charnum = nothing)
+function scan(set::Set{Char}, input)
     if first(input) ∈ set
-        Token(token_type, line, charnum, input[1:1])
+        ScanResult(true)
     else
-        nothing
+        ScanResult(false)
     end
 end
 
 include("assets/norg_line_ending.jl")
-function scan(t::Tokens.LineEnding, input; kwargs...)
-    scan(NORG_LINE_ENDING, t, input; kwargs...)
-end
+scan(::Tokens.LineEnding, input) = scan(NORG_LINE_ENDING, input)
 
 include("assets/norg_punctuation.jl")
-function scan(t::Tokens.Punctuation, input; kwargs...)
-    scan(NORG_PUNCTUATION, t, input; kwargs...)
-end
+scan(::Tokens.Punctuation, input) = scan(NORG_PUNCTUATION, input)
 
-scan(t::Tokens.Star, input; kwargs...) = scan('*', t, input; kwargs...)
-scan(t::Tokens.Slash, input; kwargs...) = scan('/', t, input; kwargs...)
-scan(t::Tokens.Underscore, input; kwargs...) = scan('_', t, input; kwargs...)
-scan(t::Tokens.Minus, input; kwargs...) = scan('-', t, input; kwargs...)
-function scan(t::Tokens.ExclamationMark, input; kwargs...)
-    scan('!', t, input; kwargs...)
-end
-scan(t::Tokens.Circumflex, input; kwargs...) = scan('^', t, input; kwargs...)
-scan(t::Tokens.Comma, input; kwargs...) = scan(',', t, input; kwargs...)
-function scan(t::Tokens.BackApostrophe, input; kwargs...)
-    scan('`', t, input; kwargs...)
-end
-scan(t::Tokens.BackSlash, input; kwargs...) = scan('\\', t, input; kwargs...)
-scan(t::Tokens.LeftBrace, input; kwargs...) = scan('{', t, input; kwargs...)
-scan(t::Tokens.RightBrace, input; kwargs...) = scan('}', t, input; kwargs...)
-function scan(t::Tokens.LeftSquareBracket, input; kwargs...)
-    scan('[', t, input; kwargs...)
-end
-function scan(t::Tokens.RightSquareBracket, input; kwargs...)
-    scan(']', t, input; kwargs...)
-end
-scan(t::Tokens.Tilde, input; kwargs...) = scan('~', t, input; kwargs...)
-function scan(t::Tokens.GreaterThanSign, input; kwargs...)
-    scan('>', t, input; kwargs...)
-end
-function scan(t::Tokens.CommercialAtSign, input; kwargs...)
-    scan('@', t, input; kwargs...)
-end
-scan(t::Tokens.EqualSign, input; kwargs...) = scan('=', t, input; kwargs...)
-scan(t::Tokens.Dot, input; kwargs...) = scan('.', t, input; kwargs...)
-scan(t::Tokens.Colon, input; kwargs...) = scan(':', t, input; kwargs...)
-scan(t::Tokens.NumberSign, input; kwargs...) = scan('#', t, input; kwargs...)
-scan(t::Tokens.DollarSign, input; kwargs...) = scan('$', t, input; kwargs...)
+scan(::Tokens.Star, input) = scan('*', input)
+scan(::Tokens.Slash, input) = scan('/', input)
+scan(::Tokens.Underscore, input) = scan('_', input)
+scan(::Tokens.Minus, input) = scan('-', input)
+scan(::Tokens.ExclamationMark, input) = scan('!', input)
+scan(::Tokens.Circumflex, input) = scan('^', input)
+scan(::Tokens.Comma, input) = scan(',', input)
+scan(::Tokens.BackApostrophe, input) = scan('`', input)
+scan(::Tokens.BackSlash, input) = scan('\\', input)
+scan(::Tokens.LeftBrace, input) = scan('{', input)
+scan(::Tokens.RightBrace, input) = scan('}', input)
+scan(::Tokens.LeftSquareBracket, input) = scan('[', input)
+scan(::Tokens.RightSquareBracket, input) = scan(']', input)
+scan(::Tokens.Tilde, input) = scan('~', input)
+scan(::Tokens.GreaterThanSign, input) = scan('>', input)
+scan(::Tokens.CommercialAtSign, input) = scan('@', input)
+scan(::Tokens.EqualSign, input) = scan('=', input)
+scan(::Tokens.Dot, input) = scan('.', input)
+scan(::Tokens.Colon, input) = scan(':', input)
+scan(::Tokens.NumberSign, input) = scan('#', input)
+scan(::Tokens.DollarSign, input) = scan('$', input)
 
 include("assets/norg_whitespace.jl")
-function scan(::Tokens.Whitespace, input; line = nothing, charnum = nothing)
-    trial_start = firstindex(input)
-    trial_stop = nothing
+function scan(::Tokens.Whitespace, input)
+    trial_stop = 0
     for i in eachindex(input)
         if input[i] ∈ NORG_WHITESPACES
             trial_stop = i
@@ -120,29 +99,23 @@ function scan(::Tokens.Whitespace, input; line = nothing, charnum = nothing)
             break
         end
     end
-    if !isnothing(trial_stop)
-        Token(Tokens.Whitespace(), line, charnum, input[trial_start:trial_stop])
-    else
-        nothing
-    end
+    ScanResult(trial_stop)
 end
 
-function scan(t::Tokens.Word, input; line = nothing, charnum = nothing)
-    trial_start = firstindex(input)
-    trial_stop = nothing
+function scan(::Tokens.Word, input)
+    trial_stop = 0
     for i in eachindex(input)
-        if input[i] ∉ NORG_WHITESPACES && input[i] ∉ NORG_PUNCTUATION &&
-           input[i] ∉ NORG_LINE_ENDING
+        teststr = SubString(input, i)
+        test_whitespace = scan(Tokens.Whitespace(), teststr)
+        test_endline = scan(Tokens.LineEnding(), teststr)
+        test_punctuation = scan(Tokens.Punctuation(), teststr)
+        if !success(test_whitespace) && !success(test_endline) && !success(test_punctuation)
             trial_stop = i
         else
             break
         end
     end
-    if !isnothing(trial_stop)
-        Token(t, line, charnum, input[trial_start:trial_stop])
-    else
-        nothing
-    end
+    ScanResult(trial_stop)
 end
 
 """
@@ -176,18 +149,28 @@ const REGISTERED_TOKENTYPES = [
     Tokens.Word(),
 ]
 
-function scan(input; line = nothing, charnum = nothing)
-    res = nothing
+"""
+    scan(input; line=0, charnum=0)
+
+Scan the given `input` for [`REGISTERED_TOKENTYPES`](@ref) until one returns a
+successful [`ScanResult`](@ref) or throw an error if none succeed.
+
+This will return a [`Token`](@ref).
+"""
+function scan(input; line=0, charnum=0)
+    res = ScanResult(false)
+    tokentype = nothing
     for scanner in REGISTERED_TOKENTYPES
-        res = scan(scanner, input; line = line, charnum = charnum)
-        if !isnothing(res)
+        res = scan(scanner, input)::ScanResult
+        if success(res)
+            tokentype = scanner
             break
         end
     end
-    if isnothing(res)
+    if !success(res)
         error("No suitable token found for input at line $line, char $charnum")
     end
-    res
+    Token{typeof(tokentype)}(line, charnum, input[1:res.length])
 end
 
 export scan

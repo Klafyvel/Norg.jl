@@ -21,6 +21,7 @@ struct NorgDocument <: NodeData end
 struct Word <: NodeData
     value::String
 end
+Word(c::Char) = Word(string(c))
 struct Escape <: NodeData
     value::String
 end
