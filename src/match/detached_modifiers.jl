@@ -83,10 +83,15 @@ function match_norg(nodetype::Type{<:AST.NestableDetachedModifier}, ::Token{T},
             closing_level = first(previous_nest_level[previous_nest_level .>= nest_level])
             MatchClosing{nodetype{closing_level}}(false)
         elseif first(parents) == nodetype{nest_level}
-            MatchContinue()
+            @debug "Create nestable item" nest_level
+            MatchFound{AST.NestableItem}()
+        elseif any(previous_nest_level .== nest_level)
+            MatchClosing{first(parents)}(false)
         elseif first(parents) ∈ [AST.Paragraph, AST.ParagraphSegment]
+            @debug "closing parent" first(parents)
             MatchClosing{first(parents)}(false)
         else
+            @debug "create nestable" nest_level
             MatchFound{nodetype{nest_level}}()
         end
     else

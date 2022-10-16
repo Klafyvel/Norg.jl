@@ -172,7 +172,7 @@ function parse_norg(::Type{AST.LinkDescription}, tokens, i, parents)
     children = AST.Node[]
     while !isnothing(token)
         token = tokens[i]
-        m = match_norg(token, [AST.LinkDescription, parents...], tokens, i)
+        m = match_norg([AST.LinkDescription, parents...], tokens, i)
         if isclosing(m)
             break
         end

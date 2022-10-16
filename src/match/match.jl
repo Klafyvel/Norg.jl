@@ -20,7 +20,7 @@ matched(::MatchClosing{T}) where {T} = T
 matched(::MatchFound{T}) where {T} = T
 
 """
-match_norg([[firstparenttype], astnodetype], token, parents, tokens, i)
+match_norg([[[firstparenttype], astnodetype], token=tokens[i]], parents, tokens, i)
 
 Find the appropriate [`AST.NodeData`](@ref) for a `token` when parser is inside
 a `parents` block parsing the `tokens` list at index `i`.
@@ -41,6 +41,15 @@ include("attached_modifiers.jl")
 include("detached_modifiers.jl")
 include("tags.jl")
 include("links.jl")
+
+function match_norg(parents, tokens, i)
+    token = tokens[i]
+    if first(parents) isa AST.InlineCode && !(token isa Token{Tokens.BackApostrophe}) && !(token isa Token{Tokens.BackSlash})
+        MatchFound{AST.Word}()
+    else
+        match_norg(token, parents, tokens, i)
+    end
+end
 
 # Default to matching a word.
 match_norg(::Token, parents, tokens, i) = MatchFound{AST.Word}()

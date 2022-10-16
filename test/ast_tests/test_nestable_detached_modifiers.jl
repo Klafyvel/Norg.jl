@@ -14,8 +14,8 @@ nestable = [('-', AST.UnorderedList)
     nest = first(children(ast))
     @test nest isa Node{T{1}}
     item1, item2 = children(nest)
-    @test item1 isa Node{AST.Paragraph}
-    @test item2 isa Node{AST.Paragraph}
+    @test item1 isa Node{AST.NestableItem}
+    @test item2 isa Node{AST.NestableItem}
 end
 
 @testset "$T grouping should not happen when there is a paragraph break." for (m, T) in nestable
@@ -28,9 +28,9 @@ end
     @test nest1 isa Node{T{1}}
     @test nest2 isa Node{T{1}}
     item1 = first(children(nest1))
-    @test item1 isa Node{AST.Paragraph}
+    @test item1 isa Node{AST.NestableItem}
     item2 = first(children(nest2))
-    @test item2 isa Node{AST.Paragraph}
+    @test item2 isa Node{AST.NestableItem}
 end
 
 @testset "$T should be nestable." for (m, T) in nestable
@@ -42,13 +42,14 @@ end
     ast = parse(AST.NorgDocument, s)
     nest = first(children(ast))
     @test nest isa Node{T{1}}
-    item1, nested, item2 = children(nest)
-    @test item1 isa Node{AST.Paragraph}
-    @test item2 isa Node{AST.Paragraph}
+    item1, item2 = children(nest)
+    @test item1 isa Node{AST.NestableItem}
+    @test item2 isa Node{AST.NestableItem}
+    nested = last(children(item1))
     @test nested isa Node{T{2}}
     subitem1, subitem2 = children(nested)
-    @test subitem1 isa Node{AST.Paragraph}
-    @test subitem2 isa Node{AST.Paragraph}
+    @test subitem1 isa Node{AST.NestableItem}
+    @test subitem2 isa Node{AST.NestableItem}
 end
 
 @testset "$T of level $i" for (m, T) in nestable, i in 1:6

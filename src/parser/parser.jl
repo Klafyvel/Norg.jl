@@ -69,10 +69,9 @@ function parse_norg(::Type{AST.NorgDocument}, tokens, i)
 end
 
 function parse_norg(::Type{AST.FirstClassNode}, tokens, i, parents)
-    token = get(tokens, i, nothing)
-    m = match_norg(token, parents, tokens, i)
+    m = match_norg(parents, tokens, i)
     if isclosing(m)
-        @error "Closing token when parsing first class node" token m parents
+        @error "Closing token when parsing first class node" tokens[i] m parents
         error("This is a bug, please report it along with the text you are trying to parse.")
     elseif iscontinue(m)
         return nextind(tokens, i), nothing
@@ -92,9 +91,8 @@ function parse_norg(::Type{AST.Paragraph}, tokens, i, parents)
     segments = AST.Node[]
     m = Match.MatchClosing{AST.Paragraph}()
     while i <= lastindex(tokens)
-        token = tokens[i]
-        m = match_norg(token, [AST.Paragraph, parents...], tokens, i)
-        @debug "Paragraph loop" token m
+        m = match_norg([AST.Paragraph, parents...], tokens, i)
+        @debug "Paragraph loop" tokens[i] m
         if isclosing(m)
             break
         elseif iscontinue(m)
@@ -126,9 +124,8 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i, parents)
     children = AST.Node[]
     m = Match.MatchClosing{AST.ParagraphSegment}()
     while i <= lastindex(tokens)
-        token = tokens[i]
-        m = match_norg(token, [AST.ParagraphSegment, parents...], tokens, i)
-        @debug "paragraph segment loop" token m
+        m = match_norg([AST.ParagraphSegment, parents...], tokens, i)
+        @debug "paragraph segment loop" tokens[i] m
         if isclosing(m)
             break
         end

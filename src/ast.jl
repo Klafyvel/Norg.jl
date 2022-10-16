@@ -93,6 +93,7 @@ abstract type NestableDetachedModifier{T} <: DetachedModifier end
 struct UnorderedList{T} <: NestableDetachedModifier{T} end
 struct OrderedList{T} <: NestableDetachedModifier{T} end
 struct Quote{T} <: NestableDetachedModifier{T} end
+struct NestableItem <: NodeData end
 nestlevel(::Type{<:NestableDetachedModifier{T}}) where {T} = T
 
 abstract type Tag <: NodeData end

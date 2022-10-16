@@ -18,8 +18,7 @@ function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
         children = AST.Node[]
         m = Match.MatchClosing{AST.Heading{T}}()
         while i < lastindex(tokens)
-            token = get(tokens, i, nothing)
-            m = match_norg(token, [t, parents...], tokens, i)
+            m = match_norg([t, parents...], tokens, i)
             if isclosing(m)
                 break
             end

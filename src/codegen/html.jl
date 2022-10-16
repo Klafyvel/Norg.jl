@@ -167,23 +167,25 @@ codegen(::HTMLTarget, ::AST.Node{AST.WeakDelimitingModifier}) = []
 codegen(::HTMLTarget, ::AST.Node{AST.HorizontalRule}) = m("hr")
 
 function codegen(t::HTMLTarget, node::AST.Node{AST.UnorderedList{T}}) where {T}
-    res = []
-    for c in children(node)
-        push!(res, m("li", codegen(t, c)))
-    end
-    m("ul", res)
+    m("ul", codegen.(Ref(t), children(node)))
 end
 
 function codegen(t::HTMLTarget, node::AST.Node{AST.OrderedList{T}}) where {T}
-    res = []
-    for c in children(node)
-        push!(res, m("li", codegen(t, c)))
-    end
-    m("ol", res)
+    m("ol", codegen.(Ref(t), children(node)))
+end
+
+function codegen(t::HTMLTarget, node::AST.Node{AST.NestableItem})
+    m("li", codegen.(Ref(t), children(node)))    
 end
 
 function codegen(t::HTMLTarget, node::AST.Node{AST.Quote{T}}) where {T}
-    m("blockquote", codegen.(Ref(t), children(node)))
+    # <blockquote> does not have an 'item' notion, so we have to short-circuit
+    # that.
+    res = []
+    for c in children(node)
+        append!(res, codegen.(Ref(t), children(c)))
+    end
+    m("blockquote", res)
 end
 
 function codegen(::HTMLTarget, node::AST.Node{AST.Verbatim})
