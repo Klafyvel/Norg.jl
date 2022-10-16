@@ -23,10 +23,10 @@ function codegen(t::HTMLTarget, node::AST.Node{AST.Paragraph})
     res = []
     for c in children(node)
         append!(res, codegen(t, c))
-        push!(res, m("br"))
+        push!(res, " ")
     end
     if !isempty(res)
-        pop!(res) # remove last <br>
+        pop!(res) # remove last space
     end
     m("p", res)
 end
