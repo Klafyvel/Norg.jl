@@ -7,6 +7,7 @@ function parse_norg(::Type{T}, tokens, i,
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, [T, parents...], tokens, i)
+        @debug "attached modifier loop" T token m
         if isclosing(m)
             break
         end

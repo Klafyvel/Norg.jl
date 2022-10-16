@@ -94,7 +94,7 @@ function match_norg(::Token{Tokens.LineEnding}, parents, tokens, i)
         nestable_parents = filter(x -> x <: AST.NestableDetachedModifier,
                                   parents[2:end])
         MatchClosing{first(parents)}(length(nestable_parents) == 0)
-    elseif any(isa.(parents, AST.AttachedModifier))
+    elseif any(parents .<: AST.AttachedModifier)
         MatchFound{AST.Word}()
     else
         MatchClosing{AST.ParagraphSegment}()

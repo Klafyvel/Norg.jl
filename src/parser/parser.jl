@@ -128,6 +128,7 @@ function parse_norg(::Type{AST.ParagraphSegment}, tokens, i, parents)
     while i <= lastindex(tokens)
         token = tokens[i]
         m = match_norg(token, [AST.ParagraphSegment, parents...], tokens, i)
+        @debug "paragraph segment loop" token m
         if isclosing(m)
             break
         end

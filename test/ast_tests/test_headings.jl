@@ -113,17 +113,17 @@ end
 
 @testset "Malformed indentation reversion" begin
     s = """* Heading
-  A paragraph
-  --- 
-  This should not be reverted since the previous element
-  has whitespace afterwards.
-  It should instead be treated as an unordered list element.
+    A paragraph
+    --- 
+    This should not be reverted since the previous element
+    has whitespace afterwards.
+    It should instead be treated as an unordered list element.
 
-  This --- should also not revert the heading.
-  --neither- should this
-  ---
+    This --- should also not revert the heading.
+    --neither- should this
+    ---
 
-This should though."""
+    This should though."""
 
     ast = parse(Norg.AST.NorgDocument, s)
 

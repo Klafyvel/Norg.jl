@@ -124,3 +124,13 @@ end
     @test nodevalue(nodes[4]).value == "*"
     @test nodes[9] isa Node{Norg.AST.InlineCode}
 end
+
+@testset "Line endings are allowed withing attached modifiers." begin
+    s = "/italic\ntoo/"
+    ast = parse(Norg.AST.NorgDocument, s)
+    p = first(children(ast))
+    ps = first(children(p))
+    @test length(children(ps)) == 1
+    it = first(children(ps))
+    @test it isa Node{Norg.AST.Italic}
+end

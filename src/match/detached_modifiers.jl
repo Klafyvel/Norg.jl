@@ -1,4 +1,8 @@
 function match_norg(::Type{AST.Heading}, token, parents, tokens, i)
+    # Special case when parsing the title of a heading
+    if AST.Heading ∈ parents
+        return MatchNotFound()
+    end
     nestable_parents = filter(x -> x <: AST.NestableDetachedModifier, parents)
     if length(nestable_parents) > 0
         return MatchClosing{first(nestable_parents)}(false)

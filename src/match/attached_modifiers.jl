@@ -14,8 +14,9 @@ const AllowedBeforeAttachedModifierOpening = Union{Token{Tokens.Whitespace},
                                                          },
                                                    Nothing}
 const ForbiddenAfterAttachedModifierOpening = Union{Token{Tokens.Whitespace},
-                                                    Nothing}
+                                                    Nothing, Token{Tokens.LineEnding}}
 const AllowedAfterAttachedModifier = Union{Token{Tokens.Whitespace},
+                                           Token{Tokens.LineEnding},
                                            Token{<:Tokens.AbstractPunctuation},
                                            Nothing}
 
@@ -80,6 +81,7 @@ end
 
 function match_norg(::Type{AST.InlineCode}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
     token = tokens[i]
+    @debug "Special inline code" token
     if !(token isa Token{Tokens.BackApostrophe})
         return MatchFound{AST.Word}()
     end
