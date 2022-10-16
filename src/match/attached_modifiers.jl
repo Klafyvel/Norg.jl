@@ -89,10 +89,8 @@ function match_norg(::Type{AST.InlineCode}, ast_node::Type{<:AST.AttachedModifie
     next_token = get(tokens, next_i, nothing)
     prev_i = prevind(tokens, i)
     last_token = get(tokens, prev_i, nothing)
-    if last_token isa AllowedBeforeAttachedModifierOpening &&
-       !(next_token isa ForbiddenAfterAttachedModifierOpening)
-        MatchFound{ast_node}()
-    elseif !(last_token isa Token{Tokens.Whitespace}) &&
+    @debug "decision time" last_token token next_token 
+    if !(last_token isa Token{Tokens.Whitespace}) &&
            next_token isa AllowedAfterAttachedModifier
         MatchClosing{ast_node}()
     else

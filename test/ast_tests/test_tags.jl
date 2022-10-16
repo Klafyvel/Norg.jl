@@ -39,6 +39,16 @@ end
     @test nodevalue(verb).parameters == ["julia"]
 end
 
+@testset "Test verbtatim with indentation" begin
+    s = """    @code julia
+    println("hey you")
+        @end
+    """
+    ast = parse(AST.NorgDocument, s)
+    verb = first(children(ast))
+    @test nodevalue(verb).parameters == ["julia"]
+end
+
 @testset "Complex verbatim tag" begin
     s = """@verbatim.subtag beep bop i\\ am\\ parameter
     bla
