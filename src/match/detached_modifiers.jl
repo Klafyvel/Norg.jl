@@ -80,7 +80,7 @@ function match_norg(nodetype::Type{<:AST.NestableDetachedModifier}, ::Token{T},
             MatchClosing{nodetype{closing_level}}(false)
         elseif first(parents) == nodetype{nest_level}
             MatchContinue()
-        elseif first(parents) == AST.Paragraph
+        elseif first(parents) ∈ [AST.Paragraph, AST.ParagraphSegment]
             MatchClosing{first(parents)}(false)
         else
             MatchFound{nodetype{nest_level}}()

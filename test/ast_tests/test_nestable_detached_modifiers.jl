@@ -93,3 +93,18 @@ end
     @test h1 isa Node{AST.Heading{1}}
     @test h1bis isa Node{AST.Heading{1}}
 end
+
+@testset "Nestable delimiter within paragraphs" begin
+    s = """** Paragraphs
+          Paragraphs are then formed of consecutive {** paragraph segments}. A paragraph is terminated by:
+          - A <paragraph break> (two consecutive {# line ending}s)
+          - Any of the {* detached modifiers}
+          - Any of the {** delimiting modifiers}
+          - Any of the {** ranged tags}
+          - Any of the {*** strong carryover tags}
+       """
+    ast = parse(Norg.AST.NorgDocument, s)
+    p, ul = children(first(children(ast)))
+    @test p isa Node{AST.Paragraph}
+    @test ul isa Node{AST.UnorderedList{1}}
+end

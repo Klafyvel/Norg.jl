@@ -1,3 +1,5 @@
+using Hyperscript
+
 @testset "Test paragraphs" begin
     s = "Hi I am first paragraph.\n\nOh, hello there, I am second paragraph !"
     html = Norg.codegen(Norg.HTMLTarget, Norg.parse_norg(Norg.tokenize(s)))
