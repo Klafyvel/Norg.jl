@@ -146,3 +146,11 @@ end
     q = first(getfield(html, :children))
     @test getfield(q, :tag) == "blockquote"
 end
+
+@testset "Parse the entier Norg spec without error." begin
+    s = open(joinpath(dirname(dirname(pathof(Norg))), "norg-specs", "1.0-specification.norg"), "r") do f
+        read(f, String)
+    end
+    html = parse(HTMLTarget, s)
+    @test html isa Hyperscript.Node{Hyperscript.HTMLSVG}
+end

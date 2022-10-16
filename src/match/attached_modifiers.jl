@@ -24,16 +24,20 @@ function match_norg(ast_node::Type{<:AST.AttachedModifier}, token, parents,
     match_norg(first(parents), ast_node, token, parents, tokens, i)
 end
 
-function match_norg(::Type{AST.NorgDocument}, ast_node, token, parents, tokens,
+function match_norg(::Type{AST.NorgDocument}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens,
                     i)
     match_norg(AST.ParagraphSegment, ast_node, token, parents, tokens, i)
 end
 
-function match_norg(::Type{AST.Paragraph}, ast_node, token, parents, tokens, i)
+function match_norg(::Type{AST.Paragraph}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
     match_norg(AST.ParagraphSegment, ast_node, token, parents, tokens, i)
 end
 
-function match_norg(::Type{AST.ParagraphSegment}, ast_node, token, parents,
+function match_norg(::Type, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
+    MatchFound{AST.Paragraph}()
+end
+
+function match_norg(::Type{AST.ParagraphSegment}, ast_node::Type{<:AST.AttachedModifier}, token, parents,
                     tokens, i)
     next_i = nextind(tokens, i)
     next_token = get(tokens, next_i, nothing)
@@ -47,12 +51,12 @@ function match_norg(::Type{AST.ParagraphSegment}, ast_node, token, parents,
     end
 end
 
-function match_norg(::Type{AST.LinkLocation}, ast_node, token, parents, tokens,
+function match_norg(::Type{AST.LinkLocation}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens,
                     i)
     MatchFound{AST.Word}()
 end
 
-function match_norg(::Type{<:AST.MatchedInline}, ast_node, token, parents,
+function match_norg(::Type{<:AST.MatchedInline}, ast_node::Type{<:AST.AttachedModifier}, token, parents,
                     tokens, i)
     next_i = nextind(tokens, i)
     next_token = get(tokens, next_i, nothing)
@@ -74,7 +78,7 @@ function match_norg(::Type{<:AST.MatchedInline}, ast_node, token, parents,
     end
 end
 
-function match_norg(::Type{AST.InlineCode}, ast_node, token, parents, tokens, i)
+function match_norg(::Type{AST.InlineCode}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
     token = tokens[i]
     if !(token isa Token{Tokens.BackApostrophe})
         return MatchFound{AST.Word}()

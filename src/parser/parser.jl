@@ -72,7 +72,7 @@ function parse_norg(::Type{AST.FirstClassNode}, tokens, i, parents)
     token = get(tokens, i, nothing)
     m = match_norg(token, parents, tokens, i)
     if isclosing(m)
-        @error "Closing token when parsing first class node" token m
+        @error "Closing token when parsing first class node" token m parents
         error("This is a bug, please report it along with the text you are trying to parse.")
     elseif iscontinue(m)
         return nextind(tokens, i), nothing

@@ -48,7 +48,11 @@ function match_norg(::Type{AST.DelimitingModifier}, ::Token{T}, parents, tokens,
             token = get(tokens, new_i, nothing)
         end
         if is_delimiting
-            MatchFound{delimitingmodifier(T)}()
+            if any(first(parents) .<: [AST.ParagraphSegment, AST.Paragraph, AST.NorgDocument, AST.Heading])
+                MatchFound{delimitingmodifier(T)}()
+            else
+                MatchClosing{first(parents)}()
+            end
         else
             MatchNotFound()
         end
