@@ -16,14 +16,16 @@ simple_link_tests = [":norg_file:" => AST.FileLocation
                      "/ example.txt" => AST.FileLinkableLocation]
 
 @testset "basic links: $target" for (link, target) in simple_link_tests
-    s = "{$link}"
+    s = "{$link} other"
     ast = parse(Norg.AST.NorgDocument, s)
     p = first(children(ast))
     ps = first(children(p))
-    l = first(children(ps))
+    l, space, word = children(ps)
     loc = first(children(l))
     @test l isa Node{AST.Link}
     @test loc isa Node{target}
+    @test space isa Node{AST.Word}
+    @test space.data.value == " "
 end
 
 @testset "basic links with description: $target" for (link, target) in simple_link_tests

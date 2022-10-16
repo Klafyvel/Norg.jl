@@ -35,7 +35,7 @@ function match_norg(t::Type{AST.LinkDescription}, token, parents, tokens, i)
 end
 function match_norg(t::Type{AST.Link}, ::Type{AST.LinkDescription}, token,
                     parents, tokens, i)
-    MatchClosing{t}()
+    MatchClosing{t}(false)
 end
 function match_norg(::Type{<:AST.NodeData}, ::Type{AST.LinkDescription}, token,
                     parents, tokens, i)
