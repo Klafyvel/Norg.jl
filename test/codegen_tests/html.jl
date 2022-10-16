@@ -50,28 +50,28 @@ end
 end
 
 simple_link_tests = [
-":norg_file:" => "norg_file"
-"* heading" => "#h1-heading"
-"** heading" => "#h2-heading"
-"*** heading" => "#h3-heading"
-"**** heading" => "#h4-heading"
-"***** heading" => "#h5-heading"
-"****** heading" => "#h6-heading"
-"******* heading" => "#h6-heading"
-"# magic" => ""
-"42" => "#l-42"
-"https://example.org" => "https://example.org"
-"file://example.txt" => "file://example.txt"
-"/ example.txt" => "example.txt"
+(":norg_file:", "norg_file", "norg_file")
+("* heading", "#h1-heading", "heading")
+("** heading", "#h2-heading", "heading")
+("*** heading", "#h3-heading", "heading")
+("**** heading", "#h4-heading", "heading")
+("***** heading", "#h5-heading", "heading")
+("****** heading", "#h6-heading", "heading")
+("******* heading", "#h6-heading", "heading")
+("# magic", "", "")
+("42", "#l-42", "#l-42")
+("https://example.org", "https://example.org", "https://example.org")
+("file://example.txt", "file://example.txt", "file://example.txt")
+("/ example.txt", "example.txt", "example.txt")
 ]
 
-@testset "Test links: $link" for (link, target) in simple_link_tests
+@testset "Test links: $link" for (link, target, text) in simple_link_tests
     s = "{$link}"
     html = parse(HTMLTarget, s)
     link = first(getfield(first(getfield(html, :children)), :children))
     @test getfield(link, :tag) == "a"
     @test getfield(link, :attrs)["href"] == target
-    @test first(getfield(link, :children)) == target
+    @test first(getfield(link, :children)) == text
 end
 
 @testset "Test links with description: $link" for (link, target) in simple_link_tests

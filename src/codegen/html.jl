@@ -77,6 +77,8 @@ function codegen(t::HTMLTarget, node::AST.Node{AST.Link})
     target = codegen(t, first(node.children))
     if length(node.children) > 1
         text = codegen(t, last(node.children))
+    elseif first(node.children) isa AST.Node{AST.DetachedModifierLocation}
+        text = first(node.children).data.target
     else
         text = codegen(t, first(node.children))
     end
