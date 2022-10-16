@@ -68,7 +68,7 @@ function match_norg(::Token{Tokens.Whitespace}, parents, tokens, i)
             match_norg(AST.OrderedList, next_token, parents, tokens,
                        nextind(tokens, i))
         elseif next_token isa Token{Tokens.GreaterThanSign}
-            match_norg(AST.GreaterThanSign, next_token, parents, tokens,
+            match_norg(AST.Quote, next_token, parents, tokens,
                        nextind(tokens, i))
         elseif next_token isa Token{Tokens.CommercialAtSign}
             match_norg(AST.Verbatim, next_token, parents, tokens,

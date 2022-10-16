@@ -1,0 +1,3 @@
+[submodule "norg-specs"]
+	path = norg-specs
+	url = https://github.com/nvim-neorg/norg-specs.git

@@ -47,18 +47,102 @@ end
     end
 end
 
-@testset "Test links" begin
-    s = "{https://klafyvel.me}"
+simple_link_tests = [
+":norg_file:" => "norg_file"
+"* heading" => "#h1-heading"
+"** heading" => "#h2-heading"
+"*** heading" => "#h3-heading"
+"**** heading" => "#h4-heading"
+"***** heading" => "#h5-heading"
+"****** heading" => "#h6-heading"
+"******* heading" => "#h6-heading"
+"# magic" => ""
+"42" => "#l-42"
+"https://example.org" => "https://example.org"
+"file://example.txt" => "file://example.txt"
+"/ example.txt" => "example.txt"
+]
+
+@testset "Test links: $link" for (link, target) in simple_link_tests
+    s = "{$link}"
     html = parse(HTMLTarget, s)
     link = first(getfield(first(getfield(html, :children)), :children))
-    @test getfield(link, :attrs)["href"] == "https://klafyvel.me"
-    @test first(getfield(link, :children)) == "https://klafyvel.me"
+    @test getfield(link, :tag) == "a"
+    @test getfield(link, :attrs)["href"] == target
+    @test first(getfield(link, :children)) == target
 end
 
-@testset "Test links with description" begin
-    s = "{https://klafyvel.me}[website]"
+@testset "Test links with description: $link" for (link, target) in simple_link_tests
+    s = "{$link}[website]"
     html = parse(HTMLTarget, s)
     link = first(getfield(first(getfield(html, :children)), :children))
-    @test getfield(link, :attrs)["href"] == "https://klafyvel.me"
+    @test getfield(link, :tag) == "a"
+    @test getfield(link, :attrs)["href"] == target
     @test first(getfield(link, :children)) == "website"
+end
+
+@testset "Anchors with embedded definition: $link" for (link, target) in simple_link_tests
+    s = "[website]{$link}"
+    html = parse(HTMLTarget, s)
+    link = first(getfield(first(getfield(html, :children)), :children))
+    @test getfield(link, :tag) == "a"
+    @test getfield(link, :attrs)["href"] == target
+    @test first(getfield(link, :children)) == "website"
+end
+
+@testset "Verbatim code" begin
+    s = """@code julia
+    using Norg, Hyperscript
+    s = "*Hi there*"
+    html = parse(Norg.HTMLTarget, s)
+    html |> Pretty
+    @end
+    """
+    html = parse(HTMLTarget, s)
+    pre = first(getfield(html, :children))
+    @test getfield(pre, :tag) == "pre"
+    code = first(getfield(pre, :children))
+    @test getfield(code, :tag) == "code"
+    @test haskey(getfield(code, :attrs), "class")
+    @test getfield(code, :attrs)["class"] == "language-julia"
+end
+
+heading_levels = 1:6
+
+@testset "Level $i heading" for i in heading_levels
+    s = """$(repeat("*", i)) heading
+    text
+    """
+    html = parse(HTMLTarget, s)
+    section = first(getfield(html, :children))
+    @test getfield(section, :tag) == "section"
+    @test haskey(getfield(section, :attrs), "id")
+    @test getfield(section, :attrs)["id"] == "section-h$(i)-heading"
+    h,p = getfield(section, :children)
+    @test getfield(h, :tag) == "h$i"
+    @test haskey(getfield(h, :attrs), "id")
+    @test getfield(h, :attrs)["id"] == "h$(i)-heading"
+    @test first(getfield(h, :children)) == "heading"
+    @test getfield(p, :tag) == "p"
+    @test first(getfield(p, :children)) == "text"
+end
+
+nestable_lists = ['~'=>"ol", '-'=>"ul"]
+@testset "$target list" for (m, target) in nestable_lists
+    s = """$m Hello, salute sinchero oon kydooke
+    $m Shintero yuo been na
+    $m Na sinchere fedicheda
+    """
+    html = parse(HTMLTarget, s)
+    list = first(getfield(html, :children))
+    @test getfield(list, :tag) == target
+    lis = getfield(list, :children)
+    @test all(getfield.(lis, :tag) .== "li")
+end
+
+@testset "quote" begin
+    s = "> I QUOTE you"
+    html = parse(HTMLTarget, s)
+    q = first(getfield(html, :children))
+    @test getfield(q, :tag) == "blockquote"
 end

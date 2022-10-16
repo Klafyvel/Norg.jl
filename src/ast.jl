@@ -82,6 +82,7 @@ struct Heading{T} <: StructuralDetachedModifier
     title::Node{ParagraphSegment}
 end
 headinglevel(::Type{Heading{T}}) where {T} = T
+headinglevel(::Heading{T}) where {T} = T
 
 abstract type DelimitingModifier <: DetachedModifier end
 struct WeakDelimitingModifier <: DelimitingModifier end
