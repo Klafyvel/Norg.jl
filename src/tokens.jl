@@ -49,10 +49,10 @@ Base.length(t::Token) = length(value(t))
 
 # Kind interface
 Kinds.kind(t::Token) = t.kind
-Kinds.is_whitespace(t::Token) = Kinds.is_whitespace(t.kind)
-Kinds.is_punctuation(t::Token) = Kinds.is_punctuation(t.kind)
-Kinds.is_word(t::Token) = Kinds.is_word(t.kind)
-Kinds.is_line_ending(t::Token) = Kinds.is_line_ending(t.kind)
+is_whitespace(t::Token) = K"BEGIN_WHITESPACE" < kind(t) < K"END_WHITESPACE"
+is_punctuation(t::Token) = K"BEGIN_PUNCTUATION" < kind(t) < K"END_PUNCTUATION"
+is_word(t::Token) = kind(t) == K"Word"
+is_line_ending(t::Token) = kind(t) == K"LineEnding"
 
-export line, char, value, Token
+export line, char, value, is_whitespace, is_punctuation, is_word, is_line_ending, Token
 end

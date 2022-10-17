@@ -20,16 +20,16 @@ include("kind.jl")
 include("tokens.jl")
 include("scanners.jl")
 include("tokenize.jl")
-# include("ast.jl")
-# include("match/match.jl")
-# include("parser/parser.jl")
+include("ast.jl")
+include("match/match.jl")
+include("parser/parser.jl")
 # include("codegen.jl")
 
 using .Kinds
 using .Tokens
 using .Scanners
 using .Tokenize
-# using .AST
+using .AST
 # using .Parser
 # using .Codegen
 #

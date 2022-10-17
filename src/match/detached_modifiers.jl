@@ -1,61 +1,58 @@
-function match_norg(::Type{AST.Heading}, token, parents, tokens, i)
+function match_norg(::Heading, parents, tokens, i)
     # Special case when parsing the title of a heading
-    if AST.Heading ∈ parents
+    if K"HeadingTitle" ∈ parents
         return MatchNotFound()
     end
-    nestable_parents = filter(x -> x <: AST.NestableDetachedModifier, parents)
+    nestable_parents = filter(is_nestable, parents)
     if length(nestable_parents) > 0
-        return MatchClosing{first(nestable_parents)}(false)
+        return MatchClosing(first(nestable_parents), false)
     end
     new_i = i
     heading_level = 0
-    while new_i < lastindex(tokens) &&
-        get(tokens, new_i, nothing) isa Token{Tokens.Star}
+    while new_i < lastindex(tokens) && kind(get(tokens, new_i, nothing)) == K"*"
         new_i = nextind(tokens, new_i)
         heading_level += 1
     end
     next_token = get(tokens, new_i, nothing)
-    if next_token isa Token{Tokens.Whitespace}
-        previous_heading_level = AST.headinglevel.(filter(x -> x <: AST.Heading,
-                                                          parents))
-        if any(previous_heading_level .>= heading_level)
-            closing_level = first(previous_heading_level[previous_heading_level .>= heading_level])
-            MatchClosing{AST.Heading{closing_level}}()
+    if is_whitespace(next_token)
+        ancestor_headings = findfirst(x->is_heading(x) && heading_level(x) >= heading_level, parents)
+        if !isnothing(ancestor_headings)
+            MatchClosing(parents[ancestor_headings], false)
         else
-            MatchFound{AST.Heading{heading_level}}()
+            MatchFound(heading_level(heading_level))
         end
     else
         MatchNotFound()
     end
 end
 
-delimitingmodifier(::Type{Tokens.EqualSign}) = AST.StrongDelimitingModifier
-delimitingmodifier(::Type{Tokens.Minus}) = AST.WeakDelimitingModifier
-delimitingmodifier(::Type{Tokens.Underscore}) = AST.HorizontalRule
+delimitingmodifier(::StrongDelimiter) = K"StrongDelimitingModifier"
+delimitingmodifier(::WeakDelimiter) = K"WeakDelimitingModifier"
+delimitingmodifier(::HorizontalRule) = K"HorizontalRule"
 
-function match_norg(::Type{AST.DelimitingModifier}, ::Token{T}, parents, tokens,
-                    i) where {T}
+function match_norg(::T, parents, tokens, i) where {T<:DelimitingModifier}
     next_i = nextind(tokens, i)
     next_next_i = nextind(tokens, next_i)
     next_token = get(tokens, next_i, nothing)
     next_next_token = get(tokens, next_next_i, nothing)
-    if next_token isa Token{T} && next_next_token isa Token{T}
+    token = tokens[i]
+    if kind(next_token) == kind(token) && kind(next_next_token) == kind(token)
         new_i = nextind(tokens, next_next_i)
-        token = get(tokens, new_i, nothing)
+        new_token = get(tokens, new_i, nothing)
         is_delimiting = true
-        while new_i < lastindex(tokens) && !(token isa Token{Tokens.LineEnding})
-            if !(token isa Token{T})
+        while new_i < lastindex(tokens) && !is_line_ending(new_token)
+            if kind(token) != kind(new_token)
                 is_delimiting = false
                 break
             end
             new_i = nextind(tokens, new_i)
-            token = get(tokens, new_i, nothing)
+            new_token = get(tokens, new_i, nothing)
         end
         if is_delimiting
-            if any(first(parents) .<: [AST.ParagraphSegment, AST.Paragraph, AST.NorgDocument, AST.Heading])
-                MatchFound{delimitingmodifier(T)}()
+            if first(parents) ∈ [K"ParagraphSegment", K"Paragraph", K"NorgDocument"] || is_heading(first(parents))
+                MatchFound(delimitingmodifier(T))
             else
-                MatchClosing{first(parents)}()
+                MatchClosing(first(parents), false)
             end
         else
             MatchNotFound()
@@ -65,34 +62,77 @@ function match_norg(::Type{AST.DelimitingModifier}, ::Token{T}, parents, tokens,
     end
 end
 
-function match_norg(nodetype::Type{<:AST.NestableDetachedModifier}, ::Token{T},
-                    parents, tokens, i) where {T}
+function nestable(::Quote, level)
+    if level<=1
+        K"Quote1"
+    elseif level == 2
+        K"Quote2"
+    elseif level == 3
+        K"Quote3"
+    elseif level == 4
+        K"Quote4"
+    elseif level == 5
+        K"Quote5"
+    else
+        K"Quote6"
+    end
+end
+function nestable(::UnorderedList, level)
+    if level<=1
+        K"UnorderedList1"
+    elseif level == 2
+        K"UnorderedList2"
+    elseif level == 3
+        K"UnorderedList3"
+    elseif level == 4
+        K"UnorderedList4"
+    elseif level == 5
+        K"UnorderedList5"
+    else
+        K"UnorderedList6"
+    end
+end
+function nestable(::OrderedList, level)
+    if level<=1
+        K"OrderedList1"
+    elseif level == 2
+        K"OrderedList2"
+    elseif level == 3
+        K"OrderedList3"
+    elseif level == 4
+        K"OrderedList4"
+    elseif level == 5
+        K"OrderedList5"
+    else
+        K"OrderedList6"
+    end
+end
+function match_norg(t::T, parents, tokens, i) where {T<:Nestable}
     new_i = i
     nest_level = 0
+    token = tokens[i]
     while new_i < lastindex(tokens) &&
-        get(tokens, new_i, nothing) isa Token{T}
+        kind(get(tokens, new_i, nothing)) == kind(token)
         new_i = nextind(tokens, new_i)
         nest_level += 1
     end
     next_token = get(tokens, new_i, nothing)
-    if next_token isa Token{Tokens.Whitespace}
-        previous_nest_level = AST.nestlevel.(filter(x -> x <:
-                                                         AST.NestableDetachedModifier,
-                                                    parents))
-        if any(previous_nest_level .> nest_level)
-            closing_level = first(previous_nest_level[previous_nest_level .>= nest_level])
-            MatchClosing{nodetype{closing_level}}(false)
-        elseif first(parents) == nodetype{nest_level}
+    if kind(next_token) == K"Whitespace"
+        ancestor_nestable = filter(is_nestable, parents)
+        higher_level_ancestor_id = findfirst(x->nest_level(x) >= nest_level, ancestor_nestable)
+        if !isnothing(higher_level_ancestor_id)
+            MatchClosing(ancestor_nestable[higher_level_ancestor_id], false)
+        elseif first(parents) == nestable(t, nest_level)
             @debug "Create nestable item" nest_level
-            MatchFound{AST.NestableItem}()
-        elseif any(previous_nest_level .== nest_level)
-            MatchClosing{first(parents)}(false)
-        elseif first(parents) ∈ [AST.Paragraph, AST.ParagraphSegment]
+            MatchFound(K"NestableItem")
+        elseif any(nestable_level.(ancestor_nestable) .== nest_level)
+            MatchClosing(first(parents), false)
+        elseif first(parents) ∈ [K"Paragraph", K"ParagraphSegment"]
             @debug "closing parent" first(parents)
-            MatchClosing{first(parents)}(false)
+            MatchClosing(first(parents), false)
         else
             @debug "create nestable" nest_level
-            MatchFound{nodetype{nest_level}}()
+            MatchFound(nestable(t, nest_level))
         end
     else
         MatchNotFound()

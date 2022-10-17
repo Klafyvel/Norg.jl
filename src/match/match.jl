@@ -1,284 +1,336 @@
 """
-This module exports `match_norg` which matches token sequences to [`AST.NodeData`](@ref) types.
+This module exports `match_norg` which matches token sequences to [`NodeData`](@ref) types.
 """
 module Match
+using ..Kinds
 using ..AST
 using ..Tokens
 
-abstract type MatchResult end
-struct MatchNotFound <: MatchResult end
-struct MatchClosing{T <: AST.NodeData} <: MatchResult
+struct MatchResult 
+    kind::Kind
+    found::Bool
+    closing::Bool
+    continued::Bool
     consume::Bool
 end
-MatchClosing{T}() where {T} = MatchClosing{T}(true)
-struct MatchFound{T <: AST.NodeData} <: MatchResult end
-struct MatchContinue <: MatchResult end
+MatchNotFound() = MatchResult(K"None", false, false, false, false)
+MatchClosing(k::Kind, consume=true) = MatchResult(k, true, true, false, consume)
+MatchFound(k::Kind, consume=true) = MatchResult(k, true, false, false, consume)
+MatchContinue() = MatchResult(K"None", true, false, true, true)
 
-isclosing(m) = m isa MatchClosing
-iscontinue(m) = m isa MatchContinue
-matched(::MatchClosing{T}) where {T} = T
-matched(::MatchFound{T}) where {T} = T
+isclosing(m::MatchResult) = m.closing
+iscontinue(m::MatchResult) = m.continued
+isnotfound(m::MatchResult) = !m.found
+consume(m::MatchResult) = m.consume
+matched(m::MatchResult)= m.kind
 
 """
-match_norg([[[firstparenttype], astnodetype], token=tokens[i]], parents, tokens, i)
+match_norg([matchstrategy], parents, tokens, i)
 
-Find the appropriate [`AST.NodeData`](@ref) for a `token` when parser is inside
+Find the appropriate [`Kind`](@ref) for a token when parser is inside
 a `parents` block parsing the `tokens` list at index `i`.
-
-If `astnodetype` is set, try to match an AST node of the given type. Return
-nothing if it fails. If firstparenttype is given, the matching is altered with
-the correspondig context. This allows disabling some features in *e.g.*
-verbatim context.
 
 Return a [`Norg.Match.MatchResult`](@ref).
 
-When `astnodetype` is not specified, must return a [`Norg.Match.MatchFound`](@ref)
+When `matchstrategy` is not specified, must return a [`Norg.Match.MatchFound`](@ref)
 or a [`Norg.Match.MatchClosing`](@ref).
 """
 function match_norg end
+
+abstract type MatchStrategy end
+abstract type FromToken <: MatchStrategy end
+struct Whitespace <: FromToken end
+struct LineEnding <: FromToken end
+struct Star <: FromToken end
+struct Slash <: FromToken end
+struct Underscore <: FromToken end
+struct Minus <: FromToken end
+struct ExclamationMark <: FromToken end
+struct Circumflex <: FromToken end
+struct Comma <: FromToken end
+struct BackApostrophe <: FromToken end
+struct BackSlash <: FromToken end
+struct EqualSign <: FromToken end
+struct LeftBrace <: FromToken end
+struct RightBrace <: FromToken end
+struct RightSquareBracket <: FromToken end
+struct LeftSquareBracket <: FromToken end
+struct Tilde <: FromToken end
+struct GreaterThanSign <: FromToken end
+struct CommercialAtSign <: FromToken end
+abstract type FromNode end
+struct Word <: FromNode end
+struct Heading <: FromNode end
+struct HeadingTitle <: FromNode end
+abstract type DelimitingModifier <: FromNode end
+struct StrongDelimiter <: DelimitingModifier end
+struct WeakDelimiter <: DelimitingModifier end
+struct HorizontalRule <: DelimitingModifier end
+abstract type Nestable <: FromNode end
+struct UnorderedList <: Nestable end
+struct OrderedList <: Nestable end
+struct Quote <: Nestable end
+struct Verbatim <: FromNode end
+abstract type AttachedModifier <: FromNode end
+struct Bold <: AttachedModifier end
+struct Italic <: AttachedModifier end
+struct Underline <: AttachedModifier end
+struct Strikethrough <: AttachedModifier end
+struct Spoiler <: AttachedModifier end
+struct Superscript <: AttachedModifier end
+struct Subscript <: AttachedModifier end
+struct InlineCode <: AttachedModifier end
+struct Anchor <: FromNode end
+struct LinkLocation <: FromNode end
+struct LinkDescription <: FromNode end
+struct LinkSubTarget <: FromNode end
+struct ParagraphSegment <: FromNode end
 
 include("attached_modifiers.jl")
 include("detached_modifiers.jl")
 include("tags.jl")
 include("links.jl")
 
+function force_word_context(parents, tokens, i)
+    k = kind(first(parents))
+    if k == K"InlineCode"
+        kind(tokens[i]) == K"@"
+    elseif k == K"Verbatim"
+        kind(tokens[i]) == K"`"
+    elseif k == K"Escape"
+        true
+    else
+        false
+    end
+end
+
 function match_norg(parents, tokens, i)
     token = tokens[i]
-    if first(parents) isa AST.InlineCode && !(token isa Token{Tokens.BackApostrophe}) && !(token isa Token{Tokens.BackSlash})
-        MatchFound{AST.Word}()
+    m = if force_word_context(parents, tokens, i)
+        match_norg(Word(), parents, tokens, i)
+    elseif kind(token) == K"Whitespace"
+        match_norg(Whitespace(), parents, tokens, i)
+    elseif kind(token) == K"LineEnding"
+        match_norg(LineEnding(), parents, tokens, i)
+    elseif kind(token) == K"*"
+        match_norg(Star(), parents, tokens, i)
+    elseif kind(token) == K"/" 
+        match_norg(Slash(), parents, tokens, i)
+    elseif kind(token) == K"_"
+        match_norg(Underscore(), parents, tokens, i)
+    elseif kind(token) == K"-"
+        match_norg(Minus(), parents, tokens, i)
+    elseif kind(token) == K"!"
+        match_norg(ExclamationMark(), parents, tokens, i)
+    elseif kind(token) == K"^"
+        match_norg(Circumflex(), parents, tokens, i)
+    elseif kind(token) == K","
+        match_norg(Comma(), parents, tokens, i)
+    elseif kind(token) == K"`"
+        match_norg(BackApostrophe(), parents, tokens, i)
+    elseif kind(token) == K"\\"
+        match_norg(BackSlash(), parents, tokens, i)        
+    elseif kind(token) == K"="
+        match_norg(EqualSign(), parents, tokens, i)        
+    elseif kind(token) == K"{"
+        match_norg(LeftBrace(), parents, tokens, i)        
+    elseif kind(token) == K"}"
+        match_norg(RightBrace(), parents, tokens, i)        
+    elseif kind(token) == K"]"
+        match_norg(RightSquareBracket(), parents, tokens, i)        
+    elseif kind(token) == K"["
+        match_norg(LeftSquareBracket(), parents, tokens, i)        
+    elseif kind(token) == K"~"
+        match_norg(Tilde(), parents, tokens, i)        
+    elseif kind(token) == K">"
+        match_norg(GreaterThanSign(), parents, tokens, i)        
+    elseif kind(token) == K"@"
+        match_norg(CommercialAtSign(), parents, tokens, i)        
     else
-        match_norg(token, parents, tokens, i)
+        match_norg(Word(), parents, tokens, i)
     end
-end
-
-# Default to matching a word.
-match_norg(::Token, parents, tokens, i) = MatchFound{AST.Word}()
-
-function match_norg(::Token{Tokens.Whitespace}, parents, tokens, i)
-    prev_token = get(tokens, prevind(tokens, i), nothing)
-    next_token = get(tokens, nextind(tokens, i), nothing)
-    if prev_token isa Union{Nothing, Token{Tokens.LineEnding}}
-        m = if next_token isa Token{Tokens.Star}
-            match_norg(AST.Heading, next_token, parents, tokens,
-                       nextind(tokens, i))
-        elseif next_token isa Token{Tokens.EqualSign}
-            match_norg(AST.DelimitingModifier, next_token, parents, tokens,
-                       nextind(tokens, i))
-        elseif next_token isa Token{Tokens.Minus}
-            m_t = match_norg(AST.DelimitingModifier, next_token, parents,
-                             tokens, nextind(tokens, i))
-            if m_t isa MatchNotFound
-                match_norg(AST.UnorderedList, next_token, parents, tokens,
-                           nextind(tokens, i))
-            else
-                m_t
-            end
-        elseif next_token isa Token{Tokens.Tilde}
-            match_norg(AST.OrderedList, next_token, parents, tokens,
-                       nextind(tokens, i))
-        elseif next_token isa Token{Tokens.GreaterThanSign}
-            match_norg(AST.Quote, next_token, parents, tokens,
-                       nextind(tokens, i))
-        elseif next_token isa Token{Tokens.CommercialAtSign}
-            match_norg(AST.Verbatim, next_token, parents, tokens,
-                       nextind(tokens, i))
-        else
-            MatchFound{AST.Word}()
-        end
-        if m isa MatchNotFound
-            MatchFound{AST.Word}()
-        else
-            m
-        end
-    else
-        MatchFound{AST.Word}()
-    end
-end
-
-function match_norg(::Token{Tokens.LineEnding}, parents, tokens, i)
-    prev_token = get(tokens, prevind(tokens, i), nothing)
-    if first(parents) == AST.NorgDocument
-        MatchContinue()
-    elseif prev_token isa Token{Tokens.LineEnding}
-        nestable_parents = filter(x -> x <: AST.NestableDetachedModifier,
-                                  parents[2:end])
-        MatchClosing{first(parents)}(length(nestable_parents) == 0)
-    elseif any(parents .<: AST.AttachedModifier)
-        MatchFound{AST.Word}()
-    else
-        MatchClosing{AST.ParagraphSegment}()
-    end
-end
-
-function match_norg(t::Token{Tokens.Star}, parents, tokens, i)
-    prev_token = get(tokens, i - 1, nothing)
-    m = MatchNotFound()
-    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
-        m = match_norg(AST.Heading, t, parents, tokens, i)
-    end
-    if m isa MatchNotFound
-        m = match_norg(AST.Bold, t, parents, tokens, i)
+    if isnotfound(m)
+        m = match_norg(Word(), parents, tokens, i)
     end
     m
 end
 
-function match_norg(t::Token{Tokens.Slash}, parents, tokens, i)
-    match_norg(AST.Italic, t, parents, tokens, i)
+match_norg(::Word, parents, tokens, i) = MatchFound(K"Word")
+
+function match_norg(::Whitespace, parents, tokens, i)
+    prev_token = get(tokens, prevind(tokens, i), nothing)
+    next_token = get(tokens, nextind(tokens, i), nothing)
+    if isnothing(prev_token) || is_line_ending(prev_token)
+        if kind(next_token) == K"*"
+            match_norg(Heading(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K"="
+            match_norg(DelimitingModifier(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K"-"
+            m_t = match_norg(DelimitingModifier(), parents, tokens, nextind(tokens, i))
+            if isnotfound(m_t)
+                match_norg(UnorderedList(), parents, tokens, nextind(tokens, i))
+            else
+                m_t
+            end
+        elseif kind(next_token) == K"~"
+            match_norg(OrderedList(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K">"
+            match_norg(Quote(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K"@"
+            match_norg(Verbatim(), parents, tokens, nextind(tokens, i))
+        end
+    else
+        MatchNotFound()
+    end
 end
 
-function match_norg(t::Token{Tokens.Underscore}, parents, tokens, i)
+function match_norg(::LineEnding, parents, tokens, i)
+    prev_token = get(tokens, prevind(tokens, i), nothing)
+    if first(parents) == K"NorgDocument"
+        MatchContinue()
+    elseif is_line_ending(prev_token)
+        nestable_parents = filter(is_nestable, parents[2:end])
+        MatchClosing(first(parents), length(nestable_parents) == 0)
+    elseif any(is_attached_modifier.(parents))
+        match_norg(Word, parents, tokens, i)
+    else
+        MatchClosing(K"ParagraphSegment")
+    end
+end
+
+function match_norg(::Star, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
-    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
-        m = match_norg(AST.DelimitingModifier, t, parents, tokens, i)
-        if m isa MatchNotFound
-            match_norg(AST.Underline, t, parents, tokens, i)
+    m = MatchNotFound()
+    if isnothing(prev_token) || is_line_ending(prev_token)
+        m = match_norg(Heading(), parents, tokens, i)
+    end
+    if isnotfound(m)
+        m = match_norg(Bold(), parents, tokens, i)
+    end
+    m
+end
+
+match_norg(::Slash, parents, tokens, i) = match_norg(Italic(), parents, tokens, i)
+
+function match_norg(::Underscore, parents, tokens, i)
+    prev_token = get(tokens, i - 1, nothing)
+    if isnothing(prev_token) || is_line_ending(prev_token)
+        m = match_norg(DelimitingModifier(), parents, tokens, i)
+        if isnotfound(m)
+            match_norg(Underline(), parents, tokens, i)
         else
             m
         end
     else
-        match_norg(AST.Underline, t, parents, tokens, i)
+        match_norg(Underline(), parents, tokens, i)
     end
 end
 
-function match_norg(t::Token{Tokens.Minus}, parents, tokens, i)
+function match_norg(::Minus, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
-    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
+    if isnothing(prev_token) || is_line_ending(prev_token)
         possible_node = [
-            AST.DelimitingModifier,
-            AST.UnorderedList,
-            AST.Strikethrough,
+        WeakDelimiter(),
+        UnorderedList(),
+        Strikethrough(),
         ]
+        m = MatchNotFound()
         for node in possible_node
-            m = match_norg(node, t, parents, tokens, i)
-            if !(m isa MatchNotFound)
-                return m
+            m = match_norg(node, parents, tokens, i)
+            if !isnotfound(m)
+                break
             end
         end
-        MatchFound{AST.Word}()
+        m
     else
-        match_norg(AST.Strikethrough, t, parents, tokens, i)
+        match_norg(Strikethrough(), parents, tokens, i)
     end
 end
 
-function match_norg(t::Token{Tokens.ExclamationMark}, parents, tokens, i)
-    match_norg(AST.Spoiler, t, parents, tokens, i)
-end
+match_norg(::ExclamationMark, parents, tokens, i) = match_norg(Spoiler(), parents, tokens, i)
 
-function match_norg(t::Token{Tokens.Circumflex}, parents, tokens, i)
-    match_norg(AST.Superscript, t, parents, tokens, i)
-end
+match_norg(::Circumflex, parents, tokens, i) = match_norg(Superscript(), parents, tokens, i)
 
-function match_norg(t::Token{Tokens.Comma}, parents, tokens, i)
-    match_norg(AST.Subscript, t, parents, tokens, i)
-end
+match_norg(::Comma, parents, tokens, i) = match_norg(Subscript(), parents, tokens, i)
 
-function match_norg(t::Token{Tokens.BackApostrophe}, parents, tokens, i)
-    match_norg(AST.InlineCode, t, parents, tokens, i)
-end
+match_norg(::BackApostrophe, parents, tokens, i) = match_norg(InlineCode(), parents, tokens, i)
 
-function match_norg(::Token{Tokens.BackSlash}, parents, tokens, i)
-    MatchFound{AST.Escape}()
-end
+match_norg(::BackSlash, parents, tokens, i) = MatchFound(K"Escape")
 
-function match_norg(t::Token{Tokens.EqualSign}, parents, tokens, i)
+function match_norg(::EqualSign, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
-    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
-        m = match_norg(AST.DelimitingModifier, t, parents, tokens, i)
-        if m isa MatchNotFound
-            MatchFound{AST.Word}()
-        else
-            m
-        end
+    if isnothing(prev_token) || is_line_ending(prev_token)
+        match_norg(DelimitingModifier(), parents, tokens, i)
     else
-        MatchFound{AST.Word}()
+        MatchNotFound()
     end
 end
 
-function match_norg(::Token{Tokens.LeftBrace}, parents, tokens, i)
-    if AST.Link ∈ parents
-        MatchFound{AST.Word}()
-    elseif AST.LinkDescription ∈ parents
-        MatchFound{AST.Word}()
+function match_norg(::LeftBrace, parents, tokens, i)
+    if K"Link" ∈ parents
+        match_norg(Word(), parents, tokens, i)
+    elseif K"LinkDescription" ∈ parents
+        match_norg(Word(), parents, tokens, i)
     else
-        MatchFound{AST.Link}()
+        MatchFound(K"Link")
     end
 end
 
-function match_norg(::Token{Tokens.RightBrace}, parents, tokens, i)
-    if AST.LinkLocation ∈ parents
-        MatchClosing{AST.LinkLocation}()
+function match_norg(::RightBrace, parents, tokens, i)
+    if K"LinkLocation" ∈ parents
+        MatchClosing(K"LinkLocation")
     else
-        MatchFound{AST.Word}()
+        MatchNotFound()
     end
 end
 
-function match_norg(::Token{Tokens.RightSquareBracket}, parents, tokens, i)
-    if AST.LinkDescription ∈ parents
-        MatchClosing{AST.LinkDescription}()
+function match_norg(::RightSquareBracket, parents, tokens, i)
+    if K"LinkDescription" ∈ parents
+        MatchClosing(K"LinkDescription")
     else
-        MatchFound{AST.Word}()
+        MatchNotFound()
     end
 end
 
-function match_norg(t::Token{Tokens.LeftSquareBracket}, parents, tokens, i)
-    if AST.LinkDescription ∈ parents || AST.LinkLocation ∈ parents
-        return MatchFound{AST.Word}()
-    elseif AST.Link ∉ parents
-        m = match_norg(AST.Anchor, t, parents, tokens, i)
-        if m isa MatchNotFound
-            return MatchFound{AST.Word}()
-        else
-            return m
-        end
+function match_norg(::LeftSquareBracket, parents, tokens, i)
+    if K"LinkDescription" ∈ parents || K"LinkLocation" ∈ parents
+        return match_norg(Word(), parents, tokens, i)
+    elseif K"Link" ∉ parents
+        return match_norg(Anchor(), parents, tokens, i)
     end
     prev_i = prevind(tokens, i)
     last_token = get(tokens, prev_i, nothing)
-    if last_token isa Token{Tokens.RightSquareBracket}
-        MatchFound{AST.LinkDescription}()
+    if kind(last_token) == K"]"
+        MatchFound(K"LinkDescription")
     else
-        MatchClosing{AST.Link}()
+        MatchClosing(K"Link")
     end
 end
 
-function match_norg(t::Token{Tokens.Tilde}, parents, tokens, i)
+function match_norg(::Tilde, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
-    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
-        m = match_norg(AST.OrderedList, t, parents, tokens, i)
-        if m isa MatchNotFound
-            MatchFound{AST.Word}()
-        else
-            m
-        end
+    if isnothing(prev_token) || is_line_ending(prev_token)
+        match_norg(OrderedList(), parents, tokens, i)
     else
-        MatchFound{AST.Word}()
+        MatchNotFound()
     end
 end
 
-function match_norg(t::Token{Tokens.GreaterThanSign}, parents, tokens, i)
+function match_norg(::GreaterThanSign, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
-    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
-        m = match_norg(AST.Quote, t, parents, tokens, i)
-        if m isa MatchNotFound
-            MatchFound{AST.Word}()
-        else
-            m
-        end
+    if isnothing(prev_token) || is_line_ending(prev_token)
+        match_norg(Quote(), parents, tokens, i)
     else
-        MatchFound{AST.Word}()
+        MatchNotFound()
     end
 end
 
-function match_norg(t::Token{Tokens.CommercialAtSign}, parents, tokens, i)
+function match_norg(::CommercialAtSign, parents, tokens, i)
     prev_token = get(tokens, prevind(tokens, i), nothing)
-    if prev_token isa Union{Token{Tokens.LineEnding}, Nothing}
-        m = match_norg(AST.Verbatim, t, parents, tokens, i)
-        if m isa MatchNotFound
-            MatchFound{AST.Word}()
-        else
-            m
-        end
+    if isnothing(prev_token) || is_line_ending(prev_token)
+        match_norg(Verbatim(), parents, tokens, i)
     else
-        MatchFound{AST.Word}()
+        MatchNotFound()
     end
 end
 
