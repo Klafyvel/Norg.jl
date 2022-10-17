@@ -16,23 +16,25 @@ module Norg
 
 using Compat
 
+include("kind.jl")
 include("tokens.jl")
 include("scanners.jl")
 include("tokenize.jl")
-include("ast.jl")
-include("match/match.jl")
-include("parser/parser.jl")
-include("codegen.jl")
+# include("ast.jl")
+# include("match/match.jl")
+# include("parser/parser.jl")
+# include("codegen.jl")
 
+using .Kinds
 using .Tokens
 using .Scanners
 using .Tokenize
-using .AST
-using .Parser
-using .Codegen
-
-Base.parse(::Type{HTMLTarget}, s) = codegen(HTMLTarget, parse_norg(tokenize(s)))
-
-export HTMLTarget
+# using .AST
+# using .Parser
+# using .Codegen
+#
+# Base.parse(::Type{HTMLTarget}, s) = codegen(HTMLTarget, parse_norg(tokenize(s)))
+#
+# export HTMLTarget
 
 end

@@ -5,41 +5,11 @@ A [`Token`](@ref) stores its value, a [`TokenType`](@ref) and a [`TokenPosition`
 """
 module Tokens
 
-abstract type TokenType end
-abstract type AbstractWhitespace <: TokenType end
-struct LineEnding <: AbstractWhitespace end
-struct Whitespace <: AbstractWhitespace end
-abstract type AbstractPunctuation <: TokenType end
-struct Punctuation <: AbstractPunctuation end
-struct BackSlash <: AbstractPunctuation end
-struct Star <: AbstractPunctuation end
-struct Slash <: AbstractPunctuation end
-struct Underscore <: AbstractPunctuation end
-struct Minus <: AbstractPunctuation end
-struct ExclamationMark <: AbstractPunctuation end
-struct Circumflex <: AbstractPunctuation end
-struct Comma <: AbstractPunctuation end
-struct BackApostrophe <: AbstractPunctuation end
-
-struct LeftBrace <: AbstractPunctuation end
-struct RightBrace <: AbstractPunctuation end
-struct LeftSquareBracket <: AbstractPunctuation end
-struct RightSquareBracket <: AbstractPunctuation end
-
-struct Tilde <: AbstractPunctuation end
-struct GreaterThanSign <: AbstractPunctuation end
-struct CommercialAtSign <: AbstractPunctuation end
-struct EqualSign <: AbstractPunctuation end
-struct Dot <: AbstractPunctuation end
-struct DollarSign <: AbstractPunctuation end
-struct Colon <: AbstractPunctuation end
-struct NumberSign <: AbstractPunctuation end
-
-struct Word <: TokenType end
+using ..Kinds
 
 struct TokenPosition
-    line::Int64
-    char::Int64
+    line::Int
+    char::Int
 end
 """
     line(x)
@@ -54,29 +24,35 @@ Return the character number in the line corresponding to position or token `x`.
 """
 char(p::TokenPosition) = p.char
 
-struct Token{T <: TokenType}
+struct Token
+    kind::Kind
     position::TokenPosition
     value::SubString
 end
-"""
-     Token(line, char, type, value)
 
-Create a `Token` of type `type` with value `value` at `line` and char number `char`.
 """
-function Token(::T, line, char, value) where {T <: TokenType}
-    Token{T}(TokenPosition(line, char), value)
+     Token(kind, line, char, value)
+
+Create a `Token` of kind `kind` with value `value` at `line` and char number `char`.
+"""
+function Token(kind, line, char, value)
+    Token(kind, TokenPosition(line, char), value)
 end
-function Token{T}(line, char, value) where {T <: TokenType}
-    Token{T}(TokenPosition(line, char), value)
-end
-function Base.show(io::IO, token::Token{T}) where {T}
+function Base.show(io::IO, token::Token)
     print(io,
-          "$T: $(repr(value(token))), line $(line(token)) col. $(char(token))")
+    "$(kind(token)): $(repr(value(token))), line $(line(token)) col. $(char(token))")
 end
 line(t::Token) = line(t.position)
 char(t::Token) = char(t.position)
-Base.length(t::Token) = length(t.value)::Int64
-value(t::Token) = string(t.value)
+value(t::Token) = t.value
+Base.length(t::Token) = length(value(t))
+
+# Kind interface
+Kinds.kind(t::Token) = t.kind
+Kinds.is_whitespace(t::Token) = Kinds.is_whitespace(t.kind)
+Kinds.is_punctuation(t::Token) = Kinds.is_punctuation(t.kind)
+Kinds.is_word(t::Token) = Kinds.is_word(t.kind)
+Kinds.is_line_ending(t::Token) = Kinds.is_line_ending(t.kind)
 
 export line, char, value, Token
 end

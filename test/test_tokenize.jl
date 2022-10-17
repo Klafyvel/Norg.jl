@@ -1,13 +1,13 @@
 tokens = collect(Norg.Tokenize.tokenize("..  .\nBonjour"))
-@test tokens[1] isa Norg.Token{Norg.Tokens.Dot}
+@test Norg.kind(tokens[1]) == K"."
 @test length(tokens[1]) == 1
-@test tokens[3] isa Norg.Token{Norg.Tokens.Whitespace}
+@test Norg.is_whitespace(tokens[3])
 @test length(tokens[3]) == 2
 @test Norg.line(tokens[4]) == 1
 @test Norg.char(tokens[4]) == 5
-@test tokens[5] isa Norg.Token{Norg.Tokens.LineEnding}
-@test tokens[6] isa Norg.Token{Norg.Tokens.Word}
+@test Norg.is_line_ending(tokens[5])
+@test Norg.is_word(tokens[6])
 @test length(tokens[6]) == 7
-@test tokens[6].value == "Bonjour"
+@test Norg.value(tokens[6]) == "Bonjour"
 @test Norg.line(tokens[6]) == 2
 @test Norg.char(tokens[6]) == 1
