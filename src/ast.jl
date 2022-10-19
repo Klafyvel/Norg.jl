@@ -33,6 +33,21 @@ stop(node::Node) = node.stop
 
 AbstractTrees.children(node::Node) = node.children
 AbstractTrees.nodevalue(node::Node) = (kind(node), start(node), stop(node))
+AbstractTrees.children(node::NorgDocument) = node.nodes
+AbstractTrees.nodevalue(node::NorgDocument) = "NorgDocument"
+Base.show(io::IO, t::Node) = print_tree(io, t)
+
+function Base.show(io::IO, t::NorgDocument)
+    print_tree(io, t) do io, node
+        if node isa NorgDocument
+            print(io, "NorgDocument")
+        elseif is_leaf(node)
+            print(io, join(value.(t.tokens[start(node):stop(node)])))
+        else
+            print(io, repr(nodevalue(node)))
+        end
+    end
+end
 
 Kinds.is_leaf(node::Node) = is_leaf(kind(node))
 Kinds.is_matched_inline(node::Node) = is_matched_inline(kind(node))

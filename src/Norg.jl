@@ -17,6 +17,7 @@ module Norg
 using Compat
 
 include("kind.jl")
+include("strategy.jl")
 include("tokens.jl")
 include("scanners.jl")
 include("tokenize.jl")

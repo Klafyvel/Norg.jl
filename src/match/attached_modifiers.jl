@@ -17,7 +17,7 @@ attachedmodifier(::Superscript) = K"Superscript"
 attachedmodifier(::Subscript) = K"Subscript"
 attachedmodifier(::InlineCode) = K"InlineCode"
 
-function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifier}
+function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifierStrategy}
     if K"LinkLocation" ∈ parents
         return MatchNotFound()
     end

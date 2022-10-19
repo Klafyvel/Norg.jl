@@ -3,6 +3,7 @@ This module exports `match_norg` which matches token sequences to [`NodeData`](@
 """
 module Match
 using ..Kinds
+using ..Strategies
 using ..AST
 using ..Tokens
 
@@ -25,66 +26,17 @@ consume(m::MatchResult) = m.consume
 matched(m::MatchResult)= m.kind
 
 """
-match_norg([matchstrategy], parents, tokens, i)
+match_norg([strategy], parents, tokens, i)
 
 Find the appropriate [`Kind`](@ref) for a token when parser is inside
 a `parents` block parsing the `tokens` list at index `i`.
 
 Return a [`Norg.Match.MatchResult`](@ref).
 
-When `matchstrategy` is not specified, must return a [`Norg.Match.MatchFound`](@ref)
+When `strategy` is not specified, must return a [`Norg.Match.MatchFound`](@ref)
 or a [`Norg.Match.MatchClosing`](@ref).
 """
 function match_norg end
-
-abstract type MatchStrategy end
-abstract type FromToken <: MatchStrategy end
-struct Whitespace <: FromToken end
-struct LineEnding <: FromToken end
-struct Star <: FromToken end
-struct Slash <: FromToken end
-struct Underscore <: FromToken end
-struct Minus <: FromToken end
-struct ExclamationMark <: FromToken end
-struct Circumflex <: FromToken end
-struct Comma <: FromToken end
-struct BackApostrophe <: FromToken end
-struct BackSlash <: FromToken end
-struct EqualSign <: FromToken end
-struct LeftBrace <: FromToken end
-struct RightBrace <: FromToken end
-struct RightSquareBracket <: FromToken end
-struct LeftSquareBracket <: FromToken end
-struct Tilde <: FromToken end
-struct GreaterThanSign <: FromToken end
-struct CommercialAtSign <: FromToken end
-abstract type FromNode end
-struct Word <: FromNode end
-struct Heading <: FromNode end
-struct HeadingTitle <: FromNode end
-abstract type DelimitingModifier <: FromNode end
-struct StrongDelimiter <: DelimitingModifier end
-struct WeakDelimiter <: DelimitingModifier end
-struct HorizontalRule <: DelimitingModifier end
-abstract type Nestable <: FromNode end
-struct UnorderedList <: Nestable end
-struct OrderedList <: Nestable end
-struct Quote <: Nestable end
-struct Verbatim <: FromNode end
-abstract type AttachedModifier <: FromNode end
-struct Bold <: AttachedModifier end
-struct Italic <: AttachedModifier end
-struct Underline <: AttachedModifier end
-struct Strikethrough <: AttachedModifier end
-struct Spoiler <: AttachedModifier end
-struct Superscript <: AttachedModifier end
-struct Subscript <: AttachedModifier end
-struct InlineCode <: AttachedModifier end
-struct Anchor <: FromNode end
-struct LinkLocation <: FromNode end
-struct LinkDescription <: FromNode end
-struct LinkSubTarget <: FromNode end
-struct ParagraphSegment <: FromNode end
 
 include("attached_modifiers.jl")
 include("detached_modifiers.jl")
@@ -178,6 +130,8 @@ function match_norg(::Whitespace, parents, tokens, i)
             match_norg(Quote(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"@"
             match_norg(Verbatim(), parents, tokens, nextind(tokens, i))
+        else
+            MatchNotFound()
         end
     else
         MatchNotFound()
@@ -192,7 +146,7 @@ function match_norg(::LineEnding, parents, tokens, i)
         nestable_parents = filter(is_nestable, parents[2:end])
         MatchClosing(first(parents), length(nestable_parents) == 0)
     elseif any(is_attached_modifier.(parents))
-        match_norg(Word, parents, tokens, i)
+        match_norg(Word(), parents, tokens, i)
     else
         MatchClosing(K"ParagraphSegment")
     end
@@ -334,5 +288,6 @@ function match_norg(::CommercialAtSign, parents, tokens, i)
     end
 end
 
-export match_norg, isclosing, iscontinue, matched
+export match_norg, isclosing, iscontinue, matched, isnotfound, consume
+
 end

@@ -42,9 +42,7 @@ const _kind_names = [
   "BEGIN_AST_NODE"
     # Leafs contain a set of tokens.
     "BEGIN_AST_LEAF"
-      "Word" 
-      "Escape"
-      "LinkLocation"
+      "WordNode" 
       "Number"
       "VerbatimBody"
       "HeadingPreamble"
@@ -52,7 +50,9 @@ const _kind_names = [
     "END_AST_LEAF"
     "Paragraph"
     "ParagraphSegment"
+    "Escape"
     "Link"
+    "LinkLocation"
     "Anchor"
     "NestableItem"
     "Verbatim"
@@ -216,6 +216,6 @@ is_unordered_list(k::Kind) = K"BEGIN_UNORDERED_LIST" < k < K"END_UNORDERED_LIST"
 is_ordered_list(k::Kind) = K"BEGIN_ORDERED_LIST" < k < K"END_ORDERED_LIST"
 is_quote(k::Kind) = K"BEGIN_QUOTE" < k < K"END_QUOTE"
 
-export @K_str, @KSet_str, Kind, kind, is_leaf, is_matched_inline, is_attached_modifier, is_link_location, is_detached_modifier, is_detached_modifier, is_nestable, is_heading, is_unordered_list, is_ordered_list, is_quote
+export @K_str, @KSet_str, Kind, kind, is_leaf, is_matched_inline, is_attached_modifier, is_link_location, is_detached_modifier, is_delimiting_modifier, is_nestable, is_heading, is_unordered_list, is_ordered_list, is_quote
 
 end
