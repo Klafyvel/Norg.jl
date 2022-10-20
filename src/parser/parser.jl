@@ -165,7 +165,11 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
         end
         node = parse_norg_dispatch(to_parse, parents, tokens, i)
         i = nextind(tokens, AST.stop(node))
-        push!(children, node)
+        if kind(node) == K"None"
+            append!(children, node.children)
+        else
+            push!(children, node)
+        end
     end
     if isclosing(m) && matched(m) == K"ParagraphSegment" && !consume(m)
         i = prevind(tokens, i)

@@ -3,7 +3,7 @@ using Test
 using Compat
 using AbstractTrees
 
-import Norg: @K_str
+import Norg: @K_str, kind, value
 
 @testset "Norg.jl" begin
     @testset "scanners.jl" begin include("test_scanners.jl") end

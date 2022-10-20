@@ -46,9 +46,9 @@ include("links.jl")
 function force_word_context(parents, tokens, i)
     k = kind(first(parents))
     if k == K"InlineCode"
-        kind(tokens[i]) == K"@"
+        kind(tokens[i]) != K"`"
     elseif k == K"Verbatim"
-        kind(tokens[i]) == K"`"
+        kind(tokens[i]) != K"@"
     elseif k == K"Escape"
         true
     else
@@ -169,7 +169,7 @@ match_norg(::Slash, parents, tokens, i) = match_norg(Italic(), parents, tokens, 
 function match_norg(::Underscore, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
     if isnothing(prev_token) || is_line_ending(prev_token)
-        m = match_norg(DelimitingModifier(), parents, tokens, i)
+        m = match_norg(WeakDelimiter(), parents, tokens, i)
         if isnotfound(m)
             match_norg(Underline(), parents, tokens, i)
         else
