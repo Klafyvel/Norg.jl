@@ -11,7 +11,7 @@ AST = Norg.AST
     @test length(children(verb)) == 2
     verb_body = last(children(verb))
     @test kind(verb_body) == K"VerbatimBody"
-    @test join(AST.value.(ast.tokens[verb_body.start:verb_body.stop])) == "hey\n"
+    @test AST.litteral(ast, verb_body) == "hey\n"
 end
 
 @testset "Test verbatim subtag" begin
@@ -25,8 +25,9 @@ end
     """
     ast = parse(AST.NorgDocument, s)
     verb = first(children(ast))
-    @test nodevalue(verb).tag == "document"
-    @test nodevalue(verb).subtag == "meta"
+    tag, subtag, _ = children(verb)
+    @test AST.litteral(ast, tag) == "document"
+    @test AST.litteral(ast, subtag) == "meta"
 end
 
 @testset "Test verbtatim with parameters" begin
@@ -36,7 +37,9 @@ end
     """
     ast = parse(AST.NorgDocument, s)
     verb = first(children(ast))
-    @test nodevalue(verb).parameters == ["julia"]
+    tag, lang, _ = children(verb)
+    @test AST.litteral(ast, tag) == "code"
+    @test AST.litteral(ast, lang) == "julia"
 end
 
 @testset "Test verbtatim with indentation" begin
@@ -46,7 +49,9 @@ end
     """
     ast = parse(AST.NorgDocument, s)
     verb = first(children(ast))
-    @test nodevalue(verb).parameters == ["julia"]
+    tag, lang, _ = children(verb)
+    @test AST.litteral(ast, tag) == "code"
+    @test AST.litteral(ast, lang) == "julia"
 end
 
 @testset "Complex verbatim tag" begin
@@ -57,9 +62,14 @@ end
     """
     ast = parse(AST.NorgDocument, s)
     verb, p = children(ast)
-    @test nodevalue(verb).tag == "verbatim"
-    @test nodevalue(verb).subtag == "subtag"
-    @test nodevalue(verb).parameters == ["beep", "bop", "i am parameter"]
-    verb_body = first(children(verb))
-    @test nodevalue(verb_body).value == "bla\n"
+    tag, subtag, beep, bop, p, body = children(verb)
+    @test AST.litteral(ast, tag) == "verbatim"
+    @test AST.litteral(ast, subtag) == "subtag"
+    @test AST.litteral(ast, beep) == "beep"
+    @test AST.litteral(ast, bop) == "bop"
+    # TODO: this is a bit annoying to work with, but I will provide some utility
+    # functions to work with ranged tag parameters anyway, so I can make them
+    # treat the escape characters better.
+    @test AST.litteral(ast, p) == "i\\ am\\ parameter"
+    @test AST.litteral(ast, body) == "bla\n"
 end

@@ -1,47 +1,66 @@
-function parse_norg(t::Type{<:AST.NestableDetachedModifier{level}}, tokens, i,
-                    parents) where {level}
+function parse_norg(::T, parents, tokens, i) where {T<:Nestable}
+    start = i
+    @debug "Welcome to nestable parsing" t parents tokens[i]
+    # TODO: This is innefficient because this match has already been done at this
+    # point, so we could transmit the information through the strategy. But this
+    # is a small overcost and I'm being lazy ;)
+    nestable_match = match_norg(parents, tokens, i)
+    nestable_kind = matched(nestable_match)
     children = AST.Node[]
     while i <= lastindex(tokens)
-        m = match_norg([t, parents...], tokens, i)
-        @debug "nestable detached modifier loop" tokens[i] m
+        m = match_norg([nestable_kind, parents...], tokens, i)
+        @debug "nestable detached modifier loop" tokens[i] m isclosing(m)
         if isclosing(m)
-            if m.consume
-                i = nextind(tokens, i)
+            if !consume(m)
+                i = prevind(tokens, i)
             end
             break
         end
-        i, child = parse_norg(matched(m), tokens, i, [t, parents...])
+        child = parse_norg(NestableItem(), [nestable_kind, parents...], tokens, i)
+        i = nextind(tokens, AST.stop(child))
         push!(children, child)
     end
-    i, AST.Node(children, t())
+    AST.Node(nestable_kind, children, start, i)
 end
 
-function parse_norg(t::Type{AST.NestableItem}, tokens, i, parents)
+function parse_norg(::NestableItem, parents, tokens, i)
     @debug "nestable item"
+    start = i
     token = get(tokens, i, nothing)
     children = AST.Node[]
-    if token isa Token{Tokens.Whitespace} # consume leading whitespace
+    if is_whitespace(token) # consume leading whitespace
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
     # Consume tokens creating the delimiter
-    i = consume_until(Tokens.Whitespace, tokens, i)
+    i = consume_until(K"Whitespace", tokens, i)
     @debug "nestable" i <= lastindex(tokens)
     while i <= lastindex(tokens)
-        m = match_norg([t, parents...], tokens, i)
-        @debug "nestable item loop" tokens[i] m
+        m = match_norg([K"NestableItem", parents...], tokens, i)
+        @debug "nestable item loop" parents tokens[i] m
         if isclosing(m)
-            if m.consume
-                i = nextind(tokens, i)
+            if !consume(m)
+                i = prevind(tokens, i)
             end
             break
         end
         to_parse = matched(m)
-        if !(to_parse <: AST.FirstClassNode)
-            to_parse = AST.Paragraph            
+        if to_parse == K"Verbatim"
+            child = parse_norg(Verbatim(), [K"NestableItem", parents...], tokens, i)
+        elseif is_quote(to_parse)
+            child = parse_norg(Quote(), [K"NestableItem", parents...], tokens, i) 
+        elseif is_unordered_list(to_parse)
+            child = parse_norg(UnorderedList(), [K"NestableItem", parents...], tokens, i) 
+        elseif is_ordered_list(to_parse)
+            child = parse_norg(OrderedList(), [K"NestableItem", parents...], tokens, i) 
+        else
+            child = parse_norg(Paragraph(), [K"NestableItem", parents...], tokens, i)
         end
-        i, child = parse_norg(to_parse, tokens, i, [t, parents...])
+        i = nextind(tokens, AST.stop(child))
         push!(children, child)
     end
-    i, AST.Node(children, t())
+    if i > lastindex(tokens)
+        i = lastindex(tokens)
+    end
+    AST.Node(K"NestableItem", children, start, i)
 end

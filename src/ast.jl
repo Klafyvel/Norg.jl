@@ -63,6 +63,8 @@ Kinds.is_quote(node::Node) = is_quote(kind(node))
 is_first_class_node(k::Kind) = k ∈ [K"Paragraph", K"Verbatim"] || is_detached_modifier(k) || is_nestable(k) || is_heading(k)
 is_first_class_node(node::Node) = is_first_class_node(kind(node))
 
+litteral(ast::NorgDocument, node::Node) = join(value.(ast.tokens[start(node):stop(node)]))
+
 heading_level(node::Node) = heading_level(kind(node))
 function heading_level(k::Kind)
     if !is_heading(k)
@@ -233,96 +235,6 @@ function nestable_level(k::Kind)
     end
 end
 
-export is_first_class_node, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level
-
-#= struct Word <: NodeData
-    value::String
-end
-Word(c::Char) = Word(string(c))
-struct Escape <: NodeData
-    value::String
-end
-
-struct Paragraph <: NodeData end
-abstract type TextContainer <: NodeData end
-struct ParagraphSegment <: TextContainer end
-abstract type MatchedInline <: TextContainer end
-
-abstract type AttachedModifier <: MatchedInline end
-struct Bold <: AttachedModifier end
-struct Italic <: AttachedModifier end
-struct Underline <: AttachedModifier end
-struct Strikethrough <: AttachedModifier end
-struct Spoiler <: AttachedModifier end
-struct Superscript <: AttachedModifier end
-struct Subscript <: AttachedModifier end
-struct InlineCode <: AttachedModifier end
-
-struct Link <: NodeData end
-abstract type LinkLocation <: MatchedInline end
-struct URLLocation <: LinkLocation
-    target::String
-end
-struct LineNumberLocation <: LinkLocation
-    target::Int
-end
-struct DetachedModifierLocation <: LinkLocation
-    target::String
-    targetlevel::Int
-end
-abstract type CustomDetachedModifierLocation <: LinkLocation end
-struct MagicLocation <: CustomDetachedModifierLocation
-    target::String
-end
-FileLinkableLocationSubTarget = Union{Node{LineNumberLocation}, Nothing}
-struct FileLinkableLocation <: CustomDetachedModifierLocation
-    use_neorg_root::Bool
-    target::String
-    subtarget::FileLinkableLocationSubTarget
-end
-FileLocationSubTarget = Union{Node{LineNumberLocation},
-                              Node{DetachedModifierLocation},
-                              Node{MagicLocation}, Nothing}
-struct FileLocation <: LinkLocation
-    use_neorg_root::Bool
-    target::String
-    subtarget::FileLocationSubTarget
-end
-struct LinkDescription <: MatchedInline end
-struct Anchor <: NodeData
-    has_definition::Any
-end
-
-abstract type DetachedModifier <: NodeData end
-abstract type StructuralDetachedModifier <: DetachedModifier end
-struct Heading{T} <: StructuralDetachedModifier
-    title::Node{ParagraphSegment}
-end
-headinglevel(::Type{Heading{T}}) where {T} = T
-headinglevel(::Heading{T}) where {T} = T
-
-abstract type DelimitingModifier <: DetachedModifier end
-struct WeakDelimitingModifier <: DelimitingModifier end
-struct StrongDelimitingModifier <: DelimitingModifier end
-struct HorizontalRule <: DelimitingModifier end
-
-abstract type NestableDetachedModifier{T} <: DetachedModifier end
-struct UnorderedList{T} <: NestableDetachedModifier{T} end
-struct OrderedList{T} <: NestableDetachedModifier{T} end
-struct Quote{T} <: NestableDetachedModifier{T} end
-struct NestableItem <: NodeData end
-nestlevel(::Type{<:NestableDetachedModifier{T}}) where {T} = T
-
-abstract type Tag <: NodeData end
-abstract type RangedTag <: Tag end
-struct Verbatim <: RangedTag
-    tag::String
-    subtag::Union{String, Nothing}
-    parameters::Vector{String}
-end
-struct VerbatimBody <: NodeData
-    value::String
-end =#
-
+export is_first_class_node, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level, litteral
 
 end

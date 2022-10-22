@@ -75,6 +75,12 @@ function parse_norg(tokens)
             start = i
             stop = consume_until(K"LineEnding", tokens, i)
             AST.Node(to_parse, AST.Node[], start, stop)
+        elseif is_quote(to_parse)
+            parse_norg(Quote(), [K"NorgDocument"], tokens, i) 
+        elseif is_unordered_list(to_parse)
+            parse_norg(UnorderedList(), [K"NorgDocument"], tokens, i) 
+        elseif is_ordered_list(to_parse)
+            parse_norg(OrderedList(), [K"NorgDocument"], tokens, i) 
         elseif kind(to_parse) == K"Verbatim"
             parse_norg(Verbatim(), [K"NorgDocument"], tokens, i)
         elseif is_heading(to_parse)
@@ -116,6 +122,8 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
         end
     end
     if isclosing(m) && matched(m) == K"Paragraph" && !consume(m)
+        i = prevind(tokens, i)
+    elseif isclosing(m) && matched(m) != K"Paragraph"
         i = prevind(tokens, i)
     end
     AST.Node(K"Paragraph", segments, start, i)
@@ -199,7 +207,7 @@ include("attachedmodifier.jl")
 include("link.jl")
 include("structuralmodifier.jl")
 include("verbatim.jl")
-# include("nestablemodifier.jl")
+include("nestablemodifier.jl")
 
 export parse_norg
 end

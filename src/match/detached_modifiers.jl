@@ -111,31 +111,33 @@ function nestable(::OrderedList, level)
     end
 end
 function match_norg(t::T, parents, tokens, i) where {T<:Nestable}
+    @debug "Welcome to nestable matching" t parents tokens[i]
     new_i = i
-    nest_level = 0
+    level = 0
     token = tokens[i]
     while new_i < lastindex(tokens) &&
         kind(get(tokens, new_i, nothing)) == kind(token)
         new_i = nextind(tokens, new_i)
-        nest_level += 1
+        level += 1
     end
     next_token = get(tokens, new_i, nothing)
     if kind(next_token) == K"Whitespace"
         ancestor_nestable = filter(is_nestable, parents)
-        higher_level_ancestor_id = findfirst(x->nest_level(x) >= nest_level, ancestor_nestable)
+        higher_level_ancestor_id = findfirst(x->nestable_level(x) > level, ancestor_nestable)
+        @debug "decision time" parents ancestor_nestable higher_level_ancestor_id nestable(t, level) nestable(t, level)==first(parents)
         if !isnothing(higher_level_ancestor_id)
             MatchClosing(ancestor_nestable[higher_level_ancestor_id], false)
-        elseif first(parents) == nestable(t, nest_level)
-            @debug "Create nestable item" nest_level
+        elseif first(parents) == nestable(t, level)
+            @debug "Create nestable item" level
             MatchFound(K"NestableItem")
-        elseif any(nestable_level.(ancestor_nestable) .== nest_level)
+        elseif any(nestable_level.(ancestor_nestable) .== level)
             MatchClosing(first(parents), false)
         elseif first(parents) ∈ [K"Paragraph", K"ParagraphSegment"]
             @debug "closing parent" first(parents)
             MatchClosing(first(parents), false)
         else
-            @debug "create nestable" nest_level
-            MatchFound(nestable(t, nest_level))
+            @debug "create nestable" level
+            MatchFound(nestable(t, level))
         end
     else
         MatchNotFound()

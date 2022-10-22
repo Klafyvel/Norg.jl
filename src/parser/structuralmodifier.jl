@@ -39,8 +39,12 @@ function parse_norg(::Heading, parents, tokens, i)
                 i = prevind(tokens, i)
                 @debug "strong"
                 break
-            # elseif kind(to_parse) == K"NestableDetachedModifier"
-            #     child = parse_norg(to_parse, tokens, i, [t, parents...])
+            elseif is_quote(to_parse)
+                child = parse_norg(Quote(), [heading_kind, parents...], tokens, i)
+            elseif is_unordered_list(to_parse)
+                child = parse_norg(UnorderedList(), [heading_kind, parents...], tokens, i)
+            elseif is_ordered_list(to_parse)
+                child = parse_norg(OrderedList(), [heading_kind, parents...], tokens, i)
             else
                 @debug "paragraph"
                 child = parse_norg(Paragraph(), [heading_kind, parents...], tokens, i)

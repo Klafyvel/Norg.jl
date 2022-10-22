@@ -23,13 +23,13 @@ function parse_norg(::Verbatim, parents, tokens, i)
             token = get(tokens, i, nothing)
         end
     end
-    if is_whitespace(token)
+    if kind(token) == K"Whitespace"
         @debug "consuming whitespace" token
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
     start_current = i
-    while i <= lastindex(tokens) && kind(token) == K"LineEnding"
+    while i <= lastindex(tokens) && kind(token) != K"LineEnding"
         @debug "hallo, it's parameter parsing loop" token
         if is_whitespace(token)
             push!(children, AST.Node(K"VerbatimParameter", AST.Node[], start_current, prevind(tokens, i)))
@@ -46,6 +46,9 @@ function parse_norg(::Verbatim, parents, tokens, i)
         token = get(tokens, i, nothing)
     end
     if kind(token) == K"LineEnding"
+        if start_current < i
+            push!(children, AST.Node(K"VerbatimParameter", AST.Node[], start_current, prevind(tokens, i)))
+        end
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end

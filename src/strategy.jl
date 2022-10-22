@@ -33,6 +33,7 @@ abstract type Nestable <: FromNode end
 struct UnorderedList <: Nestable end
 struct OrderedList <: Nestable end
 struct Quote <: Nestable end
+struct NestableItem <: FromNode end
 struct Verbatim <: FromNode end
 abstract type AttachedModifierStrategy <: FromNode end
 struct Bold <: AttachedModifierStrategy end
@@ -58,7 +59,7 @@ struct ParagraphSegment <: FromNode end
 struct Paragraph <: FromNode end
 struct Escape <: FromNode end
 
-export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark, Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace, RightBrace, RightSquareBracket, LeftSquareBracket, Tilde, GreaterThanSign, CommercialAtSign, FromNode, Word, Heading, HeadingTitle, DelimitingModifier, StrongDelimiter, WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList, Quote, Verbatim, AttachedModifierStrategy, Bold, Italic, Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode, Anchor, Link, LinkLocation, URLLocation, LineNumberLocation, DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation, LinkDescription, LinkSubTarget, ParagraphSegment, Paragraph, Escape
+export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark, Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace, RightBrace, RightSquareBracket, LeftSquareBracket, Tilde, GreaterThanSign, CommercialAtSign, FromNode, Word, Heading, HeadingTitle, DelimitingModifier, StrongDelimiter, WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList, Quote, NestableItem, Verbatim, AttachedModifierStrategy, Bold, Italic, Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode, Anchor, Link, LinkLocation, URLLocation, LineNumberLocation, DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation, LinkDescription, LinkSubTarget, ParagraphSegment, Paragraph, Escape
 
 end
 
