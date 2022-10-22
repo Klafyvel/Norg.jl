@@ -8,6 +8,8 @@ tokens.
 """
 module Parser
 
+using AbstractTrees
+
 using ..Kinds
 using ..Strategies
 using ..Tokens
@@ -59,6 +61,7 @@ function parse_norg(tokens)
     paragraphs = AST.Node[]
     while i <= lastindex(tokens)
         m = match_norg([K"NorgDocument"], tokens, i)
+        @debug "Document parsing" m tokens[i]
         if isclosing(m)
             @error "Closing token when parsing first class node" tokens[i] m 
             error("This is a bug, please report it along with the text you are trying to parse.")
@@ -92,7 +95,7 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
     start = i
     while i <= lastindex(tokens)
         m = match_norg([K"Paragraph", parents...], tokens, i)
-        # @debug "Paragraph loop" tokens[i] m isclosing(m)
+        @debug "Paragraph loop" tokens[i] m isclosing(m) consume(m)
         if isclosing(m)
             break
         elseif iscontinue(m)
@@ -110,12 +113,15 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
             push!(segments, segment)
         end
     end
-    if isclosing(m) && matched(m) == K"Paragraph" && consume(m)
-        i = nextind(tokens, i)
+    if isclosing(m) && matched(m) == K"Paragraph" && !consume(m)
+        i = prevind(tokens, i)
     end
     AST.Node(K"Paragraph", segments, start, i)
 end
 
+"""
+Main dispatch utility.
+"""
 function parse_norg_dispatch(to_parse, parents::Vector{Kind}, tokens, i)
     if to_parse == K"Escape"
         parse_norg(Escape(), parents, tokens, i)            
@@ -135,10 +141,10 @@ function parse_norg_dispatch(to_parse, parents::Vector{Kind}, tokens, i)
         parse_norg(Subscript(), parents, tokens, i)            
     elseif to_parse == K"InlineCode"
         parse_norg(InlineCode(), parents, tokens, i)            
-    # elseif to_parse == K"Link"
-    #     parse_norg(Link(), parents, tokens, i)            
-    # elseif to_parse == K"Anchor"
-    #     parse_norg(Anchor(), parents, tokens, i)
+    elseif to_parse == K"Link"
+        parse_norg(Link(), parents, tokens, i)            
+    elseif to_parse == K"Anchor"
+        parse_norg(Anchor(), parents, tokens, i)
     elseif to_parse == K"Word"
         parse_norg(Word(), parents, tokens, i)
     else
@@ -153,7 +159,7 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
     parents = [K"ParagraphSegment", parents...]
     while i <= lastindex(tokens)
         m = match_norg(parents, tokens, i)
-        # @debug "paragraph segment loop" tokens[i] m isclosing(m)
+        @debug "paragraph segment loop" tokens[i] m isclosing(m)
         if isclosing(m)
             break
         end
@@ -188,7 +194,7 @@ function parse_norg(::Word, parents::Vector{Kind}, tokens, i)
 end
 
 include("attachedmodifier.jl")
-# include("link.jl")
+include("link.jl")
 # include("structuralmodifier.jl")
 # include("verbatim.jl")
 # include("nestablemodifier.jl")

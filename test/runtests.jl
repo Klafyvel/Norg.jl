@@ -8,14 +8,14 @@ import Norg: @K_str, kind, value
 @testset "Norg.jl" begin
     @testset "scanners.jl" begin include("test_scanners.jl") end
     @testset "Tokenize.jl" begin include("test_tokenize.jl") end
-    #= @testset "parser.jl" begin
+    @testset "parser.jl" begin
         include("ast_tests/test_markup.jl")
         include("ast_tests/test_paragraphs.jl")
         include("ast_tests/test_links.jl")
-        include("ast_tests/test_headings.jl")
-        include("ast_tests/test_nestable_detached_modifiers.jl")
-        include("ast_tests/test_tags.jl")
-        include("ast_tests/misc_bugs.jl")
+        # include("ast_tests/test_headings.jl")
+        # include("ast_tests/test_nestable_detached_modifiers.jl")
+        # include("ast_tests/test_tags.jl")
+        # include("ast_tests/misc_bugs.jl")
     end
-    @testset "codegen.jl" begin include("codegen_tests/html.jl") end =#
+    # @testset "codegen.jl" begin include("codegen_tests/html.jl") end
 end

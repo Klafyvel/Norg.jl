@@ -19,6 +19,7 @@ MatchClosing(k::Kind, consume=true) = MatchResult(k, true, true, false, consume)
 MatchFound(k::Kind, consume=true) = MatchResult(k, true, false, false, consume)
 MatchContinue() = MatchResult(K"None", true, false, true, true)
 
+isfound(m::MatchResult) = m.found
 isclosing(m::MatchResult) = m.closing
 iscontinue(m::MatchResult) = m.continued
 isnotfound(m::MatchResult) = !m.found
@@ -144,7 +145,11 @@ function match_norg(::LineEnding, parents, tokens, i)
         MatchContinue()
     elseif is_line_ending(prev_token)
         nestable_parents = filter(is_nestable, parents[2:end])
-        MatchClosing(first(parents), length(nestable_parents) == 0)
+        if length(nestable_parents) > 0
+            MatchClosing(first(parents), false)
+        else
+            MatchClosing(K"ParagraphSegment", false)
+        end
     elseif any(is_attached_modifier.(parents))
         match_norg(Word(), parents, tokens, i)
     else

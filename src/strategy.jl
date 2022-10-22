@@ -46,13 +46,19 @@ struct InlineCode <: AttachedModifierStrategy end
 struct Anchor <: FromNode end
 struct Link <: FromNode end
 struct LinkLocation <: FromNode end
+struct URLLocation <: FromNode end
+struct LineNumberLocation <: FromNode end
+struct DetachedModifierLocation <: FromNode end
+struct FileLocation <: FromNode end
+struct MagicLocation <: FromNode end
+struct NorgFileLocation <: FromNode end
 struct LinkDescription <: FromNode end
 struct LinkSubTarget <: FromNode end
 struct ParagraphSegment <: FromNode end
 struct Paragraph <: FromNode end
 struct Escape <: FromNode end
 
-export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark, Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace, RightBrace, RightSquareBracket, LeftSquareBracket, Tilde, GreaterThanSign, CommercialAtSign, FromNode, Word, Heading, HeadingTitle, DelimitingModifier, StrongDelimiter, WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList, Quote, Verbatim, AttachedModifierStrategy, Bold, Italic, Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode, Anchor, Link, LinkLocation, LinkDescription, LinkSubTarget, ParagraphSegment, Paragraph, Escape
+export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark, Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace, RightBrace, RightSquareBracket, LeftSquareBracket, Tilde, GreaterThanSign, CommercialAtSign, FromNode, Word, Heading, HeadingTitle, DelimitingModifier, StrongDelimiter, WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList, Quote, Verbatim, AttachedModifierStrategy, Bold, Italic, Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode, Anchor, Link, LinkLocation, URLLocation, LineNumberLocation, DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation, LinkDescription, LinkSubTarget, ParagraphSegment, Paragraph, Escape
 
 end
 

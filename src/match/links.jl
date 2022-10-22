@@ -1,5 +1,7 @@
 function match_norg(::LinkLocation, parents, tokens, i)
-    if kind(tokens[i]) == K":"
+    if kind(tokens[i]) == K"}"
+        MatchFound(K"None")
+    elseif kind(tokens[i]) == K":"
         MatchFound(K"NorgFileLocation")
     elseif kind(tokens[i]) == K"#"
         MatchFound(K"MagicLocation")
