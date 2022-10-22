@@ -75,6 +75,8 @@ function parse_norg(tokens)
             start = i
             stop = consume_until(K"LineEnding", tokens, i)
             AST.Node(to_parse, AST.Node[], start, stop)
+        elseif kind(to_parse) == K"Verbatim"
+            parse_norg(Verbatim(), [K"NorgDocument"], tokens, i)
         elseif is_heading(to_parse)
             parse_norg(Heading(), [K"NorgDocument"], tokens, i)
         else
@@ -196,7 +198,7 @@ end
 include("attachedmodifier.jl")
 include("link.jl")
 include("structuralmodifier.jl")
-# include("verbatim.jl")
+include("verbatim.jl")
 # include("nestablemodifier.jl")
 
 export parse_norg

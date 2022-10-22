@@ -7,11 +7,11 @@ AST = Norg.AST
     """
     ast = parse(AST.NorgDocument, s)
     verb = first(children(ast))
-    @test verb isa Node{AST.Verbatim}
-    @test length(children(verb)) == 1
-    verb_body = first(children(verb))
-    @test verb_body isa Node{AST.VerbatimBody}
-    @test nodevalue(verb_body).value == "hey\n"
+    @test kind(verb) == K"Verbatim"
+    @test length(children(verb)) == 2
+    verb_body = last(children(verb))
+    @test kind(verb_body) == K"VerbatimBody"
+    @test join(AST.value.(ast.tokens[verb_body.start:verb_body.stop])) == "hey\n"
 end
 
 @testset "Test verbatim subtag" begin

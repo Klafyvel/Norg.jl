@@ -111,7 +111,7 @@ end
     @test kind(weak_delimiter) == K"WeakDelimitingModifier"
 end
 
-@testset "Malformed indentation reversion" begin
+#= @testset "Malformed indentation reversion" begin
     s = """* Heading
     A paragraph
     --- 
@@ -130,7 +130,7 @@ end
     h1, p = children(ast)
     @test kind(h1) == K"Heading1"
     @test kind(p) == K"Paragraph"
-end
+end =#
 
 @testset "Horizontal line" begin
     s = """This is some text.

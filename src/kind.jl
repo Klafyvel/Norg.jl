@@ -45,6 +45,8 @@ const _kind_names = [
       "WordNode" 
       "Number"
       "VerbatimBody"
+      "VerbatimTag"
+      "VerbatimParameter"
       "HeadingPreamble"
       "NestablePreamble"
       "LineNumberTarget"

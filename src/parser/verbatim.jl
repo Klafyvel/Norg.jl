@@ -1,89 +1,80 @@
-function parse_norg(::Type{AST.Verbatim}, tokens, i, parents)
+function parse_norg(::Verbatim, parents, tokens, i)
+    start = i
     @debug "hey, parsing verbatim"
     token = get(tokens, i, nothing)
-    if token isa Token{Tokens.Whitespace} # consume leading whitespace
+    if is_whitespace(token) # consume leading whitespace
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
     i = nextind(tokens, i)
     token = get(tokens, i, nothing)
     @debug "this is tagname" token
-    tagname = value(token)
+    children = [AST.Node(K"VerbatimTag", AST.Node[], i, i)]
     i = nextind(tokens, i)
     token = get(tokens, i, nothing)
     @debug "after tagname we have" token
-    subtag = nothing
-    if token isa Token{Tokens.Dot}
+    if kind(token) == K"."
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
         @debug "wow, this was a dot, now we have" token
-        if token isa Token{Tokens.Word}
-            subtag = value(token)
+        if kind(token) == K"Word"
+            push!(children, AST.Node(K"VerbatimTag", AST.Node[], i, i))
             i = nextind(tokens, i)
             token = get(tokens, i, nothing)
         end
     end
-    if token isa Token{Tokens.Whitespace}
+    if is_whitespace(token)
         @debug "consuming whitespace" token
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
-    parameters = String[]
-    current = String[]
-    while i <= lastindex(tokens) && !isa(token, Token{Tokens.LineEnding})
+    start_current = i
+    while i <= lastindex(tokens) && kind(token) == K"LineEnding"
         @debug "hallo, it's parameter parsing loop" token
-        if token isa Token{Tokens.Whitespace}
-            push!(parameters, join(current))
-            current = String[]
+        if is_whitespace(token)
+            push!(children, AST.Node(K"VerbatimParameter", AST.Node[], start_current, prevind(tokens, i)))
             i = nextind(tokens, i)
+            start_current = i
             token = get(tokens, i, nothing)
             continue
         end
-        if token isa Token{Tokens.BackSlash}
+        if kind(token) == K"\\"
             i = nextind(tokens, i)
             token = get(tokens, i, nothing)
         end
-        push!(current, value(token))
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
-    if !isempty(current)
-        push!(parameters, join(current))
-    end
-    if token isa Token{Tokens.LineEnding}
+    if kind(token) == K"LineEnding"
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
-    child_content = String[]
+    start_content = i
+    stop_content = i
     while i <= lastindex(tokens)
-        if token isa Token{Tokens.CommercialAtSign} #maybe it's the end
+        if kind(token) == K"@" #maybe it's the end
             prev_i = prevind(tokens, i)
             prev_token = get(tokens, prev_i, nothing)
             prev_prev_i = prevind(tokens, prev_i)
             prev_prev_token = get(tokens, prev_prev_i, nothing)
             @debug "Got a @ sign !" token prev_token prev_prev_token
-            if prev_token isa Token{Tokens.LineEnding} ||
-               (prev_token isa Token{Tokens.Whitespace} &&
-                prev_prev_token isa Token{Tokens.LineEnding})
+            if kind(prev_token) == K"LineEnding" || (kind(prev_token) == K"Whitespace" && kind(prev_prev_token) == K"LineEnding")
                 next_i = nextind(tokens, i)
                 next_token = get(tokens, next_i, nothing)
                 next_next_i = nextind(tokens, next_i)
                 next_next_token = get(tokens, next_next_i, nothing)
                 @debug "It has the right prev tokens !" next_token next_next_token
-                if next_token isa Token{Tokens.Word} &&
-                   next_next_token isa Token{Tokens.LineEnding} &&
-                   value(next_token) == "end"
+                if kind(next_token) == K"Word" && kind(next_next_token) == K"LineEnding" && value(next_token) == "end"
+                    stop_content = prev_i
                     i = next_next_i
                     @debug "And the magic word !" value(next_token)
                     break
                 end
             end
         end
-        push!(child_content, value(token))
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
-    i,
-    AST.Node(AST.Node[AST.Node(AST.VerbatimBody(join(child_content)))],
-             AST.Verbatim(tagname, subtag, parameters))
+    push!(children, AST.Node(K"VerbatimBody", AST.Node[], start_content, stop_content))
+    AST.Node(K"Verbatim", children, start, i)
 end
