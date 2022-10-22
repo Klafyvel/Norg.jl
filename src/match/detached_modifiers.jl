@@ -8,18 +8,21 @@ function match_norg(::Heading, parents, tokens, i)
         return MatchClosing(first(nestable_parents), false)
     end
     new_i = i
-    heading_level = 0
+    level = 0
     while new_i < lastindex(tokens) && kind(get(tokens, new_i, nothing)) == K"*"
         new_i = nextind(tokens, new_i)
-        heading_level += 1
+        level += 1
     end
     next_token = get(tokens, new_i, nothing)
     if is_whitespace(next_token)
-        ancestor_headings = findfirst(x->is_heading(x) && heading_level(x) >= heading_level, parents)
-        if !isnothing(ancestor_headings)
-            MatchClosing(parents[ancestor_headings], false)
+        ancestor_headings = filter(is_heading, parents)
+        higher_level_ancestor_heading = findfirst(x -> heading_level(x) >= level, ancestor_headings)
+        if !isnothing(higher_level_ancestor_heading)
+            MatchClosing(ancestor_headings[higher_level_ancestor_heading], false)
+        elseif kind(first(parents)) ∈ [K"ParagraphSegment", K"Paragraph"]
+            MatchClosing(K"Paragraph", false)
         else
-            MatchFound(heading_level(heading_level))
+            MatchFound(heading_level(level))
         end
     else
         MatchNotFound()
@@ -30,7 +33,7 @@ delimitingmodifier(::StrongDelimiter) = K"StrongDelimitingModifier"
 delimitingmodifier(::WeakDelimiter) = K"WeakDelimitingModifier"
 delimitingmodifier(::HorizontalRule) = K"HorizontalRule"
 
-function match_norg(::T, parents, tokens, i) where {T<:DelimitingModifier}
+function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
     next_i = nextind(tokens, i)
     next_next_i = nextind(tokens, next_i)
     next_token = get(tokens, next_i, nothing)
@@ -49,8 +52,8 @@ function match_norg(::T, parents, tokens, i) where {T<:DelimitingModifier}
             new_token = get(tokens, new_i, nothing)
         end
         if is_delimiting
-            if first(parents) ∈ [K"ParagraphSegment", K"Paragraph", K"NorgDocument"] || is_heading(first(parents))
-                MatchFound(delimitingmodifier(T))
+            if first(parents) ∈ [K"NorgDocument"] || is_heading(first(parents))
+                MatchFound(delimitingmodifier(t))
             else
                 MatchClosing(first(parents), false)
             end

@@ -1,50 +1,65 @@
-function parse_norg(t::Type{AST.Heading{T}}, tokens, i, parents) where {T}
+function parse_norg(::Heading, parents, tokens, i)
+    start = i
     token = get(tokens, i, nothing)
-    if token isa Token{Tokens.Whitespace} # consume leading whitespace
+    if is_whitespace(token) # consume leading whitespace
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
     end
     heading_level = 0
     # Consume stars to determine heading level
-    while i < lastindex(tokens) && token isa Token{Tokens.Star}
+    while i < lastindex(tokens) && kind(token) == K"*"
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)
         heading_level += 1
     end
-    if token isa Token{Tokens.Whitespace}
-        i, title_segment = parse_norg(AST.ParagraphSegment, tokens,
-                                      nextind(tokens, i),
-                                      [AST.Heading, parents...])
-        children = AST.Node[]
-        m = Match.MatchClosing{AST.Heading{T}}()
-        while i < lastindex(tokens)
-            m = match_norg([t, parents...], tokens, i)
+    heading_kind = AST.heading_level(heading_level)
+    @debug "Potential heading level" heading_kind
+    if is_whitespace(token)
+        title_segment = parse_norg(ParagraphSegment(), [heading_kind, parents...], tokens, nextind(tokens, i))
+        i = nextind(tokens, AST.stop(title_segment))
+        children = [title_segment]
+        m = Match.MatchClosing(heading_kind)
+        while i <= lastindex(tokens)
+            m = match_norg([heading_kind, parents...], tokens, i)
+            @debug "Heading loop" m isclosing(m) tokens[i]
             if isclosing(m)
                 break
             end
             to_parse = matched(m)
-            if to_parse <: AST.Heading
-                i, child = parse_norg(to_parse, tokens, i, [t, parents...])
-            elseif to_parse <: AST.WeakDelimitingModifier
-                i = consume_until(Tokens.LineEnding, tokens, i)
-                push!(children,
-                      AST.Node(AST.Node[], AST.WeakDelimitingModifier()))
+            if is_heading(to_parse)
+                @debug "heading"
+                child = parse_norg(Heading(), [heading_kind, parents...], tokens, i)
+            elseif to_parse == K"WeakDelimitingModifier"
+                @debug "weak"
+                start_del = i
+                i = consume_until(K"LineEnding", tokens, i)
+                push!(children, AST.Node(K"WeakDelimitingModifier", AST.Node[], start_del, i))
                 break
-            elseif to_parse <: AST.StrongDelimitingModifier
+            elseif kind(to_parse) == K"StrongDelimitingModifier"
+                i = prevind(tokens, i)
+                @debug "strong"
                 break
-            elseif to_parse <: AST.NestableDetachedModifier
-                i, child = parse_norg(to_parse, tokens, i, [t, parents...])
+            # elseif kind(to_parse) == K"NestableDetachedModifier"
+            #     child = parse_norg(to_parse, tokens, i, [t, parents...])
             else
-                i, child = parse_norg(AST.Paragraph, tokens, i, [t, parents...])
+                @debug "paragraph"
+                child = parse_norg(Paragraph(), [heading_kind, parents...], tokens, i)
             end
-            if child isa Vector
-                append!(children, child)
+            i = nextind(tokens, AST.stop(child))
+            if kind(child) == K"None"
+                append!(children, child.children)
             else
                 push!(children, child)
             end
         end
-        i, AST.Node(children, t(title_segment))
-    else # if the stars are not followed by a whitespace, toss them aside and fall back on a paragraph.
-        parse_norg(AST.Paragraph, tokens, i, parents)
+        if isclosing(m) && !(matched(m) == heading_kind && consume(m))
+            i = prevind(tokens, i)
+        end
+            
+        AST.Node(heading_kind, children, start, i)
+    else # if the stars are not followed by a whitespace
+        # This should never happen if matching works correctly
+            # parse_norg(Paragraph(), parents, tokens, i)
+        error("Matching for headings has a bug. Please report the issue.")
     end
 end

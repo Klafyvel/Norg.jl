@@ -114,6 +114,7 @@ function parse_norg(::DetachedModifierLocation, parents, tokens, i)
         K"Heading6"
     end
     start_heading_title = i
+    #TODO: this should be replaced with consume_until and a Kset""
     while !isnothing(token) && kind(token) ∉ [K"}", K"LineEnding"]
         i = nextind(tokens, i)
         token = get(tokens, i, nothing)

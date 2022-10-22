@@ -75,8 +75,8 @@ function parse_norg(tokens)
             start = i
             stop = consume_until(K"LineEnding", tokens, i)
             AST.Node(to_parse, AST.Node[], start, stop)
-        elseif AST.is_first_class_node(to_parse)
-            parse_norg(to_parse, [K"NorgDocument"], tokens, i)
+        elseif is_heading(to_parse)
+            parse_norg(Heading(), [K"NorgDocument"], tokens, i)
         else
             parse_norg(Paragraph(), [K"NorgDocument"], tokens, i)
         end
@@ -195,7 +195,7 @@ end
 
 include("attachedmodifier.jl")
 include("link.jl")
-# include("structuralmodifier.jl")
+include("structuralmodifier.jl")
 # include("verbatim.jl")
 # include("nestablemodifier.jl")
 

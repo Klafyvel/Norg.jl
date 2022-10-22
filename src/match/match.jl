@@ -117,9 +117,9 @@ function match_norg(::Whitespace, parents, tokens, i)
         if kind(next_token) == K"*"
             match_norg(Heading(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"="
-            match_norg(DelimitingModifier(), parents, tokens, nextind(tokens, i))
+            match_norg(StrongDelimiter(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"-"
-            m_t = match_norg(DelimitingModifier(), parents, tokens, nextind(tokens, i))
+            m_t = match_norg(WeakDelimiter(), parents, tokens, nextind(tokens, i))
             if isnotfound(m_t)
                 match_norg(UnorderedList(), parents, tokens, nextind(tokens, i))
             else
@@ -131,6 +131,8 @@ function match_norg(::Whitespace, parents, tokens, i)
             match_norg(Quote(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"@"
             match_norg(Verbatim(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K"_"
+            match_norg(HorizontalRule(), parents, tokens, nextind(tokens, i))
         else
             MatchNotFound()
         end
@@ -174,7 +176,7 @@ match_norg(::Slash, parents, tokens, i) = match_norg(Italic(), parents, tokens, 
 function match_norg(::Underscore, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
     if isnothing(prev_token) || is_line_ending(prev_token)
-        m = match_norg(WeakDelimiter(), parents, tokens, i)
+        m = match_norg(HorizontalRule(), parents, tokens, i)
         if isnotfound(m)
             match_norg(Underline(), parents, tokens, i)
         else
@@ -219,7 +221,7 @@ match_norg(::BackSlash, parents, tokens, i) = MatchFound(K"Escape")
 function match_norg(::EqualSign, parents, tokens, i)
     prev_token = get(tokens, i - 1, nothing)
     if isnothing(prev_token) || is_line_ending(prev_token)
-        match_norg(DelimitingModifier(), parents, tokens, i)
+        match_norg(StrongDelimiter(), parents, tokens, i)
     else
         MatchNotFound()
     end
