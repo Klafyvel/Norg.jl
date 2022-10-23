@@ -1,5 +1,6 @@
 function match_norg(::Heading, parents, tokens, i)
     # Special case when parsing the title of a heading
+    @debug "Entering heading match" parents tokens[i]
     if K"HeadingTitle" ∈ parents
         return MatchNotFound()
     end
@@ -14,13 +15,13 @@ function match_norg(::Heading, parents, tokens, i)
         level += 1
     end
     next_token = get(tokens, new_i, nothing)
-    if is_whitespace(next_token)
+    if kind(next_token) == K"Whitespace"
         ancestor_headings = filter(is_heading, parents)
         higher_level_ancestor_heading = findfirst(x -> heading_level(x) >= level, ancestor_headings)
         if !isnothing(higher_level_ancestor_heading)
             MatchClosing(ancestor_headings[higher_level_ancestor_heading], false)
-        elseif kind(first(parents)) ∈ [K"ParagraphSegment", K"Paragraph"]
-            MatchClosing(K"Paragraph", false)
+        elseif first(parents) ∈ [K"ParagraphSegment", K"Paragraph"]
+            MatchClosing(first(parents), false)
         else
             MatchFound(heading_level(level))
         end

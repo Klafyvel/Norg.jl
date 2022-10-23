@@ -73,3 +73,34 @@ end
     @test AST.litteral(ast, p) == "i\\ am\\ parameter"
     @test AST.litteral(ast, body) == "bla\n"
 end
+
+@testset "Verbatim in a paragraph" begin
+    s = """Some markup is allowed within:
+    @code java
+    @MyAnnotation(name="someName", value="Hello World")
+    public class TheClass {
+      // ...
+    }
+    @end
+    """
+    ast = parse(AST.NorgDocument, s)
+    p, verb = children(ast)
+    @test kind(p) == K"Paragraph"
+    @test kind(verb) == K"Verbatim"
+end
+
+@testset "Verbatim in a heading" begin
+    s = """* heading
+    @code java
+    @MyAnnotation(name="someName", value="Hello World")
+    public class TheClass {
+      // ...
+    }
+    @end
+    """
+    ast = parse(AST.NorgDocument, s)
+    h1 = first(children(ast))
+    h1_title, verb = children(h1)
+    @test kind(h1_title) == K"ParagraphSegment"
+    @test kind(verb) == K"Verbatim"
+end

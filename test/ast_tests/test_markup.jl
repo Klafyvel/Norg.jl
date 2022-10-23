@@ -144,3 +144,15 @@ end
     it = first(children(ps))
     @test kind(it) == K"Italic"
 end
+
+@testset "Precedence torture test." begin
+    s = "test `1.`/`1)`, Norg \ntest"
+    ast = parse(Norg.AST.NorgDocument, s)
+    ps1, ps2 = children(first(children(ast)))
+    @test kind(ps1) == K"ParagraphSegment"
+    @test kind(ps2) == K"ParagraphSegment"
+    ic1 = children(ps1)[3]
+    ic2 = children(ps1)[5]
+    @test kind(ic1) == K"InlineCode"
+    @test kind(ic2) == K"InlineCode"
+end

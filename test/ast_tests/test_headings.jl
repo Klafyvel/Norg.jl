@@ -111,7 +111,7 @@ end
     @test kind(weak_delimiter) == K"WeakDelimitingModifier"
 end
 
-#= @testset "Malformed indentation reversion" begin
+@testset "Malformed indentation reversion" begin
     s = """* Heading
     A paragraph
     --- 
@@ -130,7 +130,7 @@ end
     h1, p = children(ast)
     @test kind(h1) == K"Heading1"
     @test kind(p) == K"Paragraph"
-end =#
+end
 
 @testset "Horizontal line" begin
     s = """This is some text.
@@ -139,6 +139,21 @@ Separated by a horizontal line."""
 
     ast = parse(Norg.AST.NorgDocument, s)
     p1, hr, p2 = children(ast)
+    @test kind(p1) == K"Paragraph"
+    @test kind(hr) == K"HorizontalRule"
+    @test kind(p2) == K"Paragraph"
+end
+
+@testset "Horizontal line in a heading" begin
+    s = """
+           * Heading level 1
+             Text under first level heading.
+             ___
+             This is a new paragraph separated from the previous one by a horizontal
+             """
+    ast = parse(Norg.AST.NorgDocument, s)
+    h1 = first(children(ast))
+    h1_title, p1, hr, p2 = children(h1)
     @test kind(p1) == K"Paragraph"
     @test kind(hr) == K"HorizontalRule"
     @test kind(p2) == K"Paragraph"

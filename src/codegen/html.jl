@@ -150,6 +150,8 @@ function codegen(t::HTMLTarget, ::Link, ast, node)
         text = codegen(t, ast, last(node.children))
     elseif kind(first(node.children)) == K"DetachedModifierLocation"
         text = codegen(t, ast, children(first(children(node)))[2])
+    elseif kind(first(node.children)) == K"MagicLocation"
+        text = codegen(t, ast, children(first(children(node)))[1])
     else
         text = codegen(t, ast, first(node.children))
     end

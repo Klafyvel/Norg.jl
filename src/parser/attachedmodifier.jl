@@ -20,8 +20,8 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedMo
     end
     @debug "end loop" t matched(m) isclosing(m) i>lastindex(tokens)
     if i>lastindex(tokens)
-        i = prevind(tokens, i)
-        pushfirst!(children, parse_norg(Word(), parents, tokens, start))
+        i = start
+        children = [parse_norg(Word(), parents, tokens, start)]
         node_kind = K"None"
     elseif isclosing(m) && matched(m) == K"None"
         # Special case for inline code precedence.
@@ -30,8 +30,8 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedMo
         node_kind = K"None"
     elseif isclosing(m) && matched(m) != node_kind && matched(m) ∈ parents # we've been tricked in thincking we were in a modifier.
         @debug "mismatch closing"
-        pushfirst!(children, parse_norg(Word(), parents, tokens, start))
-        i = prevind(tokens, i)
+        i = start
+        children = [parse_norg(Word(), parents, tokens, start)]
         node_kind = K"None"
     elseif isempty(children) # Empty attached modifiers are forbiddens
         children = [parse_norg(Word(), parents, tokens, start), parse_norg(Word(), parents, tokens, i)]

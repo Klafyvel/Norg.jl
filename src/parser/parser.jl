@@ -158,7 +158,7 @@ function parse_norg_dispatch(to_parse, parents::Vector{Kind}, tokens, i)
     elseif to_parse == K"Word"
         parse_norg(Word(), parents, tokens, i)
     else
-        error("parse_norg_dispatch got an unhandled node kind $to_parse")
+        error("parse_norg_dispatch got an unhandled node kind $to_parse for token $(tokens[i])")
     end
 end
 
@@ -187,9 +187,12 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
             push!(children, node)
         end
     end
-    if isclosing(m) && matched(m) == K"ParagraphSegment" && !consume(m)
+    if !consume(m)
         i = prevind(tokens, i)
     end
+    # if isclosing(m) && matched(m) == K"ParagraphSegment" && !consume(m)
+    #     i = prevind(tokens, i)
+    # end
     AST.Node(K"ParagraphSegment", children, start, i)
 end
 

@@ -26,6 +26,19 @@ isnotfound(m::MatchResult) = !m.found
 consume(m::MatchResult) = m.consume
 matched(m::MatchResult)= m.kind
 
+function Base.show(io::IO, m::MatchResult)
+    if isclosing(m)
+        print(io, "MatchClosing(")
+    elseif iscontinue(m)
+        print(io, "MatchContinue(")
+    elseif isnotfound(m)
+        print(io, "MatchNotFound(")
+    else
+        print(io, "MatchFound(")
+    end
+    print(io, "kind=$(matched(m)), consume=$(consume(m)))")
+end
+
 """
 match_norg([strategy], parents, tokens, i)
 
@@ -143,14 +156,15 @@ end
 
 function match_norg(::LineEnding, parents, tokens, i)
     prev_token = get(tokens, prevind(tokens, i), nothing)
-    if first(parents) == K"NorgDocument"
+    if first(parents) == K"NorgDocument" 
         MatchContinue()
     elseif is_line_ending(prev_token)
         nestable_parents = filter(is_nestable, parents[2:end])
+        @debug "line ending match" nestable_parents parents
         if length(nestable_parents) > 0
             MatchClosing(first(parents), false)
         else
-            MatchClosing(K"ParagraphSegment", false)
+            MatchClosing(first(parents), true)
         end
     elseif any(is_attached_modifier.(parents))
         match_norg(Word(), parents, tokens, i)
