@@ -124,9 +124,9 @@ end
 match_norg(::Word, parents, tokens, i) = MatchFound(K"Word")
 
 function match_norg(::Whitespace, parents, tokens, i)
-    prev_token = get(tokens, prevind(tokens, i), nothing)
-    next_token = get(tokens, nextind(tokens, i), nothing)
-    if isnothing(prev_token) || is_line_ending(prev_token)
+    prev_token = tokens[prevind(tokens, i)]
+    next_token = tokens[nextind(tokens, i)]
+    if is_sof(prev_token) || is_line_ending(prev_token)
         if kind(next_token) == K"*"
             match_norg(Heading(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"="
@@ -155,12 +155,11 @@ function match_norg(::Whitespace, parents, tokens, i)
 end
 
 function match_norg(::LineEnding, parents, tokens, i)
-    prev_token = get(tokens, prevind(tokens, i), nothing)
+    prev_token = tokens[prevind(tokens, i)]
     if first(parents) == K"NorgDocument" 
         MatchContinue()
     elseif is_line_ending(prev_token)
         nestable_parents = filter(is_nestable, parents[2:end])
-        @debug "line ending match" nestable_parents parents
         if length(nestable_parents) > 0
             MatchClosing(first(parents), false)
         else
@@ -174,9 +173,9 @@ function match_norg(::LineEnding, parents, tokens, i)
 end
 
 function match_norg(::Star, parents, tokens, i)
-    prev_token = get(tokens, i - 1, nothing)
+    prev_token = tokens[prevind(tokens, i)]
     m = MatchNotFound()
-    if isnothing(prev_token) || is_line_ending(prev_token)
+    if is_sof(prev_token) || is_line_ending(prev_token)
         m = match_norg(Heading(), parents, tokens, i)
     end
     if isnotfound(m)
@@ -188,8 +187,8 @@ end
 match_norg(::Slash, parents, tokens, i) = match_norg(Italic(), parents, tokens, i)
 
 function match_norg(::Underscore, parents, tokens, i)
-    prev_token = get(tokens, i - 1, nothing)
-    if isnothing(prev_token) || is_line_ending(prev_token)
+    prev_token = tokens[prevind(tokens, i)]
+    if is_sof(prev_token) || is_line_ending(prev_token)
         m = match_norg(HorizontalRule(), parents, tokens, i)
         if isnotfound(m)
             match_norg(Underline(), parents, tokens, i)
@@ -202,8 +201,8 @@ function match_norg(::Underscore, parents, tokens, i)
 end
 
 function match_norg(::Minus, parents, tokens, i)
-    prev_token = get(tokens, i - 1, nothing)
-    if isnothing(prev_token) || is_line_ending(prev_token)
+    prev_token = tokens[prevind(tokens, i)]
+    if is_sof(prev_token) || is_line_ending(prev_token)
         possible_node = [
         WeakDelimiter(),
         UnorderedList(),
@@ -233,8 +232,8 @@ match_norg(::BackApostrophe, parents, tokens, i) = match_norg(InlineCode(), pare
 match_norg(::BackSlash, parents, tokens, i) = MatchFound(K"Escape")
 
 function match_norg(::EqualSign, parents, tokens, i)
-    prev_token = get(tokens, i - 1, nothing)
-    if isnothing(prev_token) || is_line_ending(prev_token)
+    prev_token = tokens[prevind(tokens, i)]
+    if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(StrongDelimiter(), parents, tokens, i)
     else
         MatchNotFound()
@@ -274,7 +273,7 @@ function match_norg(::LeftSquareBracket, parents, tokens, i)
         return match_norg(Anchor(), parents, tokens, i)
     end
     prev_i = prevind(tokens, i)
-    last_token = get(tokens, prev_i, nothing)
+    last_token = tokens[prev_i]
     if kind(last_token) == K"]"
         MatchFound(K"LinkDescription")
     else
@@ -283,8 +282,8 @@ function match_norg(::LeftSquareBracket, parents, tokens, i)
 end
 
 function match_norg(::Tilde, parents, tokens, i)
-    prev_token = get(tokens, i - 1, nothing)
-    if isnothing(prev_token) || is_line_ending(prev_token)
+    prev_token = tokens[prevind(tokens, i)]
+    if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(OrderedList(), parents, tokens, i)
     else
         MatchNotFound()
@@ -292,8 +291,8 @@ function match_norg(::Tilde, parents, tokens, i)
 end
 
 function match_norg(::GreaterThanSign, parents, tokens, i)
-    prev_token = get(tokens, i - 1, nothing)
-    if isnothing(prev_token) || is_line_ending(prev_token)
+    prev_token = tokens[prevind(tokens, i)]
+    if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(Quote(), parents, tokens, i)
     else
         MatchNotFound()
@@ -301,8 +300,8 @@ function match_norg(::GreaterThanSign, parents, tokens, i)
 end
 
 function match_norg(::CommercialAtSign, parents, tokens, i)
-    prev_token = get(tokens, prevind(tokens, i), nothing)
-    if isnothing(prev_token) || is_line_ending(prev_token)
+    prev_token = tokens[prevind(tokens, i)]
+    if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(Verbatim(), parents, tokens, i)
     else
         MatchNotFound()

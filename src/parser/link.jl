@@ -1,22 +1,18 @@
 function parse_norg(::Link, parents, tokens, i)
     start = i
     i = nextind(tokens, i)
-    token = get(tokens, i, nothing)
-    @debug "Welcome in link parsing"
-    if isnothing(token)
-        @debug "nah"
+    token = tokens[i]
+    if is_eof(token)
         return parse_norg(Word(), parents, tokens, i)
     end
     location_node = parse_norg(LinkLocation(), [K"Link", parents...], tokens, i)
     i = nextind(tokens, AST.stop(location_node))
-    token = get(tokens, i, nothing)
-    @debug "Got the location" location_node token
-    if isnothing(token)
+    token = tokens[i]
+    if is_eof(token)
         i = prevind(tokens, i)
         return AST.Node(K"Link", AST.Node[location_node], start, i)
     end
     description_match = match_norg(LinkDescription(), [K"Link", parents...], tokens, i)
-    @debug "This matches" description_match
     if isclosing(description_match)
         if !consume(description_match)
             i = prevind(tokens, i)
@@ -55,10 +51,10 @@ end
 
 function parse_norg(::URLLocation, parents, tokens, i)
     start = i
-    token = get(tokens, i, nothing)
-    while !isnothing(token) && kind(token) ∉ [K"}", K"LineEnding"]
+    token = tokens[i]
+    while !is_eof(token) && kind(token) ∉ [K"}", K"LineEnding"]
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     if kind(token) == K"}"
         stop = i
@@ -72,10 +68,10 @@ end
 
 function parse_norg(::LineNumberLocation, parents, tokens, i)
     start = i
-    token = get(tokens, i, nothing)
-    while !isnothing(token) && kind(token) ∉ [K"}", K"LineEnding"]
+    token = tokens[i]
+    while !is_eof(token) && kind(token) ∉ [K"}", K"LineEnding"]
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     if kind(token) == K"}"
         stop = i
@@ -89,16 +85,16 @@ end
 
 function parse_norg(::DetachedModifierLocation, parents, tokens, i)
     start = i
-    token = get(tokens, i, nothing)
+    token = tokens[i]
     level = 0
     while kind(token) == K"*"
         level += 1
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     if kind(token) == K"Whitespace"
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     heading_kind = if level == 1
         K"Heading1"
@@ -115,12 +111,12 @@ function parse_norg(::DetachedModifierLocation, parents, tokens, i)
     end
     start_heading_title = i
     #TODO: this should be replaced with consume_until and a Kset""
-    while !isnothing(token) && kind(token) ∉ [K"}", K"LineEnding"]
+    while !is_eof(token) && kind(token) ∉ [K"}", K"LineEnding"]
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     i = prevind(tokens, i)
-    content = parse_norg(ParagraphSegment(), [K"DetachedModifierLocation", parents...], tokens[begin:i], start_heading_title)
+    content = parse_norg(ParagraphSegment(), [K"DetachedModifierLocation", parents...], [tokens[begin:i]...;EOFToken()], start_heading_title)
     if kind(token) == K"}"
         i = nextind(tokens, i)
     end
@@ -130,18 +126,18 @@ end
 function parse_norg(::MagicLocation, parents, tokens, i)
     start = i
     i = nextind(tokens, i)
-    token = get(tokens, i, nothing)
+    token = tokens[i]
     if kind(token) == K"Whitespace"
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     start_heading_title = i
-    while !isnothing(token) && kind(token) ∉ [K"}", K"LineEnding"]
+    while !is_eof(token) && kind(token) ∉ [K"}", K"LineEnding"]
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     i = prevind(tokens, i)
-    content = parse_norg(ParagraphSegment(), [K"MagicLocation", parents...], tokens[begin:i], start_heading_title)
+    content = parse_norg(ParagraphSegment(), [K"MagicLocation", parents...], [tokens[begin:i]...;EOFToken()], start_heading_title)
     if kind(token) == K"}"
         i = nextind(tokens, i)
     end
@@ -153,22 +149,21 @@ filelocationkind(::NorgFileLocation) = K"NorgFileLocation"
 function parse_norg(t::T, parents, tokens, i,) where { T <: Union{FileLocation, NorgFileLocation}}
     start = i
     i = nextind(tokens, i)
-    token = get(tokens, i, nothing)
-    @debug "file link parsing" token
+    token = tokens[i]
     if kind(token) == K"Whitespace"
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     use_neorg_root = false
     if kind(token) == K"$"
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
         use_neorg_root = true
     end
     start_location = i
-    while !isnothing(token) && kind(token) ∉ [K"}", K":", K"LineEnding"]
+    while !is_eof(token) && kind(token) ∉ [K"}", K":", K"LineEnding"]
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     if use_neorg_root
         k = K"FileNorgRootTarget"
@@ -179,12 +174,12 @@ function parse_norg(t::T, parents, tokens, i,) where { T <: Union{FileLocation, 
     subtarget = AST.Node(K"None")
     if kind(token) == K":"
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
         subtarget = parse_norg(LinkLocation(), [filelocationkind(t), parents...], tokens, i)
         if kind(subtarget) == K"None"
-            while !isnothing(token) && kind(token) ∉ [K"LineEnding", K"}"]
+            while !is_eof(token) && kind(token) ∉ [K"LineEnding", K"}"]
                 i = nextind(tokens, i)
-                token = get(tokens, i, nothing)
+                token = tokens[i]
             end
             if kind(token) != K"}"
                 i = prevind(tokens, i)
@@ -199,18 +194,18 @@ end
 
 function parse_norg(::LinkDescription, parents, tokens, i)
     start = i
-    token = get(tokens, i, nothing)
+    token = tokens[i]
     if kind(token) == K"["
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     start_content = i
-    while !isnothing(token) && kind(token) ∉ [K"]", K"LineEnding"]
+    while !is_eof(token) && kind(token) ∉ [K"]", K"LineEnding"]
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     i = prevind(tokens, i)
-    content = parse_norg(ParagraphSegment(), parents, tokens[begin:i], start_content) 
+    content = parse_norg(ParagraphSegment(), parents, [tokens[begin:i]...; EOFToken()], start_content) 
     if kind(token) == K"]"
         i = nextind(tokens, i)
     end
@@ -220,24 +215,20 @@ end
 function parse_norg(::Anchor, parents, tokens, i)
     start = i
     i = nextind(tokens, i)
-    token = get(tokens, i, nothing)
-    @debug "Welcome in anchor parsing"
-    if isnothing(token)
-        @debug "nah"
+    token = tokens[i]
+    if is_eof(token)
         return parse_norg(Word(), parents, tokens, i)
     end
     description_node = parse_norg(LinkDescription(), [K"Anchor", parents...], tokens, i)
     i = AST.stop(description_node)
     i = nextind(tokens, i)
-    token = get(tokens, i, nothing)
-    @debug "Got the description" description_node token
-    if isnothing(token) || kind(token) != K"{"
-        @debug "Goodbye"
+    token = tokens[i]
+    if is_eof(token) || kind(token) != K"{"
         i = prevind(tokens, i)
         return AST.Node(K"Anchor", [description_node], start, i)
     else
         i = nextind(tokens, i)
-        token = get(tokens, i, nothing)
+        token = tokens[i]
     end
     location_node = parse_norg(LinkLocation(), [K"Anchor", parents...], tokens, i)
     i = AST.stop(location_node)

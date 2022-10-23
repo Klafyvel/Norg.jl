@@ -4,9 +4,8 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedMo
     i = nextind(tokens, i)
     node_kind = Match.attachedmodifier(t)
     m = Match.MatchClosing(node_kind)
-    while i <= lastindex(tokens)
+    while !is_eof(tokens[i])
         m = match_norg([node_kind, parents...], tokens, i)
-        @debug "attached modifier loop" node_kind tokens[i] m isclosing(m)
         if isclosing(m)
             break
         end
@@ -18,8 +17,7 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedMo
             push!(children, node)
         end
     end
-    @debug "end loop" t matched(m) isclosing(m) i>lastindex(tokens)
-    if i>lastindex(tokens)
+    if is_eof(tokens[i])
         i = start
         children = [parse_norg(Word(), parents, tokens, start)]
         node_kind = K"None"
@@ -29,7 +27,6 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedMo
         i = prevind(tokens, i)
         node_kind = K"None"
     elseif isclosing(m) && matched(m) != node_kind && matched(m) ∈ parents # we've been tricked in thincking we were in a modifier.
-        @debug "mismatch closing"
         i = start
         children = [parse_norg(Word(), parents, tokens, start)]
         node_kind = K"None"

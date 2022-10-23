@@ -11,7 +11,7 @@ function tokenize(input::AbstractString)
     linenum = 1
     charnum = firstindex(input)
     i = firstindex(input)
-    result = Vector{Token}()
+    result = [SOFToken()]
     while i <= lastindex(input)
         sub = SubString(input, i)
         token = Scanners.scan(sub, line = linenum, charnum = charnum)
@@ -24,6 +24,7 @@ function tokenize(input::AbstractString)
         push!(result, token)
         i = nextind(input, i, length(token))
     end
+    push!(result, EOFToken())
     result
 end
 

@@ -32,8 +32,8 @@ end
 Consume tokens until a token of kind `k` is encountered, or final token is reached.
 """
 function consume_until(k::Kind, tokens, i)
-    token = get(tokens, i, nothing)
-    while !isnothing(token) && kind(token) != k
+    token = tokens[i]
+    while !is_eof(token) && kind(token) != k
         i = nextind(tokens, i)
         token = tokens[i]
     end
@@ -57,14 +57,12 @@ Try to parse the `tokens` sequence as an [`AST.NorgDocument`](@ref) starting
 from the begining of the sequence.
 """
 function parse_norg(tokens)
-    i = firstindex(tokens)
+    i = nextind(tokens, firstindex(tokens))
     paragraphs = AST.Node[]
-    while i <= lastindex(tokens)
+    while !is_eof(tokens[i])
         m = match_norg([K"NorgDocument"], tokens, i)
-        @debug "Document parsing" m tokens[i]
         if isclosing(m)
-            @error "Closing token when parsing first class node" tokens[i] m 
-            error("This is a bug, please report it along with the text you are trying to parse.")
+            error("Closing token when parsing NorgDocument at token $(tokens[i]). This is a bug, please report it along with the text you are trying to parse.")
             return AST.NorgDocument(AST.Node[], tokens)
         elseif iscontinue(m)
             i = nextind(tokens, i)
@@ -89,7 +87,9 @@ function parse_norg(tokens)
             parse_norg(Paragraph(), [K"NorgDocument"], tokens, i)
         end
         i = AST.stop(paragraph)
-        i = nextind(tokens, i)
+        if !is_eof(tokens[i])
+            i = nextind(tokens, i)
+        end
         if kind(paragraph) != K"None"
             push!(paragraphs, paragraph)
         end
@@ -101,9 +101,8 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
     segments = AST.Node[]
     m = Match.MatchClosing(K"Paragraph")
     start = i
-    while i <= lastindex(tokens)
+    while !is_eof(tokens[i])
         m = match_norg([K"Paragraph", parents...], tokens, i)
-        @debug "Paragraph loop" tokens[i] m isclosing(m) consume(m)
         if isclosing(m)
             break
         elseif iscontinue(m)
@@ -121,7 +120,9 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
             push!(segments, segment)
         end
     end
-    if isclosing(m) && matched(m) == K"Paragraph" && !consume(m)
+    if is_eof(tokens[i])
+        i = prevind(tokens, i)
+    elseif isclosing(m) && matched(m) == K"Paragraph" && !consume(m)
         i = prevind(tokens, i)
     elseif isclosing(m) && matched(m) != K"Paragraph"
         i = prevind(tokens, i)
@@ -167,9 +168,8 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
     children = AST.Node[]
     m = Match.MatchClosing(K"ParagraphSegment")
     parents = [K"ParagraphSegment", parents...]
-    while i <= lastindex(tokens)
+    while !is_eof(tokens[i])
         m = match_norg(parents, tokens, i)
-        @debug "paragraph segment loop" tokens[i] m isclosing(m)
         if isclosing(m)
             break
         end
@@ -187,12 +187,9 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
             push!(children, node)
         end
     end
-    if !consume(m)
+    if !consume(m) || is_eof(tokens[i])
         i = prevind(tokens, i)
     end
-    # if isclosing(m) && matched(m) == K"ParagraphSegment" && !consume(m)
-    #     i = prevind(tokens, i)
-    # end
     AST.Node(K"ParagraphSegment", children, start, i)
 end
 

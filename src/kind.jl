@@ -6,6 +6,7 @@ module Kinds
 
 const _kind_names = [
   "None"
+  "StartOfFile"
   "EndOfFile"
   "BEGIN_WHITESPACE"
     "LineEnding"

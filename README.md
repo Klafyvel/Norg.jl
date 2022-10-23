@@ -7,9 +7,11 @@
 Norg.jl is a library to parse the [norg file format](https://github.com/nvim-neorg/norg-specs) 
 used in [NeoVim's neorg](https://github.com/nvim-neorg/neorg).
 
+This is heavily work in progress, so expect breaking changes. Meanwhile, I'd be really happy if you could try Norg.jl and tell me if you find unexpected behaviours. 
+
 ## What can it do ?
 
-For now the layer 1 compatibility is implemented, and there is code generation for html targets.
+For now the layer 1 and 2(-ish, still needs some tweaks) compatibility is implemented, and there is code generation for html targets.
 
 ```julia
 julia> using Norg, Hyperscript
@@ -96,8 +98,8 @@ julia> parse(HTMLTarget, s) |> Pretty
   - ( ) FileIO.jl integration
   - ( ) Various code generation
   -- (-) HTML
-  --- (+) Layer 1 support
-  --- ( ) Layer 2 support
+  --- (x) Layer 1 support
+  --- (x) Layer 2 support
   --- ( ) Layer 3 support
   --- ( ) Layer 4 support
   --- ( ) Layer 5 support
@@ -133,8 +135,6 @@ julia> parse(HTMLTarget, s) |> Pretty
   - ( ) Allow Franklin.jl to use Norg file format, because NeoVim+Julia = <3
   #contexts someday
   - ( ) Documenter.jl plugin
-  #contexts someday
-  - ( ) Term.jl plugin
 ```
 
 ## Installation 
@@ -144,3 +144,13 @@ The package is not yet registered.
 ```julia
 ] add https://github.com/Klafyvel/Norg.jl
 ```
+
+## Under the hood
+
+There are three main steps for turning Norg files into HTML (since it's the only supported target for now).
+
+1. Tokenizing (identifying the different chunks of code)
+2. Parsing (create an Abstract Syntax Tree, AST)
+3. Code generation (turning the AST into HTML)
+
+Earlier Norg.jl would rely on Julia's type system, but that made the code type-unstable. That's why I refactored it using a kind of enumeration to label each token and node of the AST. I did not invent anything here, it comes straight from [JuliaSyntax.jl](https://github.com/JuliaLang/JuliaSyntax.jl/) super cool ideas.

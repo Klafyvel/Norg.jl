@@ -1,6 +1,5 @@
 function match_norg(::Heading, parents, tokens, i)
     # Special case when parsing the title of a heading
-    @debug "Entering heading match" parents tokens[i]
     if K"HeadingTitle" ∈ parents
         return MatchNotFound()
     end
@@ -10,11 +9,11 @@ function match_norg(::Heading, parents, tokens, i)
     end
     new_i = i
     level = 0
-    while new_i < lastindex(tokens) && kind(get(tokens, new_i, nothing)) == K"*"
+    while new_i < lastindex(tokens) && kind(tokens[new_i]) == K"*"
         new_i = nextind(tokens, new_i)
         level += 1
     end
-    next_token = get(tokens, new_i, nothing)
+    next_token = tokens[new_i]
     if kind(next_token) == K"Whitespace"
         ancestor_headings = filter(is_heading, parents)
         higher_level_ancestor_heading = findfirst(x -> heading_level(x) >= level, ancestor_headings)
@@ -37,12 +36,15 @@ delimitingmodifier(::HorizontalRule) = K"HorizontalRule"
 function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
     next_i = nextind(tokens, i)
     next_next_i = nextind(tokens, next_i)
-    next_token = get(tokens, next_i, nothing)
-    next_next_token = get(tokens, next_next_i, nothing)
+    next_token = tokens[next_i]
+    if is_eof(next_token)
+        return MatchNotFound()
+    end
+    next_next_token = tokens[next_next_i]
     token = tokens[i]
     if kind(next_token) == kind(token) && kind(next_next_token) == kind(token)
         new_i = nextind(tokens, next_next_i)
-        new_token = get(tokens, new_i, nothing)
+        new_token = tokens[new_i]
         is_delimiting = true
         while new_i < lastindex(tokens) && !is_line_ending(new_token)
             if kind(token) != kind(new_token)
@@ -50,7 +52,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
                 break
             end
             new_i = nextind(tokens, new_i)
-            new_token = get(tokens, new_i, nothing)
+            new_token = tokens[new_i]
         end
         if is_delimiting
             if first(parents) ∈ [K"NorgDocument"] || is_heading(first(parents))
@@ -112,32 +114,26 @@ function nestable(::OrderedList, level)
     end
 end
 function match_norg(t::T, parents, tokens, i) where {T<:Nestable}
-    @debug "Welcome to nestable matching" t parents tokens[i]
     new_i = i
     level = 0
     token = tokens[i]
-    while new_i < lastindex(tokens) &&
-        kind(get(tokens, new_i, nothing)) == kind(token)
+    while new_i < lastindex(tokens) && kind(tokens[new_i]) == kind(token)
         new_i = nextind(tokens, new_i)
         level += 1
     end
-    next_token = get(tokens, new_i, nothing)
+    next_token = tokens[new_i]
     if kind(next_token) == K"Whitespace"
         ancestor_nestable = filter(is_nestable, parents)
         higher_level_ancestor_id = findfirst(x->nestable_level(x) > level, ancestor_nestable)
-        @debug "decision time" parents ancestor_nestable higher_level_ancestor_id nestable(t, level) nestable(t, level)==first(parents)
         if !isnothing(higher_level_ancestor_id)
             MatchClosing(ancestor_nestable[higher_level_ancestor_id], false)
         elseif first(parents) == nestable(t, level)
-            @debug "Create nestable item" level
             MatchFound(K"NestableItem")
         elseif any(nestable_level.(ancestor_nestable) .== level)
             MatchClosing(first(parents), false)
         elseif first(parents) ∈ [K"Paragraph", K"ParagraphSegment"]
-            @debug "closing parent" first(parents)
             MatchClosing(first(parents), false)
         else
-            @debug "create nestable" level
             MatchFound(nestable(t, level))
         end
     else

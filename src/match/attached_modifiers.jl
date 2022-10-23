@@ -22,12 +22,12 @@ function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifierStrategy
         return MatchNotFound()
     end
     next_i = nextind(tokens, i)
-    next_token = get(tokens, next_i, nothing)
+    next_token = tokens[next_i]
     prev_i = prevind(tokens, i)
-    last_token = get(tokens, prev_i, nothing)
-    if (isnothing(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!isnothing(next_token) && !is_whitespace(next_token))
+    last_token = tokens[prev_i]
+    if (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
         MatchFound(attachedmodifier(t))
-    elseif attachedmodifier(t) ∈ parents && !is_whitespace(last_token) && (isnothing(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
+    elseif attachedmodifier(t) ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
         MatchClosing(attachedmodifier(t))
     else
         MatchNotFound()
@@ -35,25 +35,16 @@ function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifierStrategy
 end
 
 function match_norg(::InlineCode, parents, tokens, i)
-    @debug "inline matching" parents tokens[i]
     if K"LinkLocation" ∈ parents
         return MatchNotFound()
     end
     next_i = nextind(tokens, i)
-    next_token = get(tokens, next_i, nothing)
+    next_token = tokens[next_i]
     prev_i = prevind(tokens, i)
-    last_token = get(tokens, prev_i, nothing)
-    @debug "test" !is_whitespace(last_token) isnothing(next_token) is_whitespace(next_token) is_punctuation(next_token)
-    if K"InlineCode" ∉ parents && (isnothing(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!isnothing(next_token) && !is_whitespace(next_token))
+    last_token = tokens[prev_i]
+    if K"InlineCode" ∉ parents && (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
             MatchFound(K"InlineCode")
-        # if is_attached_modifier(first(parents)) && kind(first(parents)) != K"InlineCode"
-        #     # Force the parent attached modifier to fail in order to ensure
-        #     # precendence of InlineCode attached modifier
-        #     MatchClosing(K"None", false)
-        # else
-        # end
-    elseif K"InlineCode" ∈ parents && !is_whitespace(last_token) && (isnothing(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
-        @debug "close bro"
+    elseif K"InlineCode" ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
         MatchClosing(K"InlineCode")
     else
         MatchNotFound()
