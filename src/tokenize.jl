@@ -1,8 +1,9 @@
 """
-The role of this module is solely to produce a `DataStructures.Queue` of tokens from an input.
+Produce 
 """
 module Tokenize
 
+using ..Kinds
 using ..Tokens
 using ..Scanners
 
@@ -10,11 +11,11 @@ function tokenize(input::AbstractString)
     linenum = 1
     charnum = firstindex(input)
     i = firstindex(input)
-    result = Vector{Token}()
+    result = [SOFToken()]
     while i <= lastindex(input)
         sub = SubString(input, i)
         token = Scanners.scan(sub, line = linenum, charnum = charnum)
-        if token isa Tokens.Token{Tokens.LineEnding}
+        if is_line_ending(token)
             linenum += 1
             charnum = 1
         else
@@ -23,6 +24,7 @@ function tokenize(input::AbstractString)
         push!(result, token)
         i = nextind(input, i, length(token))
     end
+    push!(result, EOFToken())
     result
 end
 

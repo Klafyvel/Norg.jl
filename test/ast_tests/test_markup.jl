@@ -3,126 +3,136 @@
 Node = Norg.AST.Node
 
 simple_markups = [
-    ('*', Norg.AST.Bold),
-    ('/', Norg.AST.Italic),
-    ('_', Norg.AST.Underline),
-    ('-', Norg.AST.Strikethrough),
-    ('!', Norg.AST.Spoiler),
-    ('^', Norg.AST.Superscript),
-    (',', Norg.AST.Subscript),
-    ('`', Norg.AST.InlineCode),
+("*", K"Bold"),
+("/", K"Italic") ,
+("_", K"Underline"),
+("-", K"Strikethrough"),
+("!", K"Spoiler"),
+("^", K"Superscript"),
+(",", K"Subscript"),
+("`", K"InlineCode"),
 ]
 
-@testset "Standalone markup for $m" for (m, T) in simple_markups
+@testset "Standalone markup for $m" for (m,k) in simple_markups
     ast = parse(Norg.AST.NorgDocument, "$(m)inner$(m)")
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[1] isa Node{Norg.AST.NorgDocument}
-    @test nodes[2] isa Node{Norg.AST.Paragraph}
-    @test nodes[3] isa Node{Norg.AST.ParagraphSegment}
-    @test nodes[4] isa Node{T}
-    @test nodes[5] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[5]).value == "inner"
+    @test ast isa Norg.AST.NorgDocument
+    p = first(children(ast))
+    @test kind(p) == K"Paragraph"
+    ps = first(children(p))
+    @test kind(ps) == K"ParagraphSegment"
+    marknode = first(children(ps))
+    @test kind(marknode) == k
+    w = first(children(marknode))
+    @test kind(w) == K"WordNode"
+    @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
 end
 
-@testset "Markup inside a sentence for $m" for (m, T) in simple_markups
+@testset "Markup inside a sentence for $m" for (m, k) in simple_markups
     ast = parse(Norg.AST.NorgDocument,
                 "When put inside a sentence $(m)inner$(m).")
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[14] isa Node{T}
-    @test nodes[15] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[15]).value == "inner"
-    @test nodes[16] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[16]).value == "."
+    @test ast isa Norg.AST.NorgDocument
+    p = first(children(ast))
+    @test kind(p) == K"Paragraph"
+    ps = first(children(p))
+    @test kind(ps) == K"ParagraphSegment"
+    marknode = children(ps)[11]
+    @test kind(marknode) == k
+    w = first(children(marknode))
+    @test kind(w) == K"WordNode"
+    @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
 end
 
 simple_nested_outer = [
-    ('*', Norg.AST.Bold),
-    ('/', Norg.AST.Italic),
-    ('_', Norg.AST.Underline),
-    ('-', Norg.AST.Strikethrough),
-    ('!', Norg.AST.Spoiler),
-    ('^', Norg.AST.Superscript),
-    (',', Norg.AST.Subscript),
+    ('*', K"Bold"),
+    ('/', K"Italic"),
+    ('_', K"Underline"),
+    ('-', K"Strikethrough"),
+    ('!', K"Spoiler"),
+    ('^', K"Superscript"),
+    (',', K"Subscript"),
 ]
 
 @testset "Nested markup $n inside $m" for (m, T) in simple_nested_outer,
                                           (n, U) in simple_markups
-
     if m == n
         continue
     end
     s = "$(m)Nested $(n)inner$(n)$(m)"
     ast = parse(Norg.AST.NorgDocument, s)
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[4] isa Node{T}
-    @test nodes[7] isa Node{U}
-    @test nodes[8] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[8]).value == "inner"
+    outernode = first(children(first(children(first(children(ast))))))
+    @test kind(outernode) == T
+    innernode = last(children(outernode))
+    @test kind(innernode) == U
+    w = first(children(innernode))
+    @test kind(w) == K"WordNode"
+    @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
 end
 
 @testset "Nested markup $m inside `" for (m, T) in simple_markups
-    if m == '`'
+    if m == "`"
         continue
     end
     s = "`Nested $(m)inner$(m)`"
     ast = parse(Norg.AST.NorgDocument, s)
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[4] isa Node{Norg.AST.InlineCode}
-    @test nodes[7] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[7]).value == string(m)
-    @test nodes[8] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[8]).value == "inner"
-    @test nodes[9] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[9]).value == string(m)
+    outernode = first(children(first(children(first(children(ast))))))
+    @test kind(outernode) == K"InlineCode"
+    for n in children(outernode)
+        @test kind(n) == K"WordNode"
+    end
 end
 
 @testset "Escaping modifier $m" for (m, _) in simple_markups
     s = "This is \\$(m)normal\\$(m)"
     ast = parse(Norg.AST.NorgDocument, s)
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[8] isa Node{Norg.AST.Escape}
-    @test nodevalue(nodes[8]).value == string(m)
-    @test nodes[9] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[9]).value == "normal"
-    @test nodes[10] isa Node{Norg.AST.Escape}
-    @test nodevalue(nodes[10]).value == string(m)
+    ps = first(children(first(children(ast))))
+    for n in children(ps)
+        @test kind(n) ∈ [K"Escape", K"WordNode"]
+    end
 end
 
 @testset "No empty modifier $m" for (m, T) in simple_markups
     s = "nothing to see $(m)$(m) here"
     ast = parse(Norg.AST.NorgDocument, s)
-    nodes = collect(PreOrderDFS(ast))
-    @test !any(isa.(nodes, Node{T}))
+    ps = first(children(first(children(ast))))
+    for n in children(ps)
+        @test kind(n) == K"WordNode"
+    end
 end
 
 @testset "First closing modifier has precedence" begin
     s = "*first bold* some /italic/ and not bold*"
     ast = parse(Norg.AST.NorgDocument, s)
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[4] isa Node{Norg.AST.Bold}
-    @test nodes[5] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[5]).value == "first"
-    @test nodes[11] isa Node{Norg.AST.Italic}
-    @test nodes[12] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[12]).value == "italic"
-    @test nodes[19] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[19]).value == "*"
+    ps = first(children(first(children(ast))))
+    b = children(ps)[1]
+    i = children(ps)[5]
+    @test kind(b) == K"Bold"
+    @test kind(i) == K"Italic"
 end
 
 @testset "First closing modifier has precedence" begin
     s = "*This /is bold*/"
     ast = parse(Norg.AST.NorgDocument, s)
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[4] isa Node{Norg.AST.Bold}
+    ps = first(children(first(children(ast))))
+    b = children(ps)[1]
+    @test kind(b) == K"Bold"
 end
 
 @testset "Verbatim precedence" begin
     s = "*not bold `because verbatim* has higher precedence`"
     ast = parse(Norg.AST.NorgDocument, s)
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[4] isa Node{Norg.AST.Word}
-    @test nodevalue(nodes[4]).value == "*"
-    @test nodes[9] isa Node{Norg.AST.InlineCode}
+    ps = first(children(first(children(ast))))
+    for n in first(children(ps), 5)
+        @test kind(n) == K"WordNode"
+    end
+    @test kind(last(children(ps))) == K"InlineCode"
+end
+
+@testset "Escaping is allowed in inline code" begin
+    s = "`\\` still verbatim`"
+    ast = parse(Norg.AST.NorgDocument, s)
+    ps = first(children(first(children(ast))))
+    @test length(children(ps)) == 1
+    @test kind(first(children(ps))) == K"InlineCode"
 end
 
 @testset "Line endings are allowed withing attached modifiers." begin
@@ -132,5 +142,17 @@ end
     ps = first(children(p))
     @test length(children(ps)) == 1
     it = first(children(ps))
-    @test it isa Node{Norg.AST.Italic}
+    @test kind(it) == K"Italic"
+end
+
+@testset "Precedence torture test." begin
+    s = "test `1.`/`1)`, Norg \ntest"
+    ast = parse(Norg.AST.NorgDocument, s)
+    ps1, ps2 = children(first(children(ast)))
+    @test kind(ps1) == K"ParagraphSegment"
+    @test kind(ps2) == K"ParagraphSegment"
+    ic1 = children(ps1)[3]
+    ic2 = children(ps1)[5]
+    @test kind(ic1) == K"InlineCode"
+    @test kind(ic2) == K"InlineCode"
 end

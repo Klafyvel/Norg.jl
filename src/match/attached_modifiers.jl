@@ -1,99 +1,52 @@
-tokentype(::Type{AST.ParagraphSegment}) = Tokens.LineEnding
-tokentype(::Type{AST.Bold}) = Tokens.Star
-tokentype(::Type{AST.Italic}) = Tokens.Slash
-tokentype(::Type{AST.Underline}) = Tokens.Underscore
-tokentype(::Type{AST.Strikethrough}) = Tokens.Minus
-tokentype(::Type{AST.Spoiler}) = Tokens.ExclamationMark
-tokentype(::Type{AST.Superscript}) = Tokens.Circumflex
-tokentype(::Type{AST.Subscript}) = Tokens.Comma
-tokentype(::Type{AST.InlineCode}) = Tokens.BackApostrophe
+tokentype(::ParagraphSegment) = K"LineEnding"
+tokentype(::Bold) = K"*"
+tokentype(::Italic) = K"/"
+tokentype(::Underline) = K"_"
+tokentype(::Strikethrough) = K"-"
+tokentype(::Spoiler) = K"!"
+tokentype(::Superscript) = K"^"
+tokentype(::Subscript) = K","
+tokentype(::InlineCode) = K"`"
 
-const AllowedBeforeAttachedModifierOpening = Union{Token{Tokens.Whitespace},
-                                                   Token{
-                                                         <:Tokens.AbstractPunctuation
-                                                         },
-                                                   Nothing}
-const ForbiddenAfterAttachedModifierOpening = Union{Token{Tokens.Whitespace},
-                                                    Nothing, Token{Tokens.LineEnding}}
-const AllowedAfterAttachedModifier = Union{Token{Tokens.Whitespace},
-                                           Token{Tokens.LineEnding},
-                                           Token{<:Tokens.AbstractPunctuation},
-                                           Nothing}
+attachedmodifier(::Bold) = K"Bold"
+attachedmodifier(::Italic) = K"Italic"
+attachedmodifier(::Underline) = K"Underline"
+attachedmodifier(::Strikethrough) = K"Strikethrough"
+attachedmodifier(::Spoiler) = K"Spoiler"
+attachedmodifier(::Superscript) = K"Superscript"
+attachedmodifier(::Subscript) = K"Subscript"
+attachedmodifier(::InlineCode) = K"InlineCode"
 
-function match_norg(ast_node::Type{<:AST.AttachedModifier}, token, parents,
-                    tokens, i)
-    match_norg(first(parents), ast_node, token, parents, tokens, i)
-end
-
-function match_norg(::Type{AST.NorgDocument}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens,
-                    i)
-    match_norg(AST.ParagraphSegment, ast_node, token, parents, tokens, i)
-end
-
-function match_norg(::Type{AST.Paragraph}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
-    match_norg(AST.ParagraphSegment, ast_node, token, parents, tokens, i)
-end
-
-function match_norg(::Type, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
-    MatchFound{AST.Paragraph}()
-end
-
-function match_norg(::Type{AST.ParagraphSegment}, ast_node::Type{<:AST.AttachedModifier}, token, parents,
-                    tokens, i)
+function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifierStrategy}
+    if K"LinkLocation" ∈ parents
+        return MatchNotFound()
+    end
     next_i = nextind(tokens, i)
-    next_token = get(tokens, next_i, nothing)
+    next_token = tokens[next_i]
     prev_i = prevind(tokens, i)
-    last_token = get(tokens, prev_i, nothing)
-    if last_token isa AllowedBeforeAttachedModifierOpening &&
-       !(next_token isa ForbiddenAfterAttachedModifierOpening)
-        MatchFound{ast_node}()
+    last_token = tokens[prev_i]
+    if (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
+        MatchFound(attachedmodifier(t))
+    elseif attachedmodifier(t) ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
+        MatchClosing(attachedmodifier(t))
     else
-        MatchFound{AST.Word}()
+        MatchNotFound()
     end
 end
 
-function match_norg(::Type{AST.LinkLocation}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens,
-                    i)
-    MatchFound{AST.Word}()
-end
-
-function match_norg(::Type{<:AST.MatchedInline}, ast_node::Type{<:AST.AttachedModifier}, token, parents,
-                    tokens, i)
-    next_i = nextind(tokens, i)
-    next_token = get(tokens, next_i, nothing)
-    prev_i = prevind(tokens, i)
-    last_token = get(tokens, prev_i, nothing)
-    if last_token isa AllowedBeforeAttachedModifierOpening &&
-       !(next_token isa ForbiddenAfterAttachedModifierOpening)
-        MatchFound{ast_node}()
-    elseif !(last_token isa Token{Tokens.Whitespace}) &&
-           next_token isa AllowedAfterAttachedModifier
-        if any(t -> tokens[i] isa Token{tokentype(t)},
-               filter(x -> x <: AST.MatchedInline, parents))
-            MatchClosing{ast_node}()
-        else
-            MatchFound{AST.Word}()
-        end
-    else
-        MatchFound{AST.Word}()
-    end
-end
-
-function match_norg(::Type{AST.InlineCode}, ast_node::Type{<:AST.AttachedModifier}, token, parents, tokens, i)
-    token = tokens[i]
-    @debug "Special inline code" token
-    if !(token isa Token{Tokens.BackApostrophe})
-        return MatchFound{AST.Word}()
+function match_norg(::InlineCode, parents, tokens, i)
+    if K"LinkLocation" ∈ parents
+        return MatchNotFound()
     end
     next_i = nextind(tokens, i)
-    next_token = get(tokens, next_i, nothing)
+    next_token = tokens[next_i]
     prev_i = prevind(tokens, i)
-    last_token = get(tokens, prev_i, nothing)
-    @debug "decision time" last_token token next_token 
-    if !(last_token isa Token{Tokens.Whitespace}) &&
-           next_token isa AllowedAfterAttachedModifier
-        MatchClosing{ast_node}()
+    last_token = tokens[prev_i]
+    if K"InlineCode" ∉ parents && (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
+            MatchFound(K"InlineCode")
+    elseif K"InlineCode" ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
+        MatchClosing(K"InlineCode")
     else
-        MatchFound{AST.Word}()
+        MatchNotFound()
     end
 end

@@ -11,18 +11,16 @@ Node = Norg.AST.Node
 
     ast = parse(Norg.AST.NorgDocument, s)
 
-    h1 = first(children(ast))
-    p = last(children(ast))
+    h1,sd,p = children(ast)
 
-    @test h1 isa Node{Norg.AST.Heading{1}}
-    @test p isa Node{Norg.AST.Paragraph}
+    @test kind(h1) == K"Heading1"
+    @test kind(p) == K"Paragraph"
+    @test kind(sd) == K"StrongDelimitingModifier"
 
-    h1_title = nodevalue(h1).title
-    @test h1_title isa Node{Norg.AST.ParagraphSegment}
+    h1_title, h1_par = children(h1)
+    @test kind(h1_title) == K"ParagraphSegment"
     @test length(children(h1_title)) == 7
-
-    h1_par = first(children(h1))
-    @test h1_par isa Node{Norg.AST.Paragraph}
+    @test kind(h1_par) == K"Paragraph"
 end
 
 heading_levels = 2:6
@@ -51,23 +49,23 @@ And here is some more text that has broken out of the matrix.
     h1 = children(ast)[2]
     p = last(children(ast))
 
-    @test hi isa Node{Norg.AST.Heading{i}}
-    @test h1 isa Node{Norg.AST.Heading{1}}
-    @test p isa Node{Norg.AST.Paragraph}
+    @test kind(hi) == AST.heading_level(i)
+    @test kind(h1) == K"Heading1"
+    @test kind(p) == K"Paragraph"
 
-    hi_title = nodevalue(hi).title
-    @test hi_title isa Node{Norg.AST.ParagraphSegment}
+    hi_title = first(children(hi))
+    @test kind(hi_title) == K"ParagraphSegment"
     @test length(children(hi_title)) == 11
 
-    hj = first(children(h1))
+    hj = children(h1)[2]
     for j in 2:i
-        @test hj isa Node{Norg.AST.Heading{j}}
-        hj_title = nodevalue(hj).title
-        @test hj_title isa Node{Norg.AST.ParagraphSegment}
+        @test kind(hj) == AST.heading_level(j)
+        hj_title = first(children(hj))
+        @test kind(hj_title) == K"ParagraphSegment"
         @test length(children(hj_title)) == 9
 
-        hj_par = first(children(hj))
-        @test hj_par isa Node{Norg.AST.Paragraph}
+        hj_par = children(hj)[2]
+        @test kind(hj_par) == K"Paragraph"
         hj = last(children(hj))
     end
 end
@@ -94,21 +92,23 @@ end
 
     p1, h1, strong_delimiter, p2 = children(ast)
 
-    @test p1 isa Node{Norg.AST.Paragraph}
-    @test h1 isa Node{Norg.AST.Heading{1}}
-    @test strong_delimiter isa Node{Norg.AST.StrongDelimitingModifier}
-    @test p2 isa Node{Norg.AST.Paragraph}
+    @test kind(p1) == K"Paragraph"
+    @test kind(h1) == K"Heading1"
+    @test kind(strong_delimiter) == K"StrongDelimitingModifier"
+    @test kind(p2) == K"Paragraph"
 
-    h2, p1, h3, p2, h3bis = children(h1)
-    @test h2 isa Node{Norg.AST.Heading{2}}
-    @test p1 isa Node{Norg.AST.Paragraph}
-    @test h3 isa Node{Norg.AST.Heading{3}}
-    @test p2 isa Node{Norg.AST.Paragraph}
-    @test h3bis isa Node{Norg.AST.Heading{3}}
+    h1_title, h2, p1, h3, p2, h3bis = children(h1)
+    @test kind(h1_title) == K"ParagraphSegment"
+    @test kind(h2) == K"Heading2"
+    @test kind(p1) == K"Paragraph"
+    @test kind(h3) == K"Heading3"
+    @test kind(p2) == K"Paragraph"
+    @test kind(h3bis) == K"Heading3"
 
-    p, weak_delimiter = children(h2)
-    @test p isa Node{Norg.AST.Paragraph}
-    @test weak_delimiter isa Node{Norg.AST.WeakDelimitingModifier}
+    h2_title, p, weak_delimiter = children(h2)
+    @test kind(h2_title) == K"ParagraphSegment"
+    @test kind(p) == K"Paragraph"
+    @test kind(weak_delimiter) == K"WeakDelimitingModifier"
 end
 
 @testset "Malformed indentation reversion" begin
@@ -128,8 +128,8 @@ end
     ast = parse(Norg.AST.NorgDocument, s)
 
     h1, p = children(ast)
-    @test h1 isa Node{Norg.AST.Heading{1}}
-    @test p isa Node{Norg.AST.Paragraph}
+    @test kind(h1) == K"Heading1"
+    @test kind(p) == K"Paragraph"
 end
 
 @testset "Horizontal line" begin
@@ -139,7 +139,22 @@ Separated by a horizontal line."""
 
     ast = parse(Norg.AST.NorgDocument, s)
     p1, hr, p2 = children(ast)
-    @test p1 isa Node{Norg.AST.Paragraph}
-    @test hr isa Node{Norg.AST.HorizontalRule}
-    @test p2 isa Node{Norg.AST.Paragraph}
+    @test kind(p1) == K"Paragraph"
+    @test kind(hr) == K"HorizontalRule"
+    @test kind(p2) == K"Paragraph"
+end
+
+@testset "Horizontal line in a heading" begin
+    s = """
+           * Heading level 1
+             Text under first level heading.
+             ___
+             This is a new paragraph separated from the previous one by a horizontal
+             """
+    ast = parse(Norg.AST.NorgDocument, s)
+    h1 = first(children(ast))
+    h1_title, p1, hr, p2 = children(h1)
+    @test kind(p1) == K"Paragraph"
+    @test kind(hr) == K"HorizontalRule"
+    @test kind(p2) == K"Paragraph"
 end

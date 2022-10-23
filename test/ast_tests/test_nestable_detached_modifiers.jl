@@ -2,9 +2,9 @@
 Node = Norg.AST.Node
 AST = Norg.AST
 
-nestable = [('-', AST.UnorderedList)
-            ('~', AST.OrderedList)
-            ('>', AST.Quote)]
+nestable = [('-', K"UnorderedList1")
+            ('~', K"OrderedList1")
+            ('>', K"Quote1")]
 
 @testset "$T should be grouping." for (m, T) in nestable
     s = """$m first item
@@ -12,10 +12,10 @@ nestable = [('-', AST.UnorderedList)
     """
     ast = parse(AST.NorgDocument, s)
     nest = first(children(ast))
-    @test nest isa Node{T{1}}
+    @test kind(nest) == T
     item1, item2 = children(nest)
-    @test item1 isa Node{AST.NestableItem}
-    @test item2 isa Node{AST.NestableItem}
+    @test kind(item1) == K"NestableItem"
+    @test kind(item2) == K"NestableItem"
 end
 
 @testset "$T grouping should not happen when there is a paragraph break." for (m, T) in nestable
@@ -25,15 +25,19 @@ end
     """
     ast = parse(AST.NorgDocument, s)
     nest1, nest2 = children(ast)
-    @test nest1 isa Node{T{1}}
-    @test nest2 isa Node{T{1}}
+    @test kind(nest1) == T
+    @test kind(nest2) == T
     item1 = first(children(nest1))
-    @test item1 isa Node{AST.NestableItem}
+    @test kind(item1) == K"NestableItem"
     item2 = first(children(nest2))
-    @test item2 isa Node{AST.NestableItem}
+    @test kind(item2) == K"NestableItem"
 end
 
-@testset "$T should be nestable." for (m, T) in nestable
+nestable_check = [('-', AST.is_unordered_list)
+                  ('~', AST.is_ordered_list)
+                  ('>', AST.is_quote)]
+
+@testset "$m should be nestable." for (m, verif) in nestable_check
     s = """$m item1
     $m$m subitem1
     $m$m subitem2
@@ -41,22 +45,27 @@ end
     """
     ast = parse(AST.NorgDocument, s)
     nest = first(children(ast))
-    @test nest isa Node{T{1}}
+    @test verif(nest)
     item1, item2 = children(nest)
-    @test item1 isa Node{AST.NestableItem}
-    @test item2 isa Node{AST.NestableItem}
+    @test kind(item1) == K"NestableItem"
+    @test kind(item2) == K"NestableItem"
     nested = last(children(item1))
-    @test nested isa Node{T{2}}
+    @test verif(nested)
     subitem1, subitem2 = children(nested)
-    @test subitem1 isa Node{AST.NestableItem}
-    @test subitem2 isa Node{AST.NestableItem}
+    @test kind(subitem1) == K"NestableItem"
+    @test kind(subitem2) == K"NestableItem"
 end
 
-@testset "$T of level $i" for (m, T) in nestable, i in 1:6
+nestable_level_check = [
+    ('-', Norg.AST.unordered_list_level)
+    ('~', Norg.AST.ordered_list_level)
+    ('>', Norg.AST.quote_level)
+]
+@testset "$T of level $i" for (m, T) in nestable_level_check, i in 1:6
     s = "$(repeat(m, i)) item"
     ast = parse(AST.NorgDocument, s)
     nest = first(children(ast))
-    @test nest isa Node{T{i}}
+    @test kind(nest) == T(i)
 end
 
 @testset "Structural modifiers have higher precedence than $T" for (m, T) in nestable
@@ -65,8 +74,8 @@ end
     """
     ast = parse(AST.NorgDocument, s)
     nest, h1 = children(ast)
-    @test nest isa Node{T{1}}
-    @test h1 isa Node{AST.Heading{1}}
+    @test kind(nest) == T
+    @test kind(h1) == K"Heading1"
 end
 
 @testset "Complicated example of $T" for (m, T) in nestable
@@ -90,9 +99,9 @@ end
       """
     ast = parse(AST.NorgDocument, s)
     nest, h1, h1bis = children(ast)
-    @test nest isa Node{T{1}}
-    @test h1 isa Node{AST.Heading{1}}
-    @test h1bis isa Node{AST.Heading{1}}
+    @test kind(nest) == T
+    @test kind(h1) == K"Heading1"
+    @test kind(h1bis) == K"Heading1"
 end
 
 @testset "Nestable delimiter within paragraphs" begin
@@ -105,7 +114,8 @@ end
           - Any of the {*** strong carryover tags}
        """
     ast = parse(Norg.AST.NorgDocument, s)
-    p, ul = children(first(children(ast)))
-    @test p isa Node{AST.Paragraph}
-    @test ul isa Node{AST.UnorderedList{1}}
+    title, p, ul = children(first(children(ast)))
+    @test kind(title) == K"ParagraphSegment"
+    @test kind(p) == K"Paragraph"
+    @test kind(ul) == K"UnorderedList1"
 end

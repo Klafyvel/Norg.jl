@@ -3,19 +3,20 @@ Node = Norg.AST.Node
 @testset "Two newlines should separate two paragraphs." begin
     ast = parse(Norg.AST.NorgDocument,
                 "Hi I am first paragraph.\n\nOh, hello there, I am second paragraph !")
-    nodes = collect(PreOrderDFS(ast))
-    @test nodes[2] isa Node{Norg.AST.Paragraph}
-    @test nodes[14] isa Node{Norg.AST.Paragraph}
+    p1, p2 = children(ast)
+    @test kind(p1) == K"Paragraph"
+    @test kind(p2) == K"Paragraph"
 end
 
 @testset "One newline should separate two paragraph segments." begin
     ast = parse(Norg.AST.NorgDocument,
                 "Hi I am first paragraph segment...\nAnd I am second paragraph segment !\n\nOh, hello there, I am second paragraph !")
-    pars = children(ast)
-    subpars = collect(Iterators.flatten(children.(pars)))
-    @test pars[1] isa Node{Norg.AST.Paragraph}
-    @test pars[2] isa Node{Norg.AST.Paragraph}
-    @test children(pars[1])[1] isa Node{Norg.AST.ParagraphSegment}
-    @test children(pars[1])[2] isa Node{Norg.AST.ParagraphSegment}
-    @test children(pars[2])[1] isa Node{Norg.AST.ParagraphSegment}
+    p1, p2 = children(ast)
+    ps1,ps2 = children(p1)
+    ps3 = first(children(p2))
+    @test kind(p1) == K"Paragraph"
+    @test kind(p2) == K"Paragraph"
+    @test kind(ps1) == K"ParagraphSegment"
+    @test kind(ps2) == K"ParagraphSegment"
+    @test kind(ps3) == K"ParagraphSegment"
 end

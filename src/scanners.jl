@@ -2,10 +2,11 @@
 Provides the scanners for the tokenizer.
 
 The role of a scanner is to recognize a sequence of characters and to produce a
-[`Token`](@ref) or `nothing` from that.
+`ScanResult`.
 """
 module Scanners
 
+using ..Kinds
 using ..Tokens
 
 struct ScanResult
@@ -14,25 +15,30 @@ end
 ScanResult(res::Bool) = if res ScanResult(1) else ScanResult(0) end
 success(scanresult::ScanResult) = scanresult.length > 0
 
+abstract type ScanStrategy end
+struct Word <: ScanStrategy end
+struct Whitespace <: ScanStrategy end
+struct LineEnding <: ScanStrategy end
+struct Punctuation <: ScanStrategy end
+
 """
-    scan(::TokenType, input)
     scan(pattern, input)
 
-Scan the given `input` for the given `TokenType` or a `pattern`.
+Scan the given `input` for the given `pattern`.
 
 It will produce a [`ScanResult`](@ref).
 
 If `pattern` is given, then try to fit the given patter at the start of `input`.
 If `pattern` is :
 
-  - a `Char` : first character must be `pattern` for a match.
+  - a `ScanStrategy` subtype : scan with the given strategy (e.g. `Word` or `Whitespace`) 
+  - a `Kind` : parse for the given kind.
   - an `AbstractString` : `input` must `startswith` `pattern`.
   - an `AbstractArray` : call `scan` on each element of `pattern` until one matches.
   - a `Set{Char}` : first character must be included in `pattern`.
+
 """
 function scan end
-
-scan(c::Char, input) = ScanResult(first(input) == c)
 
 function scan(s::AbstractString, input)
     if startswith(input, s)
@@ -61,36 +67,8 @@ function scan(set::Set{Char}, input)
     end
 end
 
-include("assets/norg_line_ending.jl")
-scan(::Tokens.LineEnding, input) = scan(NORG_LINE_ENDING, input)
-
-include("assets/norg_punctuation.jl")
-scan(::Tokens.Punctuation, input) = scan(NORG_PUNCTUATION, input)
-
-scan(::Tokens.Star, input) = scan('*', input)
-scan(::Tokens.Slash, input) = scan('/', input)
-scan(::Tokens.Underscore, input) = scan('_', input)
-scan(::Tokens.Minus, input) = scan('-', input)
-scan(::Tokens.ExclamationMark, input) = scan('!', input)
-scan(::Tokens.Circumflex, input) = scan('^', input)
-scan(::Tokens.Comma, input) = scan(',', input)
-scan(::Tokens.BackApostrophe, input) = scan('`', input)
-scan(::Tokens.BackSlash, input) = scan('\\', input)
-scan(::Tokens.LeftBrace, input) = scan('{', input)
-scan(::Tokens.RightBrace, input) = scan('}', input)
-scan(::Tokens.LeftSquareBracket, input) = scan('[', input)
-scan(::Tokens.RightSquareBracket, input) = scan(']', input)
-scan(::Tokens.Tilde, input) = scan('~', input)
-scan(::Tokens.GreaterThanSign, input) = scan('>', input)
-scan(::Tokens.CommercialAtSign, input) = scan('@', input)
-scan(::Tokens.EqualSign, input) = scan('=', input)
-scan(::Tokens.Dot, input) = scan('.', input)
-scan(::Tokens.Colon, input) = scan(':', input)
-scan(::Tokens.NumberSign, input) = scan('#', input)
-scan(::Tokens.DollarSign, input) = scan('$', input)
-
 include("assets/norg_whitespace.jl")
-function scan(::Tokens.Whitespace, input)
+function scan(::Whitespace, input)
     trial_stop = 0
     for i in eachindex(input)
         if input[i] ∈ NORG_WHITESPACES
@@ -102,13 +80,13 @@ function scan(::Tokens.Whitespace, input)
     ScanResult(trial_stop)
 end
 
-function scan(::Tokens.Word, input)
+function scan(::Word, input)
     trial_stop = 0
     for i in eachindex(input)
         teststr = SubString(input, i)
-        test_whitespace = scan(Tokens.Whitespace(), teststr)
-        test_endline = scan(Tokens.LineEnding(), teststr)
-        test_punctuation = scan(Tokens.Punctuation(), teststr)
+        test_whitespace = scan(Whitespace(), teststr)
+        test_endline = scan(LineEnding(), teststr)
+        test_punctuation = scan(Punctuation(), teststr)
         if !success(test_whitespace) && !success(test_endline) && !success(test_punctuation)
             trial_stop = i
         else
@@ -118,50 +96,46 @@ function scan(::Tokens.Word, input)
     ScanResult(trial_stop)
 end
 
+scan(::LineEnding, input) = scan(NORG_LINE_ENDING, input)
+scan(::Punctuation, input) = scan(NORG_PUNCTUATION, input)
+
+include("assets/norg_line_ending.jl")
+include("assets/norg_punctuation.jl")
+function scan(kind::Kind, input)
+    if kind == K"LineEnding"
+        scan(LineEnding(), input)
+    elseif kind == K"Punctuation"
+        scan(Punctuation(), input)
+    elseif kind == K"Whitespace"
+        scan(Whitespace(), input)
+    elseif kind == K"Word"
+        scan(Word(), input)
+    else # We rely on the user providing something that makes sense here.
+        scan(string(kind), input)
+    end
+end
+
 """
 All the registered [`TokenType`](@ref) that [`scan`](@ref) will try when consuming entries.
 """
-const REGISTERED_TOKENTYPES = [
-    Tokens.Star(),
-    Tokens.Slash(),
-    Tokens.Underscore(),
-    Tokens.Minus(),
-    Tokens.ExclamationMark(),
-    Tokens.Circumflex(),
-    Tokens.Comma(),
-    Tokens.BackApostrophe(),
-    Tokens.BackSlash(),
-    Tokens.LeftBrace(),
-    Tokens.RightBrace(),
-    Tokens.LeftSquareBracket(),
-    Tokens.RightSquareBracket(),
-    Tokens.Tilde(),
-    Tokens.GreaterThanSign(),
-    Tokens.CommercialAtSign(),
-    Tokens.EqualSign(),
-    Tokens.Dot(),
-    Tokens.Colon(),
-    Tokens.NumberSign(),
-    Tokens.DollarSign(),
-    Tokens.LineEnding(),
-    Tokens.Whitespace(),
-    Tokens.Punctuation(),
-    Tokens.Word(),
+const TOKENKIND_PARSING_ORDER = [
+        Kinds.all_single_punctuation_tokens()...;
+        K"LineEnding"; K"Whitespace"; K"Punctuation"; K"Word"
 ]
 
 """
     scan(input; line=0, charnum=0)
 
-Scan the given `input` for [`REGISTERED_TOKENTYPES`](@ref) until one returns a
+Scan the given `input` for [`TOKENKIND_PARSING_ORDER`](@ref) until one returns a
 successful [`ScanResult`](@ref) or throw an error if none succeed.
 
 This will return a [`Token`](@ref).
 """
 function scan(input; line=0, charnum=0)
     res = ScanResult(false)
-    tokentype = nothing
-    for scanner in REGISTERED_TOKENTYPES
-        res = scan(scanner, input)::ScanResult
+    tokentype = K"None"
+    for scanner in TOKENKIND_PARSING_ORDER
+        res = scan(scanner, input)
         if success(res)
             tokentype = scanner
             break
@@ -170,7 +144,7 @@ function scan(input; line=0, charnum=0)
     if !success(res)
         error("No suitable token found for input at line $line, char $charnum")
     end
-    Token{typeof(tokentype)}(line, charnum, input[1:res.length])
+    Token(tokentype, line, charnum, input[1:res.length])
 end
 
 export scan
