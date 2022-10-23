@@ -2,7 +2,7 @@ using Hyperscript
 
 @testset "Test paragraphs" begin
     s = "Hi I am first paragraph.\n\nOh, hello there, I am second paragraph !"
-    html = Norg.codegen(Norg.HTMLTarget, Norg.parse_norg(Norg.tokenize(s)))
+    html = Norg.codegen(Norg.HTMLTarget(), Norg.parse_norg(Norg.tokenize(s)))
     pars = getfield(html, :children)
     @test getfield(pars[1], :tag) == "p"
     @test getfield(pars[2], :tag) == "p"
@@ -32,14 +32,14 @@ simple_markups_class = [
 
 @testset "Test correct markup for $m" for (m, html_node) in simple_markups_nodes
     s = "$(m)inner$(m)"
-    html = Norg.codegen(Norg.HTMLTarget, Norg.parse_norg(Norg.tokenize(s)))
+    html = Norg.codegen(Norg.HTMLTarget(), Norg.parse_norg(Norg.tokenize(s)))
     b = first(getfield(first(getfield(html, :children)), :children))
     @test getfield(b, :tag) == html_node
 end
 
 @testset "Test correct class for $m" for (m, html_class) in simple_markups_class
     s = "$(m)inner$(m)"
-    html = Norg.codegen(Norg.HTMLTarget, Norg.parse_norg(Norg.tokenize(s)))
+    html = Norg.codegen(Norg.HTMLTarget(), Norg.parse_norg(Norg.tokenize(s)))
     b = first(getfield(first(getfield(html, :children)), :children))
     if isnothing(html_class)
         @test !haskey(getfield(b, :attrs), "class")
@@ -67,7 +67,7 @@ simple_link_tests = [
 
 @testset "Test links: $link" for (link, target, text) in simple_link_tests
     s = "{$link}"
-    html = parse(HTMLTarget, s)
+    html = parse(HTMLTarget(), s)
     link = first(getfield(first(getfield(html, :children)), :children))
     @test getfield(link, :tag) == "a"
     @test getfield(link, :attrs)["href"] == target
@@ -76,7 +76,7 @@ end
 
 @testset "Test links with description: $link" for (link, target) in simple_link_tests
     s = "{$link}[website]"
-    html = parse(HTMLTarget, s)
+    html = parse(HTMLTarget(), s)
     link = first(getfield(first(getfield(html, :children)), :children))
     @test getfield(link, :tag) == "a"
     @test getfield(link, :attrs)["href"] == target
@@ -85,7 +85,7 @@ end
 
 @testset "Anchors with embedded definition: $link" for (link, target) in simple_link_tests
     s = "[website]{$link}"
-    html = parse(HTMLTarget, s)
+    html = parse(HTMLTarget(), s)
     link = first(getfield(first(getfield(html, :children)), :children))
     @test getfield(link, :tag) == "a"
     @test getfield(link, :attrs)["href"] == target
@@ -100,7 +100,7 @@ end
     html |> Pretty
     @end
     """
-    html = parse(HTMLTarget, s)
+    html = parse(HTMLTarget(), s)
     pre = first(getfield(html, :children))
     @test getfield(pre, :tag) == "pre"
     code = first(getfield(pre, :children))
@@ -115,7 +115,7 @@ heading_levels = 1:6
     s = """$(repeat("*", i)) heading
     text
     """
-    html = parse(HTMLTarget, s)
+    html = parse(HTMLTarget(), s)
     section = first(getfield(html, :children))
     @test getfield(section, :tag) == "section"
     @test haskey(getfield(section, :attrs), "id")
@@ -135,7 +135,7 @@ nestable_lists = ['~'=>"ol", '-'=>"ul"]
     $m Shintero yuo been na
     $m Na sinchere fedicheda
     """
-    html = parse(HTMLTarget, s)
+    html = parse(HTMLTarget(), s)
     list = first(getfield(html, :children))
     @test getfield(list, :tag) == target
     lis = getfield(list, :children)
@@ -144,7 +144,7 @@ end
 
 @testset "quote" begin
     s = "> I QUOTE you"
-    html = parse(HTMLTarget, s)
+    html = parse(HTMLTarget(), s)
     q = first(getfield(html, :children))
     @test getfield(q, :tag) == "blockquote"
 end
@@ -153,6 +153,6 @@ end
     s = open(joinpath(dirname(dirname(pathof(Norg))), "norg-specs", "1.0-specification.norg"), "r") do f
         read(f, String)
     end
-    html = parse(HTMLTarget, s)
+    html = parse(HTMLTarget(), s)
     @test html isa Hyperscript.Node{Hyperscript.HTMLSVG}
 end
