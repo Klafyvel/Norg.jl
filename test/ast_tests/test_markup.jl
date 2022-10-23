@@ -127,6 +127,14 @@ end
     @test kind(last(children(ps))) == K"InlineCode"
 end
 
+@testset "Escaping is allowed in inline code" begin
+    s = "`\\` still verbatim`"
+    ast = parse(Norg.AST.NorgDocument, s)
+    ps = first(children(first(children(ast))))
+    @test length(children(ps)) == 1
+    @test kind(first(children(ps))) == K"InlineCode"
+end
+
 @testset "Line endings are allowed withing attached modifiers." begin
     s = "/italic\ntoo/"
     ast = parse(Norg.AST.NorgDocument, s)

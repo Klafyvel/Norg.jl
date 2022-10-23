@@ -47,7 +47,7 @@ include("links.jl")
 function force_word_context(parents, tokens, i)
     k = kind(first(parents))
     if k == K"InlineCode"
-        kind(tokens[i]) != K"`"
+        kind(tokens[i]) ∉ [K"`", K"\\"]
     elseif k == K"Verbatim"
         kind(tokens[i]) != K"@"
     elseif k == K"Escape"
