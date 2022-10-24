@@ -34,9 +34,9 @@ using .AST
 using .Parser
 using .Codegen
 
-Base.parse(::Type{HTMLTarget}, s) = codegen(HTMLTarget, parse_norg(tokenize(s)))
-Base.parse(t::HTMLTarget, s) = codegen(t, parse_norg(tokenize(s)))
+Base.parse(::Type{T}, s) where {T <: Codegen.CodegenTarget} = codegen(T(), parse_norg(tokenize(s)))
+Base.parse(t::T, s) where {T <: Codegen.CodegenTarget} = codegen(t, parse_norg(tokenize(s)))
 
-export HTMLTarget
+export HTMLTarget, JSONTarget
 
 end
