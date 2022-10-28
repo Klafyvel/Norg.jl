@@ -14,8 +14,6 @@ parse(HTMLTarget, "Read {https://github.com/nvim-neorg/norg-specs}[the spec !]")
 """
 module Norg
 
-using Compat
-
 include("kind.jl")
 include("strategy.jl")
 include("tokens.jl")

@@ -1,6 +1,5 @@
 using Norg
 using Test
-using Compat
 using AbstractTrees
 
 import Norg: @K_str, kind, value
