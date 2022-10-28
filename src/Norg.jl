@@ -14,6 +14,13 @@ parse(HTMLTarget, "Read {https://github.com/nvim-neorg/norg-specs}[the spec !]")
 """
 module Norg
 
+using Pkg.Artifacts
+
+const NORG_SPEC_ROOT = joinpath(artifact"norg-specs", "nvim-neorg-norg-specs-f489385")
+const NORG_SPEC_PATH = joinpath(NORG_SPEC_ROOT, "1.0-specification.norg")
+const NORG_STDLIB_PATH = joinpath(NORG_SPEC_ROOT, "stdlib.norg")
+const NORG_SEMANTICS_PATH = joinpath(NORG_SPEC_ROOT, "1.0-semantics.norg")
+
 include("kind.jl")
 include("strategy.jl")
 include("tokens.jl")

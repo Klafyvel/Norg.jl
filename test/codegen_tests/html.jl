@@ -151,7 +151,7 @@ end
 end
 
 @testset "Parse the entier Norg spec without error." begin
-    s = open(joinpath(dirname(dirname(pathof(Norg))), "norg-specs", "1.0-specification.norg"), "r") do f
+    s = open(Norg.NORG_SPEC_PATH, "r") do f
         read(f, String)
     end
     html = parse(HTMLTarget(), s)
