@@ -1,3 +1,4 @@
+@testset "HTML target" begin
 using Hyperscript
 
 @testset "Test paragraphs" begin
@@ -58,7 +59,7 @@ simple_link_tests = [
 ("***** heading", "#h5-heading", "heading")
 ("****** heading", "#h6-heading", "heading")
 ("******* heading", "#h6-heading", "heading")
-("# magic", "", "")
+("# magic", "", "magic")
 ("42", "#l-42", "#l-42")
 ("https://example.org", "https://example.org", "https://example.org")
 ("file://example.txt", "file://example.txt", "file://example.txt")
@@ -155,4 +156,5 @@ end
     end
     html = parse(HTMLTarget(), s)
     @test html isa Hyperscript.Node{Hyperscript.HTMLSVG}
+end
 end

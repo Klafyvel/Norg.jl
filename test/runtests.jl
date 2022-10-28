@@ -17,5 +17,8 @@ import Norg: @K_str, kind, value
         include("ast_tests/test_tags.jl")
         # include("ast_tests/misc_bugs.jl")
     end
-    # @testset "codegen.jl" begin include("codegen_tests/html.jl") end
+    @testset "codegen.jl" begin 
+        include("codegen_tests/html.jl") 
+        include("codegen_tests/json.jl")
+    end
 end

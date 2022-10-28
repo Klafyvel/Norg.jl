@@ -78,7 +78,7 @@ version: 1.0
 
 *** Punctuation
     A {** characters}[character] is considered *punctuation* if it is any of the following:
-    - A standard ASCII punctuation character: `|!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~|`
+    - A standard ASCII punctuation character: `|!"#$%&'()*+,-./:;<=>?@[\\]^_\`{|}~|`
     - Anything in the general Unicode categories `Pc`, `Pd`, `Pe`, `Pf`, `Pi`, `Po` or `Ps`.
 
 *** Escaping
@@ -239,9 +239,7 @@ version: 1.0
     -- Unordered list level 2
     --- Unordered list level 3
     ---- Unordered list level 4
-    ----- Unordered list level 5
-    ------ Unordered list level 6
-    ------- Unordered list level 7 (falls back to level 6 in the tree-sitter parser)
+    ---- Unordered list level 4 (LaTeX only supports 4 levels of nested lists T_T)
 
     - Unordered list level 1
       This text is still part of the level 1 list item.
@@ -251,11 +249,11 @@ version: 1.0
         This text is still part of the level 3 list item.
     ---- Unordered list level 4
          This text is still part of the level 4 list item.
-    ----- Unordered list level 5
+    ---- Unordered list level 5
           This text is still part of the level 5 list item.
-    ------ Unordered list level 6
+    ---- Unordered list level 6
            This text is still part of the level 6 list item.
-    ------- Unordered list level 7 (falls back to level 6 in the tree-sitter parser)
+    ---- Unordered list level 7 (falls back to level 6 in the tree-sitter parser)
             This text is still part of the level 7 list item.
     |end
 
@@ -268,9 +266,9 @@ version: 1.0
     ~~ Ordered list level 2
     ~~~ Ordered list level 3
     ~~~~ Ordered list level 4
-    ~~~~~ Ordered list level 5
-    ~~~~~~ Ordered list level 6
-    ~~~~~~~ Ordered list level 7 (falls back to level 6 in the tree-sitter parser)
+    ~~~~ Ordered list level 5
+    ~~~~ Ordered list level 6
+    ~~~~ Ordered list level 7 (falls back to level 6 in the tree-sitter parser)
 
     ~ Ordered list level 1
       This text is still part of the level 1 list item.
@@ -280,11 +278,11 @@ version: 1.0
         This text is still part of the level 3 list item.
     ~~~~ Ordered list level 4
          This text is still part of the level 4 list item.
-    ~~~~~ Ordered list level 5
+    ~~~~ Ordered list level 5
           This text is still part of the level 5 list item.
-    ~~~~~~ Ordered list level 6
+    ~~~~ Ordered list level 6
            This text is still part of the level 6 list item.
-    ~~~~~~~ Ordered list level 7 (falls back to level 6 in the tree-sitter parser)
+    ~~~~ Ordered list level 7 (falls back to level 6 in the tree-sitter parser)
             This text is still part of the level 7 list item.
     |end
 
@@ -298,9 +296,9 @@ version: 1.0
     >> Quote level 2
     >>> Quote level 3
     >>>> Quote level 4
-    >>>>> Quote level 5
-    >>>>>> Quote level 6
-    >>>>>>> Quote level 7 (falls back to level 6 in the tree-sitter parser)
+    >>>> Quote level 5
+    >>>> Quote level 6
+    >>>> Quote level 7 (falls back to level 6 in the tree-sitter parser)
 
     > Quote level 1
       This text is still part of the level 1 quote.
@@ -310,11 +308,11 @@ version: 1.0
         This text is still part of the level 3 quote.
     >>>> Quote level 4
          This text is still part of the level 4 quote.
-    >>>>> Quote level 5
+    >>>> Quote level 5
           This text is still part of the level 5 quote.
-    >>>>>> Quote level 6
+    >>>> Quote level 6
            This text is still part of the level 6 quote.
-    >>>>>>> Quote level 7 (falls back to level 6 in the tree-sitter parser)
+    >>>> Quote level 7 (falls back to level 6 in the tree-sitter parser)
             This text is still part of the level 7 quote.
     |end
 
@@ -744,7 +742,7 @@ version: 1.0
     #tag-name.subtag parameter1 parameter2
     |end
     By default parameters are space-separated. In order to create multi-word parameters, you may
-    escape the space character with a backslash (`\`).
+  escape the space character with a backslash (`\\`).
     |example
     #tag-name.subtag parameter1\ with\ spaces parameter2
     |end
@@ -1144,7 +1142,7 @@ version: 1.0
      invalid and thus not bold.
    - Representing verbatim attached modifier chars within the corresponding verbatim blocks is not
      possible: `|I cannot place a (`) char inside here without accidentally terminating the
-     block.|`.
+     block.|\`.
 
    Free-form modifiers fix this with a special syntax to specify the beginning and end of a ranged
    block. For example:
@@ -1160,7 +1158,7 @@ version: 1.0
    or a closing one. It's thanks to this that whitespace is freely allowed within its content.
 
    Aside from the details described above, free-form attached modifiers have the following properties:
-   - Backslashes (`\`) are treated as verbatim and do not mean an {*** escaping}[escape sequence]
+   - Backslashes (`\\`) are treated as verbatim and do not mean an {*** escaping}[escape sequence]
      (see {* precedence}).
    - Despite being called "free-form" they can still only span a single paragraph (see {# attached
      modifier range}).
@@ -1702,7 +1700,7 @@ version: 1.0
   ~ {# Detached modifier extensions}
   ~ {# Linkables} (`{}`, `[]`, `<>`)
   ~ Verbatim {# free-form attached modifiers} (`\|``|`, `\|``|`)
-  ~ {# Escaping}[The escape character] (`\`)
+  ~ {# Escaping}[The escape character] (`\\`)
   ~ Verbatim {# attached modifiers}
   ~ Standard (non-verbatim) {# free-form attached modifiers} (`|**|`, `|//|` etc.)
   ~ Standard (non-verbatim) {# attached modifiers}

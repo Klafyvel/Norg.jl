@@ -4,7 +4,6 @@ Pandoc AST code generation. The best reference of Pandoc's AST I could find is
 """
 module JSONCodegen
 using Base: CacheHeaderIncludes
-import JSON
 using DataStructures
 using AbstractTrees
 
