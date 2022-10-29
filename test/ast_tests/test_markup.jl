@@ -127,6 +127,19 @@ end
     @test kind(b) == K"Bold"
 end
 
+@testset "Yet another precedence test." begin
+    s = "*/Bold and italic*/"
+    ast = parse(Norg.AST.NorgDocument, s)
+    ps = first(children(first(children(ast))))
+    b,w = children(ps)
+    @test kind(b) == K"Bold"
+    @test kind(w) == K"WordNode"
+    ps = first(children(b))
+    for c in children(ps)
+        @test kind(c) == K"WordNode"
+    end
+end
+
 @testset "Verbatim precedence" begin
     s = "*not bold `because verbatim* has higher precedence`"
     ast = parse(Norg.AST.NorgDocument, s)
