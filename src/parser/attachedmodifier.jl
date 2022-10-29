@@ -9,26 +9,20 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedMo
         if isclosing(m)
             break
         end
-        node = parse_norg_dispatch(matched(m), [node_kind, parents...], tokens, i)
-        i = nextind(tokens, AST.stop(node))
-        if kind(node) == K"None"
-            append!(children, node.children)
+        segment = parse_norg(ParagraphSegment(), [node_kind, parents...], tokens, i)
+        i = nextind(tokens, AST.stop(segment))
+        if kind(segment) == K"None"
+            append!(children, segment.children)
         else
-            push!(children, node)
+            push!(children, segment)
         end
     end
-    if is_eof(tokens[i])
-        i = start
-        children = [parse_norg(Word(), parents, tokens, start)]
-        node_kind = K"None"
-    elseif isclosing(m) && matched(m) == K"None"
-        # Special case for inline code precedence.
-        pushfirst!(children, parse_norg(Word(), parents, tokens, start))
+    if is_eof(tokens[i]) ||
+        (isclosing(m) && matched(m) == K"None") || # Special case for inline code precedence.
+        (isclosing(m) && matched(m) != node_kind && matched(m) ∈ parents) # we've been tricked in thincking we were in a modifier.
+        new_children = [parse_norg(Word(), parents, tokens, start), first(children).children...]
+        children[1] = AST.Node(K"ParagraphSegment", new_children, start, AST.stop(first(children)))
         i = prevind(tokens, i)
-        node_kind = K"None"
-    elseif isclosing(m) && matched(m) != node_kind && matched(m) ∈ parents # we've been tricked in thincking we were in a modifier.
-        i = start
-        children = [parse_norg(Word(), parents, tokens, start)]
         node_kind = K"None"
     elseif isempty(children) # Empty attached modifiers are forbiddens
         children = [parse_norg(Word(), parents, tokens, start), parse_norg(Word(), parents, tokens, i)]

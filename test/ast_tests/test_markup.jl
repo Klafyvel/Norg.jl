@@ -22,7 +22,9 @@ simple_markups = [
     @test kind(ps) == K"ParagraphSegment"
     marknode = first(children(ps))
     @test kind(marknode) == k
-    w = first(children(marknode))
+    ps = first(children(marknode))
+    @test kind(ps) == K"ParagraphSegment"
+    w = first(children(ps))
     @test kind(w) == K"WordNode"
     @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
 end
@@ -37,7 +39,9 @@ end
     @test kind(ps) == K"ParagraphSegment"
     marknode = children(ps)[11]
     @test kind(marknode) == k
-    w = first(children(marknode))
+    ps = first(children(marknode))
+    @test kind(ps) == K"ParagraphSegment"
+    w = first(children(ps))
     @test kind(w) == K"WordNode"
     @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
 end
@@ -61,9 +65,13 @@ simple_nested_outer = [
     ast = parse(Norg.AST.NorgDocument, s)
     outernode = first(children(first(children(first(children(ast))))))
     @test kind(outernode) == T
-    innernode = last(children(outernode))
+    ps = first(children(outernode))
+    @test kind(ps) == K"ParagraphSegment"
+    innernode = last(children(ps))
     @test kind(innernode) == U
-    w = first(children(innernode))
+    ps = first(children(innernode))
+    @test kind(ps) == K"ParagraphSegment"
+    w = first(children(ps))
     @test kind(w) == K"WordNode"
     @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
 end
@@ -76,7 +84,9 @@ end
     ast = parse(Norg.AST.NorgDocument, s)
     outernode = first(children(first(children(first(children(ast))))))
     @test kind(outernode) == K"InlineCode"
-    for n in children(outernode)
+    ps = first(children(outernode))
+    @test kind(ps) == K"ParagraphSegment"
+    for n in children(ps)
         @test kind(n) == K"WordNode"
     end
 end
@@ -127,6 +137,7 @@ end
     @test kind(last(children(ps))) == K"InlineCode"
 end
 
+# TODO: this is actually not in the spec, but useful while layer 4 is not implemented.
 @testset "Escaping is allowed in inline code" begin
     s = "`\\` still verbatim`"
     ast = parse(Norg.AST.NorgDocument, s)

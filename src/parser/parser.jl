@@ -117,7 +117,11 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
         else
             segment = parse_norg(ParagraphSegment(), [K"Paragraph", parents...], tokens, i)
             i = nextind(tokens, AST.stop(segment))
-            push!(segments, segment)
+            if kind(segment) == K"None"
+                append!(segments, children(segment))
+            else
+                push!(segments, segment)
+            end
         end
     end
     if is_eof(tokens[i])
@@ -168,6 +172,7 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
     children = AST.Node[]
     m = Match.MatchClosing(K"ParagraphSegment")
     parents = [K"ParagraphSegment", parents...]
+    siblings = []
     while !is_eof(tokens[i])
         m = match_norg(parents, tokens, i)
         if isclosing(m)
@@ -182,7 +187,13 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
         node = parse_norg_dispatch(to_parse, parents, tokens, i)
         i = nextind(tokens, AST.stop(node))
         if kind(node) == K"None"
-            append!(children, node.children)
+            for c in node.children
+                if kind(c) == K"ParagraphSegment"
+                    push!(siblings, c)
+                else
+                    push!(children, c)
+                end
+            end
         else
             push!(children, node)
         end
@@ -190,7 +201,19 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
     if !consume(m) || is_eof(tokens[i])
         i = prevind(tokens, i)
     end
-    AST.Node(K"ParagraphSegment", children, start, i)
+    ps = AST.Node(K"ParagraphSegment", children, start, i)
+    if isempty(siblings)
+        ps
+    elseif AST.start(first(siblings)) == start
+        AST.Node(K"None", siblings, start, i)
+    else
+        ps = AST.Node(K"ParagraphSegment", vcat(children, first(siblings).children), start, i)
+        if length(siblings) > 1
+            AST.Node(K"None", [ps, siblings[2:end]...], start, i)
+        else
+            ps
+        end
+    end
 end
 
 function parse_norg(::Escape, parents::Vector{Kind}, tokens, i)

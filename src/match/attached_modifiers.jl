@@ -28,7 +28,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifierStrategy
     if (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
         MatchFound(attachedmodifier(t))
     elseif attachedmodifier(t) ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
-        MatchClosing(attachedmodifier(t))
+        MatchClosing(attachedmodifier(t), first(parents)==attachedmodifier(t))
     else
         MatchNotFound()
     end
@@ -45,7 +45,7 @@ function match_norg(::InlineCode, parents, tokens, i)
     if K"InlineCode" ∉ parents && (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
             MatchFound(K"InlineCode")
     elseif K"InlineCode" ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
-        MatchClosing(K"InlineCode")
+        MatchClosing(K"InlineCode", first(parents) == K"InlineCode")
     else
         MatchNotFound()
     end

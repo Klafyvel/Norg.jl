@@ -72,7 +72,8 @@ pandoc_attr(::InlineCode) = ["", [], []]
 function codegen(t::JSONTarget, s::T, ast, node) where {T<:AttachedModifierStrategy}
     res = []
     for c in children(node)
-        push!(res, codegen(t, ast, c))
+        # each children is a paragraph segment
+        append!(res, codegen(t, ast, c))
     end
     attr = pandoc_attr(s)
     if isempty(attr)

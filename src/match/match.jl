@@ -59,7 +59,7 @@ include("links.jl")
 
 function force_word_context(parents, tokens, i)
     k = kind(first(parents))
-    if k == K"InlineCode"
+    if K"InlineCode" ∈ parents
         kind(tokens[i]) ∉ [K"`", K"\\"]
     elseif k == K"Verbatim"
         kind(tokens[i]) != K"@"
@@ -165,8 +165,6 @@ function match_norg(::LineEnding, parents, tokens, i)
         else
             MatchClosing(first(parents), true)
         end
-    elseif any(is_attached_modifier.(parents))
-        match_norg(Word(), parents, tokens, i)
     else
         MatchClosing(K"ParagraphSegment")
     end

@@ -90,7 +90,12 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
     elseif kind(node) == K"Verbatim"
         codegen(t, Verbatim(), ast, node)
     else
-        error("HTML codegen got unhandled node type: $(kind(node))")
+        t_start = ast.tokens[AST.start(node)]
+        t_stop = ast.tokens[AST.stop(node)]
+        error("""HTML codegen got an unhandled node type: $(kind(node)). 
+        Faulty node starts at line $(line(t_start)), col. $(char(t_start))
+        and stops at line $(line(t_stop)), col. $(char(t_stop))."""
+        )
     end
 end
 
