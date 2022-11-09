@@ -65,6 +65,8 @@ function force_word_context(parents, tokens, i)
         kind(tokens[i]) != K"@"
     elseif k == K"Escape"
         true
+    elseif k ∈ KSet"URLLocation LineNumberLocation FileLocation NorgFileLocation"
+        kind(tokens[i]) != K"}"
     else
         false
     end
@@ -112,6 +114,8 @@ function match_norg(parents, tokens, i)
         match_norg(GreaterThanSign(), parents, tokens, i)        
     elseif kind(token) == K"@"
         match_norg(CommercialAtSign(), parents, tokens, i)        
+    elseif kind(token) == K"EndOfFile"
+        MatchClosing(first(parents), false)
     else
         match_norg(Word(), parents, tokens, i)
     end
@@ -164,6 +168,24 @@ function match_norg(::LineEnding, parents, tokens, i)
             MatchClosing(first(parents), false)
         else
             MatchClosing(first(parents), true)
+        end
+    elseif K"LinkDescription" ∈ parents
+        next_i = nextind(tokens, i)
+        next_token = tokens[next_i]
+        if kind(next_token) == K"]"
+            MatchClosing(first(parents), false)
+        elseif first(parents) == K"LinkDescription"
+            MatchContinue()
+        else
+            MatchClosing(K"ParagraphSegment")
+        end
+    elseif K"LinkLocation" ∈ first(parents, 2)
+        next_i = nextind(tokens, i)
+        next_token = tokens[next_i]
+        if kind(next_token) == K"}"
+            MatchClosing(first(parents), false)
+        else
+            MatchContinue()
         end
     else
         MatchClosing(K"ParagraphSegment")
@@ -243,14 +265,16 @@ function match_norg(::LeftBrace, parents, tokens, i)
         match_norg(Word(), parents, tokens, i)
     elseif K"LinkDescription" ∈ parents
         match_norg(Word(), parents, tokens, i)
-    else
+    elseif !is_whitespace(tokens[nextind(tokens, i)])
         MatchFound(K"Link")
+    else
+        MatchNotFound()
     end
 end
 
 function match_norg(::RightBrace, parents, tokens, i)
     if K"LinkLocation" ∈ parents
-        MatchClosing(K"LinkLocation")
+        MatchClosing(first(parents))
     else
         MatchNotFound()
     end
@@ -258,7 +282,7 @@ end
 
 function match_norg(::RightSquareBracket, parents, tokens, i)
     if K"LinkDescription" ∈ parents
-        MatchClosing(K"LinkDescription")
+        MatchClosing(K"LinkDescription", first(parents) == K"LinkDescription")
     else
         MatchNotFound()
     end
@@ -272,7 +296,9 @@ function match_norg(::LeftSquareBracket, parents, tokens, i)
     end
     prev_i = prevind(tokens, i)
     last_token = tokens[prev_i]
-    if kind(last_token) == K"]"
+    next_i = nextind(tokens,i)
+    next_token = tokens[next_i]
+    if kind(last_token) == K"}" && kind(next_token) != K"LineEnding"
         MatchFound(K"LinkDescription")
     else
         MatchClosing(K"Link")

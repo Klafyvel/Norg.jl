@@ -12,7 +12,6 @@ function match_norg(::LinkLocation, parents, tokens, i)
         # modifiers AND in layer two range-able detached modifiers do not exist.
         MatchFound(K"DetachedModifierLocation")
     elseif isnumeric(first(value(tokens[i])))
-        # TODO: Maybe we need a number token.
         MatchFound(K"LineNumberLocation")
     else
         MatchFound(K"URLLocation")
@@ -20,7 +19,7 @@ function match_norg(::LinkLocation, parents, tokens, i)
 end
 
 function match_norg(::LinkDescription, parents, tokens, i)
-    if kind(tokens[i]) == K"["
+    if kind(tokens[i]) == K"[" && kind(tokens[nextind(tokens, i)]) != K"LineEnding"
         MatchFound(K"LinkDescription")
     elseif first(parents) == K"Link"
         MatchClosing(K"Link", false)
@@ -52,7 +51,7 @@ function match_norg(::LinkSubTarget, parents, tokens, i)
 end
 
 function match_norg(::Anchor, parents, tokens, i)
-    if kind(tokens[i]) == K"["
+    if kind(tokens[i]) == K"[" && kind(tokens[nextind(tokens, i)]) != K"LineEnding"
         MatchFound(K"Anchor")
     else
         MatchNotFound()

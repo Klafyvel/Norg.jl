@@ -27,6 +27,7 @@ struct NorgDocument
     tokens::Vector{Token}
 end
 
+Kinds.kind(::NorgDocument) = K"NorgDocument"
 Kinds.kind(node::Node) = node.kind
 start(node::Node) = node.start
 stop(node::Node) = node.stop

@@ -1,6 +1,6 @@
 [norg-specs-main]
-git-tree-sha1 = "3484e19f98c7ff474db0874696670608d3676eab"
+git-tree-sha1 = "91d043913ecb9d8a1ac03df7d7b93122e254fea2"
 
     [[norg-specs-main.download]]
-    sha256 = "7cd54136b3f416f8d33ae29c12c30e8b652ea604e63683301dc7728eebe0647c"
-    url = "https://github.com/nvim-neorg/norg-specs/tarball/main"
+    sha256 = "34a8fac13c1bbb6677741e97f204c9c01296a19cd107d241a83d07735eabe1cc"
+    url = "https://github.com/nvim-neorg/norg-specs/tarball/7252adcd8b2970684ca23423cb856f26aba3fde0"

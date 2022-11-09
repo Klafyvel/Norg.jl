@@ -200,3 +200,89 @@ target = K"DetachedModifierLocation")
         @test kind(last(children(target))) == t.subtarget
     end
 end
+
+@testset "Endlines in linkables." begin
+
+@testset "Invalid endlines for target $(repr(k))" for (k,_) in simple_link_tests
+    invalid_singles = [
+    """this is not a {
+    $k}
+    """
+    """nor is this a [linkable
+    ]
+    """
+    """{
+    $k}"""
+    """{
+        $k
+    }"""
+    """{$k
+    }"""
+    """{ $k}"""
+    ]
+@testset "Invalid examples : $(repr(s))" for s in invalid_singles
+    ast = parse(AST.NorgDocument, s)
+    @test !any(kind(n) == K"Link" for n in collect(PreOrderDFS(ast)))
+end 
+    invalid_complexes = [
+    """{$k}[invalid
+    ]"""
+    """[invalide]{$k
+    }"""
+    """{$k}[
+        text
+    ]"""
+    """{$k}[text
+    ]"""
+    """{$k}[
+    text]"""
+    ]
+@testset "Invalid examples : $(repr(s))" for s in invalid_complexes
+    ast = parse(AST.NorgDocument, s)
+    p = first(children(ast))
+    ps1, ps2 = children(p)
+    @test kind(ps1) == K"ParagraphSegment"
+    @test kind(ps2) == K"ParagraphSegment"
+    l, ws... = children(ps1)
+    @test kind(l) == K"Link" || kind(l) == K"Anchor"
+    @test all(kind.(ws) .== Ref(K"WordNode"))
+end 
+end
+
+@testset "Valid endlines" begin
+    valid_singles = [
+    "{* some\ntext }"
+    "{# link\n text}"
+    "{* a link\nto a heading}"
+    ]
+@testset "Valid examples : $(repr(s))" for s in valid_singles
+    ast = parse(AST.NorgDocument, s)
+    p = first(children(ast))
+    ps = first(children(p))
+    @test kind(first(children(ps))) == K"Link"
+end 
+    valid_complexes = [
+    "{/ ~\n    myfile.txt}[the `~` character is /not/ treated as a trailing modifier]"
+    "{* a\n    link to a heading}[with\n    a description]"
+    ]
+@testset "Valid examples : $(repr(s))" for s in valid_complexes
+    ast = parse(AST.NorgDocument, s)
+    p = first(children(ast))
+    ps = first(children(p))
+    l = first(children(ps))
+    @test kind(l) == K"Link"
+    loc, descr = children(l)
+    @test AST.is_link_location(loc)
+    @test kind(descr) == K"LinkDescription"
+end 
+    s = "[te\n    xt]{# linkable}"
+    ast = parse(AST.NorgDocument, s)
+    p = first(children(ast))
+    ps = first(children(p))
+    a = first(children(ps))
+    @test kind(a) == K"Anchor"
+    descr,loc  = children(a)
+    @test AST.is_link_location(loc)
+    @test kind(descr) == K"LinkDescription"
+end
+end
