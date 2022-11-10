@@ -195,7 +195,7 @@ function codegen(t::JSONTarget, ::NorgFileLocation, ast, node)
     start * target_loc * subtarget_loc
 end
 
-codegen(t::JSONTarget, ::LinkDescription, ast, node) = codegen(t, ast, first(children(node)))
+codegen(t::JSONTarget, ::LinkDescription, ast, node) = collect(Iterators.flatten([codegen(t, ast, c) for c in children(node)]))
 
 function codegen(t::JSONTarget, ::Anchor, ast, node)
     text = codegen(t, ast, first(node.children))

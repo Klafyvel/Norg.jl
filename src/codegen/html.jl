@@ -144,7 +144,7 @@ function codegen(t::HTMLTarget, ::NorgFileLocation, ast, node)
     start * target_loc * subtarget_loc
 end
 
-codegen(t::HTMLTarget, ::LinkDescription, ast, node) = codegen(t, ast, first(children(node)))
+codegen(t::HTMLTarget, ::LinkDescription, ast, node) = [codegen(t, ast, c) for c in children(node)]
 
 function codegen(t::HTMLTarget, ::Anchor, ast, node)
     text = codegen(t, ast, first(node.children))
