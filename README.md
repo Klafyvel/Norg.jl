@@ -58,6 +58,33 @@ julia> parse(HTMLTarget, s) |> Pretty
   </p>
 </div>
 
+Note that you can parse the entire Norg specification just like that:
+```julia
+using Norg, Hyperscript
+
+s = open(Norg.NORG_SPEC_PATH, "r") do f
+    read(f, String)
+end;
+open("1.0-specification.html", "w") do f
+    write(f, string(parse(Norg.HTMLTarget, s)|>Pretty))
+end
+```
+
+Norg.jl is also capable of outputing Pandoc JSON, allowing you to feed your 
+Norg files to pandoc!
+
+```julia
+import JSON
+open("1.0-specification.json", "w") do f
+  JSON.print(f, parse(Norg.JSONTarget, s), 2)
+end;
+```
+
+You can then invoke Pandoc as follow:
+```bash
+pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
+```
+
 ## Roadmap
 
 ```

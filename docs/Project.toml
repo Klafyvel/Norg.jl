@@ -1,3 +1,4 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Hyperscript = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
 Norg = "64228516-68de-4e23-8112-6940bc1970d1"

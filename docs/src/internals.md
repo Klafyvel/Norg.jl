@@ -45,6 +45,6 @@ Modules = [Norg.Parser]
 ## Codegen
   
 ```@autodocs
-Modules = [Norg.Codgen]
+Modules = [Norg.Codegen]
 ```
 
