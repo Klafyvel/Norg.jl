@@ -9,9 +9,23 @@ used in [NeoVim's neorg](https://github.com/nvim-neorg/neorg).
 
 This is heavily work in progress, so expect breaking changes. Meanwhile, I'd be really happy if you could try Norg.jl and tell me if you find unexpected behaviours. 
 
+## Installation 
+
+The package is registered.
+
+```julia
+]add Norg
+```
+
+If you want the latest dev version:
+
+```julia
+]add https://github.com/Klafyvel/Norg.jl
+```
+
 ## What can it do ?
 
-For now the layer 1 and 2(-ish, still needs some tweaks) compatibility is implemented, and there is code generation for html targets.
+For now layer 2 compatibility is implemented in the parser, and there is code generation for html and pandoc JSON targets. There is no semantic analysis yet, which for example means that links to line number or using the `#` target syntax are poorly handled in code generation.
 
 ```julia
 julia> using Norg, Hyperscript
@@ -162,14 +176,6 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   - ( ) Allow Franklin.jl to use Norg file format, because NeoVim+Julia = <3
   #contexts someday
   - ( ) Documenter.jl plugin
-```
-
-## Installation 
-
-The package is not yet registered.
-
-```julia
-] add https://github.com/Klafyvel/Norg.jl
 ```
 
 ## Under the hood
