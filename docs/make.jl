@@ -62,8 +62,7 @@ makedocs(;
          repo = "https://github.com/Klafyvel/Norg.jl/blob/{commit}{path}#{line}",
          sitename = "Norg.jl",
          format = Documenter.HTML(;
-                                  prettyurls = get(ENV, "CI", "false") ==
-                                               "true",
+                                  prettyurls = true,
                                   canonical = "https://klafyvel.github.io/Norg.jl",
                                   edit_link = "main",
                                   assets = String[]),

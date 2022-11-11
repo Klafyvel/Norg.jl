@@ -8,7 +8,7 @@ Documentation for [Norg.jl](https://github.com/klafyvel/Norg.jl).
 
 Norg.jl is a library to work with the [norg](https://github.com/nvim-neorg/norg-specs) file format used in [neorg](https://github.com/nvim-neorg/neorg). It currently implements the Layer 2 compatibility.
 
-For a show-case of how the parser performs, please visit the [norg specification rendering page](1.0-specification.html). Note that the specification is not layer-2-friendly, so some parts just do not make sense **for now**.
+For a show-case of how the parser performs, please visit the [norg specification rendering page](1.0-specification/index.html). Note that the specification is not layer-2-friendly, so some parts just do not make sense **for now**.
 
 ```@contents
 Pages = ["index.md"]
@@ -71,6 +71,6 @@ Modules = [Norg]
 
 ## Inner API
 
-The inner API is documented in the [internals](internals.html) page.
+The inner API is documented in the [Norg internals](internals/index.html) page.
 
 
