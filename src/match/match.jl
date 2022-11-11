@@ -1,5 +1,5 @@
 """
-This module exports `match_norg` which matches token sequences to [`NodeData`](@ref) types.
+This module exports [`Match.match_norg`](@ref) which matches token sequences to [`Kinds.Kind`](@ref) AST nodes.
 """
 module Match
 using ..Kinds
@@ -7,6 +7,12 @@ using ..Strategies
 using ..AST
 using ..Tokens
 
+"""
+Holds results of [`Match.match_norg`](@ref). It has a [`Kinds.kind`](@ref), that can
+be `found`, can be `closing` (*i.e.* closing an attached modifier), `continued`
+(as in "ignore this token and continue parsing"). Whether the parser should 
+`consume` or not the current token is given by the `consume` field.
+"""
 struct MatchResult 
     kind::Kind
     found::Bool
@@ -42,13 +48,10 @@ end
 """
 match_norg([strategy], parents, tokens, i)
 
-Find the appropriate [`Kind`](@ref) for a token when parser is inside
+Find the appropriate [`Kinds.Kind`](@ref) for a token when parser is inside
 a `parents` block parsing the `tokens` list at index `i`.
 
-Return a [`Norg.Match.MatchResult`](@ref).
-
-When `strategy` is not specified, must return a [`Norg.Match.MatchFound`](@ref)
-or a [`Norg.Match.MatchClosing`](@ref).
+Return a [`Match.MatchResult`](@ref).
 """
 function match_norg end
 

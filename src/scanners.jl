@@ -9,6 +9,10 @@ module Scanners
 using ..Kinds
 using ..Tokens
 
+"""
+Stores the result of a scanning operation. If `length` is 0 that means that no 
+matching token was found.
+"""
 struct ScanResult
     length::Int64
 end
@@ -26,7 +30,7 @@ struct Punctuation <: ScanStrategy end
 
 Scan the given `input` for the given `pattern`.
 
-It will produce a [`ScanResult`](@ref).
+It will produce a [`Scanners.ScanResult`](@ref).
 
 If `pattern` is given, then try to fit the given patter at the start of `input`.
 If `pattern` is :
@@ -116,7 +120,7 @@ function scan(kind::Kind, input)
 end
 
 """
-All the registered [`TokenType`](@ref) that [`scan`](@ref) will try when consuming entries.
+All the registered [`Kinds.Kind`](@ref) that [`Scanners.scan`](@ref) will try when consuming entries.
 """
 const TOKENKIND_PARSING_ORDER = [
         Kinds.all_single_punctuation_tokens()...;
@@ -126,10 +130,10 @@ const TOKENKIND_PARSING_ORDER = [
 """
     scan(input; line=0, charnum=0)
 
-Scan the given `input` for [`TOKENKIND_PARSING_ORDER`](@ref) until one returns a
-successful [`ScanResult`](@ref) or throw an error if none succeed.
+Scan the given `input` for [`Scanners.TOKENKIND_PARSING_ORDER`](@ref) until one returns a
+successful [`Scanners.ScanResult`](@ref) or throw an error if none succeed.
 
-This will return a [`Token`](@ref).
+This will return a [`Tokens.Token`](@ref).
 """
 function scan(input; line=0, charnum=0)
     res = ScanResult(false)

@@ -16,12 +16,24 @@ module Norg
 
 using Pkg.Artifacts
 
+"""
+The root directory of the Norg specification.
+"""
 const NORG_SPEC_ROOT = let
     r = artifact"norg-specs-main"
     joinpath(r, first(readdir(r)))
 end
+"""
+Path to the Norg specification.
+"""
 const NORG_SPEC_PATH = joinpath(NORG_SPEC_ROOT, "1.0-specification.norg")
+"""
+Path to the Norg standard library.
+"""
 const NORG_STDLIB_PATH = joinpath(NORG_SPEC_ROOT, "stdlib.norg")
+"""
+Path to the Norg semantics specification.
+"""
 const NORG_SEMANTICS_PATH = joinpath(NORG_SPEC_ROOT, "1.0-semantics.norg")
 
 include("kind.jl")
@@ -42,6 +54,14 @@ using .AST
 using .Parser
 using .Codegen
 
+"""
+    parse(HTMLTarget(), s)
+    parse(JSONTarget(), s)
+
+Parse a Norg string to the specified targets.
+
+See also: [`HTMLTarget`](@ref), [`JSONTarget`](@ref)
+"""
 Base.parse(::Type{T}, s) where {T <: Codegen.CodegenTarget} = codegen(T(), parse_norg(tokenize(s)))
 Base.parse(t::T, s) where {T <: Codegen.CodegenTarget} = codegen(t, parse_norg(tokenize(s)))
 

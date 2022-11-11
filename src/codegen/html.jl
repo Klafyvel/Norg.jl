@@ -1,3 +1,6 @@
+"""
+HTML code generation using [Hyperscript.jl](https://docs.juliahub.com/Hyperscript/L2xXR/0.0.4/).
+"""
 module HTMLCodegen
 using AbstractTrees
 using Hyperscript
@@ -8,6 +11,9 @@ import ..CodegenTarget
 import ..codegen
 import ..idify
 
+"""
+HTML target to feed [`codegen`](@ref).
+"""
 struct HTMLTarget <: CodegenTarget end
 
 function codegen(t::HTMLTarget, ast::AST.NorgDocument)

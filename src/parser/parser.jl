@@ -1,9 +1,9 @@
 """
-This module defines the [`Norg.Parser.parse_norg`](@ref) function, which builds
+This module defines the [`Parser.parse_norg`](@ref) function, which builds
 an AST from a token list.
 
-The role of [`Norg.Parser.parse`](@ref) is to *consume* tokens. To do so, it
-relies on [`Norg.Match.match_norg`](@ref) to take decisions on how to consume
+The role of [`Parser.parse_norg`](@ref) is to *consume* tokens. To do so, it
+relies on [`Match.match_norg`](@ref) to take decisions on how to consume
 tokens.
 """
 module Parser
@@ -46,7 +46,7 @@ end
 """
     parse_norg(strategy, tokens, i)
 
-Try to parse the `tokens` sequence starting at index `i` as a `nodetype`.
+Try to parse the `tokens` sequence starting at index `i` using a given `strategy`.
 """
 function parse_norg end
 

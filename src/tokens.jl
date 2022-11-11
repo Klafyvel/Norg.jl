@@ -1,12 +1,15 @@
 """
 Provides the tokens for the tokenizer.
 
-A [`Token`](@ref) stores its value, a [`TokenType`](@ref) and a [`TokenPosition`](@ref)
+A [`Tokens.Token`](@ref) stores its value, a [`Kinds.Kind`](@ref) and a [`Tokens.TokenPosition`](@ref)
 """
 module Tokens
 
 using ..Kinds
 
+"""
+Stores the position of a token in the input file (line and char).
+"""
 struct TokenPosition
     line::Int
     char::Int
@@ -24,6 +27,12 @@ Return the character number in the line corresponding to position or token `x`.
 """
 char(p::TokenPosition) = p.char
 
+"""
+A Norg Token has a [`Kinds.kind`](@ref) (*i.e.* `K"EndLine"`), a `position`, and
+a `value`.
+
+See also: [`Tokens.TokenPosition`](@ref)
+"""
 struct Token
     kind::Kind
     position::TokenPosition

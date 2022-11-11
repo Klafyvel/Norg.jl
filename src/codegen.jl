@@ -1,3 +1,7 @@
+"""
+This module holds all the code generation targets, as well as some generic utilities
+to help with code generation.
+"""
 module Codegen
 using AbstractTrees
 
@@ -8,11 +12,21 @@ using ..Tokens
 
 abstract type CodegenTarget end
 
+"""
+    idify(text)
+
+Make some text suitable for using it as an id in a document.
+"""
 function idify(text)
     words = map(lowercase, split(text, r"\W+"))
     join(filter(!isempty, words), '-')
 end
 
+"""
+    textify(ast, node)
+
+Return the raw text associated with a node.
+"""
 function textify(ast, node)
     if is_leaf(node)
         AST.litteral(ast, node)
@@ -21,6 +35,12 @@ function textify(ast, node)
     end
 end
 
+"""
+    codegen(T, ast)
+    codegen(target, ast)
+
+Do code generation for a given [`AST.NorgDocument`](@ref) to a given target.
+"""
 function codegen end
 codegen(t::Type{T}, ast::AST.NorgDocument) where {T <: CodegenTarget} = codegen(t(), ast)
 

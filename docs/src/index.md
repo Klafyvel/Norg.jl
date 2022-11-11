@@ -57,12 +57,17 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
 
 ## Advanced usage
 
-You can also generate an Abstract Syntax Tree (AST) that implements AbstractTrees.jl interface using `Base.parse`. See also the [Inner API](@ref).
+You can also generate an Abstract Syntax Tree (AST) that implements AbstractTrees.jl interface using `Base.parse`. See also the [`AST`](@ref) module.
 
 ```julia
 parse(Norg.AST.NorgDocument, s)
 ```
 
+## Public API
+
+```@autodocs
+Modules = [Norg]
+```
 
 ## Inner API
 

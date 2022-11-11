@@ -1,5 +1,5 @@
 """
-Produce 
+Produce [`Tokens.Token`](@ref) vectors from a string using [`tokenize`](@ref).
 """
 module Tokenize
 
@@ -7,6 +7,11 @@ using ..Kinds
 using ..Tokens
 using ..Scanners
 
+"""
+    tokenize(input)
+
+Produce [`Tokens.Token`](@ref) vectors from an input string.
+"""
 function tokenize(input::AbstractString)
     linenum = 1
     charnum = firstindex(input)

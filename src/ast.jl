@@ -8,8 +8,6 @@ using AbstractTrees
 using ..Kinds
 using ..Tokens
 
-# abstract type NodeData end
-
 """
 An AST Node has a `kind` (e.g. `Bold`), can have children Nodes, and refer to
 tokens in the token array.
@@ -22,6 +20,10 @@ struct Node
 end
 Node(kind::Kind)= Node(kind, Node[], 1, 1)
 
+"""
+Stores the Abstract Syntax Tree (AST) for a Norg document. It implements the
+`AbstractTrees.jl` interface.
+"""
 struct NorgDocument
     nodes::Vector{Node}
     tokens::Vector{Token}

@@ -1,9 +1,16 @@
 """
 To provide a type-stable parser, we handle types ourselves. This is directly
 inspired by JuliaSyntax.jl. See [here](https://github.com/JuliaLang/JuliaSyntax.jl/blob/384f74545d8d2a530ba3ec4a3a82469c34ed597d/src/kinds.jl#L905-L922)
+
+You can see kinds as an advanced `Enum` type that allows some kind of grouping
+of values. We use [`Kinds.Kind`](@ref) to classify the different types of tokens
+ast nodes.
 """
 module Kinds
 
+"""
+All the defined kind names.
+"""
 const _kind_names = [
   "None"
   "StartOfFile"
