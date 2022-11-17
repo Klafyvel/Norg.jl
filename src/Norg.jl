@@ -65,10 +65,13 @@ See also: [`HTMLTarget`](@ref), [`JSONTarget`](@ref)
 Base.parse(::Type{T}, s) where {T <: Codegen.CodegenTarget} = codegen(T(), parse_norg(tokenize(s)))
 Base.parse(t::T, s) where {T <: Codegen.CodegenTarget} = codegen(t, parse_norg(tokenize(s)))
 
-"""
-Easily parse Norg string in the same way you can Markdown
 
-norg"* Norg Header 1 Example"
+"""
+Easily parse Norg string to HTML
+
+julia> norg"* Norg Header 1 Example"
+<div class="norg"><section id="section-h1-norg-header-1-example"><h1 id="h1-
+norg-header-1-example">Norg Header 1 Example</h1></section></div>
 """
 macro norg_str(s, t ...)
 	parse(HTMLTarget, s)

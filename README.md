@@ -43,7 +43,10 @@ julia> s = """
 
 julia> parse(HTMLTarget, s) |> Pretty
 # pretty HTML prints there, but have a look at its rendering below
+
+julia> norg"Neorg also has a string macro that can be used in Pluto"
 ```
+
 
 <div class="norg">
   <p>Hi &#33; I am a Norg document. For now only
