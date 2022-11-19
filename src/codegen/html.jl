@@ -10,6 +10,7 @@ using ..Kinds
 import ..CodegenTarget
 import ..codegen
 import ..idify
+import ..textify
 
 """
 HTML target to feed [`codegen`](@ref).
@@ -160,6 +161,19 @@ function codegen(t::HTMLTarget, ::Anchor, ast, node)
         target = codegen(t, ast, last(children(node)))
     end
     m("a", href = target, text)
+end
+
+function codegen(t::HTMLTarget, ::InlineLinkTarget, ast, node)
+    text = []
+    for c in children(node)
+        append!(text, codegen(t, ast, c))
+        push!(text, " ")
+    end
+    if !isempty(text)
+        pop!(text) # remove last space
+    end
+    id = idify(join(textify(ast, node)))
+    m("span", id=id, text)
 end
 
 function codegen(t::HTMLTarget, ::Heading, ast, node)

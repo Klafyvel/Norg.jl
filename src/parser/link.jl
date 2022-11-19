@@ -322,3 +322,35 @@ function parse_norg(::Anchor, parents, tokens, i)
         AST.Node(K"Anchor", [description_node, location_node], start, i)
     end
 end
+
+function parse_norg(::InlineLinkTarget, parents, tokens, i)
+    start = i
+    i = nextind(tokens, i)
+    children = AST.Node[]
+    m = Match.MatchClosing(K"InlineLinkTarget")
+    while !is_eof(tokens[i])
+        m = match_norg([K"InlineLinkTarget", parents...], tokens, i)
+        if isclosing(m)
+            break
+        end
+        segment = parse_norg(ParagraphSegment(), [K"InlineLinkTarget", parents...], tokens, i)
+        i = nextind(tokens, AST.stop(segment))
+        if kind(segment) == K"None"
+            append!(children, segment.children)
+        else
+            push!(children, segment)
+        end
+    end
+    node_kind = K"InlineLinkTarget"
+    if is_eof(tokens[i]) ||
+        (isclosing(m) && matched(m) != K"InlineLinkTarget" && matched(m) ∈ parents) || # we've been tricked in thincking we were in a link description
+        (isclosing(m) && kind(tokens[i]) != K">")
+        new_children = [parse_norg(Word(), parents, tokens, start), first(children).children...]
+        children[1] = AST.Node(K"ParagraphSegment", new_children, start, AST.stop(first(children)))
+        i = prevind(tokens, i)
+        node_kind = K"None"
+    elseif isclosing(m) && !consume(m)
+        i = prevind(tokens, i)
+    end
+    AST.Node(node_kind, children, start, i)
+end

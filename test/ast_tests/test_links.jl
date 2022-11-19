@@ -201,6 +201,17 @@ target = K"DetachedModifierLocation")
     end
 end
 
+@testset "Testing inline link targets" begin
+    s = "Hi! <inline link target>"
+    ast = parse(AST.NorgDocument, s)
+    p = first(children(ast))
+    ps = first(children(p))
+    i = last(children(ps))
+    @test kind(i) == K"InlineLinkTarget"
+    ps = first(children(i))
+    @test kind(ps) == K"ParagraphSegment"
+end
+
 @testset "Endlines in linkables." begin
 
 @testset "Invalid endlines for target $(repr(k))" for (k,_) in simple_link_tests
@@ -247,6 +258,17 @@ end
     @test kind(l) == K"Link" || kind(l) == K"Anchor"
     @test all(kind.(ws) .== Ref(K"WordNode"))
 end 
+
+    invalid_inlines = [
+    """<
+    hi>"""
+    """<hi
+    >"""
+    ]
+@testset "Invalid examples : $(repr(s))" for s in invalid_inlines
+    ast = parse(AST.NorgDocument, s)
+    @test !any(kind(n) == K"InlineLinkTarget" for n in collect(PreOrderDFS(ast)))
+end 
 end
 
 @testset "Valid endlines" begin
@@ -284,5 +306,16 @@ end
     descr,loc  = children(a)
     @test AST.is_link_location(loc)
     @test kind(descr) == K"LinkDescription"
+
+    valid_inlines = [
+    """<hi 
+    I'm valid>"""
+    ]
+@testset "Valid examples : $(repr(s))" for s in valid_inlines
+    ast = parse(AST.NorgDocument, s)
+    p = first(children(ast))
+    ps = first(children(p))
+    @test kind(first(children(ps))) == K"InlineLinkTarget"
+end 
 end
 end

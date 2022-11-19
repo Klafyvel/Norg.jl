@@ -115,6 +115,8 @@ function match_norg(parents, tokens, i)
         match_norg(Tilde(), parents, tokens, i)        
     elseif kind(token) == K">"
         match_norg(GreaterThanSign(), parents, tokens, i)        
+    elseif kind(token) == K"<"
+        match_norg(LesserThanSign(), parents, tokens, i)        
     elseif kind(token) == K"@"
         match_norg(CommercialAtSign(), parents, tokens, i)        
     elseif kind(token) == K"EndOfFile"
@@ -321,10 +323,14 @@ function match_norg(::GreaterThanSign, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(Quote(), parents, tokens, i)
+    elseif K"InlineLinkTarget" ∈ parents
+        MatchClosing(K"InlineLinkTarget", first(parents) == K"InlineLinkTarget")
     else
         MatchNotFound()
     end
 end
+
+match_norg(::LesserThanSign, parents, tokens, i) = match_norg(InlineLinkTarget(), parents, tokens, i)
 
 function match_norg(::CommercialAtSign, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]

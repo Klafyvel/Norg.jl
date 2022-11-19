@@ -160,6 +160,8 @@ function parse_norg_dispatch(to_parse, parents::Vector{Kind}, tokens, i)
         parse_norg(Link(), parents, tokens, i)            
     elseif to_parse == K"Anchor"
         parse_norg(Anchor(), parents, tokens, i)
+    elseif to_parse == K"InlineLinkTarget"
+        parse_norg(InlineLinkTarget(), parents, tokens, i)
     elseif to_parse == K"Word"
         parse_norg(Word(), parents, tokens, i)
     else

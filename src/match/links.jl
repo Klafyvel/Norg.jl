@@ -57,3 +57,11 @@ function match_norg(::Anchor, parents, tokens, i)
         MatchNotFound()
     end
 end
+
+function match_norg(::InlineLinkTarget, parents, tokens, i)
+    if kind(tokens[i]) == K"<" && kind(tokens[nextind(tokens, i)]) != K"LineEnding"
+        MatchFound(K"InlineLinkTarget")
+    else
+        MatchNotFound()
+    end
+end

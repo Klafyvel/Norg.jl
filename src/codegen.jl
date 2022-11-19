@@ -91,6 +91,8 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, LinkDescription(), ast, node)
     elseif kind(node) == K"Anchor"
         codegen(t, Anchor(), ast, node)
+    elseif kind(node) == K"InlineLinkTarget"
+        codegen(t, InlineLinkTarget(), ast, node)
     elseif is_heading(node)
         codegen(t, Heading(), ast, node)
     elseif kind(node) == K"StrongDelimitingModifier"

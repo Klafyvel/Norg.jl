@@ -138,6 +138,18 @@ nestable_lists = ['~'=>"OrderedList", '-'=>"BulletList", ">"=>"BlockQuote"]
     @test list["t"] == target
 end
 
+@testset "inline link" begin
+    s = """<inline link target>"""
+    json = parse(JSONTarget(), s)
+    p = json["blocks"][1]
+    @test length(p["c"]) == 1
+    span = first(p["c"])
+    @test span["t"] == "Span"
+    attrs, inlines = span["c"]
+    id = first(attrs)
+    @test id == "inline-link-target"
+end
+
 @testset "Parse the entire Norg spec without error." begin
     s = open(Norg.NORG_SPEC_PATH) do f
         read(f, String)

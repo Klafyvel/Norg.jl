@@ -220,6 +220,25 @@ function codegen(t::JSONTarget, ::Anchor, ast, node)
     ])
 end
 
+function codegen(t::JSONTarget, ::InlineLinkTarget, ast, node)
+    text = []
+    for c in children(node)
+        append!(text, codegen(t, ast, c))
+        push!(text, " ")
+    end
+    if !isempty(text)
+        pop!(text) # remove last space
+    end
+    id = idify(join(textify(ast, node)))
+    OrderedDict([
+        "t"=>"Span"
+        "c"=>[
+            [id, Any[], Any[]],
+            text
+        ]
+    ])
+end
+
 function codegen(t::JSONTarget, ::Heading, ast, node)
     level_num = AST.heading_level(node)
     level = "h" * string(level_num)

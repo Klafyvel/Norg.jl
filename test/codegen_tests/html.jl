@@ -150,6 +150,16 @@ end
     @test getfield(q, :tag) == "blockquote"
 end
 
+@testset "inline link" begin
+    s = """<inline link target>"""
+    html = parse(HTMLTarget(), s)
+    p = first(getfield(html, :children))
+    @test length(getfield(p, :children)) == 1
+    span = first(getfield(p, :children))
+    @test haskey(getfield(span, :attrs), "id")
+    @test getfield(span, :attrs)["id"] == "inline-link-target"
+end
+
 @testset "Parse the entier Norg spec without error." begin
     s = open(Norg.NORG_SPEC_PATH, "r") do f
         read(f, String)
