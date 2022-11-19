@@ -64,6 +64,7 @@ simple_link_tests = [
 ("https://example.org", "https://example.org", "https://example.org")
 ("file://example.txt", "file://example.txt", "file://example.txt")
 ("/ example.txt", "example.txt", "example.txt")
+("? test", "/test", "test")
 ]
 
 @testset "Test links: $link" for (link, target, text) in simple_link_tests

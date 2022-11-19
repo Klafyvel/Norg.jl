@@ -13,7 +13,9 @@ simple_link_tests = [":norg_file:" => K"NorgFileLocation"
                      "42" => K"LineNumberLocation"
                      "https://example.org" => K"URLLocation"
                      "file://example.txt" => K"URLLocation"
-                     "/ example.txt" => K"FileLocation"]
+                     "/ example.txt" => K"FileLocation"
+                     "? test" => K"WikiLocation"
+]
 
 @testset "basic links: $target" for (link, target) in simple_link_tests
     s = "{$link} other"
@@ -89,7 +91,9 @@ subtarget_tests = [":file:1" => K"LineNumberLocation"
                    ":file:****** heading" => K"DetachedModifierLocation"
                    ":file:******* heading" => K"DetachedModifierLocation"
                    ":file:# magic" => K"MagicLocation"
-                   "/ file.txt:1" => K"LineNumberLocation"]
+                   "/ file.txt:1" => K"LineNumberLocation"
+                   "? test:file:" => K"NorgFileLocation"
+]
 @testset "Checking subtarget :$link => $target" for (link, target) in subtarget_tests
     s = "{$link}"
     ast = parse(Norg.AST.NorgDocument, s)
@@ -113,7 +117,8 @@ leaves_tests = [
     "42" => [K"LineNumberTarget"]
     "https://example.org" => [K"URLTarget"]
     "file://example.txt" => [K"URLTarget"]
-    "/ example.txt" => [K"FileTarget", K"None"]    ]
+    "/ example.txt" => [K"FileTarget", K"None"]
+]
 @testset "Checking leaves :$link => $target" for (link, target) in leaves_tests
     s = "{$link}"
     ast = parse(Norg.AST.NorgDocument, s)

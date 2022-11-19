@@ -89,6 +89,8 @@ function codegen(t::HTMLTarget, ::Link, ast, node)
         text = codegen(t, ast, children(first(children(node)))[2])
     elseif kind(first(node.children)) == K"MagicLocation"
         text = codegen(t, ast, children(first(children(node)))[1])
+    elseif kind(first(node.children)) == K"WikiLocation"
+        text = codegen(t, ast, children(first(children(node)))[1])
     else
         text = codegen(t, ast, first(node.children))
     end
@@ -149,6 +151,17 @@ function codegen(t::HTMLTarget, ::NorgFileLocation, ast, node)
     end
     
     start * target_loc * subtarget_loc
+end
+
+function codegen(t::HTMLTarget, ::WikiLocation, ast, node)
+    target, subtarget = children(node)
+    target_loc = codegen(t, Word(), ast, target)
+    if kind(subtarget) == K"None"
+        subtarget_loc = "" 
+    else
+        subtarget_loc = "#" * codegen(t, ast, subtarget)
+    end
+    "/" * target_loc * subtarget_loc
 end
 
 codegen(t::HTMLTarget, ::LinkDescription, ast, node) = [codegen(t, ast, c) for c in children(node)]

@@ -43,6 +43,7 @@ const _kind_names = [
     "\$"
     ":"
     "#"
+    "?"
   "END_PUNCTUATION"
   "Word"
 
@@ -90,6 +91,7 @@ const _kind_names = [
         "MagicLocation"
         "FileLocation"
         "NorgFileLocation"
+        "WikiLocation"
       "END_LINK_LOCATION"
       "LinkDescription"
       "LinkLocation"

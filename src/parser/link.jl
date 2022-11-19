@@ -55,6 +55,8 @@ function parse_norg(::LinkLocation, parents, tokens, i)
         parse_norg(MagicLocation(), p, tokens, i)
     elseif location_kind == K"NorgFileLocation"
         parse_norg(NorgFileLocation(), p, tokens, i)
+    elseif location_kind == K"WikiLocation"
+        parse_norg(WikiLocation(), p, tokens, i)
     else
         AST.Node(K"None")
     end
@@ -261,6 +263,66 @@ function parse_norg(t::T, parents, tokens, i,) where { T <: Union{FileLocation, 
         end
     end
     AST.Node(filelocationkind(t), [file_target, subtarget], start, i)
+end
+
+function parse_norg(::WikiLocation, parents, tokens, i,)
+    start = i
+    i = nextind(tokens, i)
+    token = tokens[i]
+    if kind(token) == K"Whitespace"
+        i = nextind(tokens, i)
+        token = tokens[i]
+    end
+    start_heading_title = i
+    m = match_norg(parents, tokens, i)
+    while !is_eof(token) && !isclosing(m) && kind(token) != K":"
+        i = nextind(tokens, i)
+        token = tokens[i]
+        m = match_norg(parents, tokens, i)
+    end
+    if !consume(m) || is_eof(token)
+        i = prevind(tokens, i)
+    end
+    p = parse_norg(Paragraph(), parents, [tokens[begin:i]...; EOFToken()], start_heading_title)
+    subtarget = AST.Node(K"None")
+    content = AST.Node(K"None")
+    if kind(token) ∈ KSet"} :"
+        children = AST.Node[]
+        for (i,c) in enumerate(p.children)
+            append!(children, c.children)
+            if i < lastindex(p.children)
+                push!(children, AST.Node(K"WordNode", [], c.stop, c.stop))
+            end
+        end
+        content = AST.Node(K"ParagraphSegment", children, p.start, p.stop)
+    else
+        c = [AST.Node(K"WordNode", [], j, j) for j ∈ start:(p.start-1)]
+        children = p.children
+        ps = AST.Node(K"ParagraphSegment", [c...;children[1].children...], start, children[1].stop)
+        children[1] = ps
+        return AST.Node(K"None", children, start, i)
+    end
+    if kind(token) == K":"
+        subtarget = parse_norg(LinkLocation(), [K"WikiLocation", parents...], tokens, i)
+        if kind(subtarget) == K"None"
+            m = match_norg(parents, tokens, i)
+            while !is_eof(token) && !isclosing(m)
+                i = nextind(tokens, i)
+                token = tokens[i]
+                m = match_norg(parents, tokens, i)
+            end
+            if !consume(m) || is_eof(token)
+                i = prevind(tokens, i)
+            end
+            if isclosing(m) && matched(m) != K"WikiLocation" && kind(token) != K"}"
+                p = parse_norg(Paragraph(), parents, [tokens[begin:i]...; EOFToken()], start)
+                return AST.Node(K"None", vcat(getproperty.(p.children, :children)...), start, i)
+            end
+        else
+            i = AST.stop(subtarget)
+        end
+    end
+    AST.Node(K"WikiLocation", [content, subtarget], start, i)
 end
 
 function parse_norg(::LinkDescription, parents, tokens, i)

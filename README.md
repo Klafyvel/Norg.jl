@@ -119,7 +119,8 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   -- (x) Delimiting modifiers
   #waiting.for Layer 2 support
   - ( ) Layer 3 Support
-  -- ( ) Timestamp links and inline link targets
+  -- ( ) Timestamp links
+  -- (x) inline link targets
   -- ( ) Carryover tags
   -- ( ) Detached modifier extensions
   -- ( ) Range-able detached modifiers, excluding table cells

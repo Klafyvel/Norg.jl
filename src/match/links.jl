@@ -11,6 +11,8 @@ function match_norg(::LinkLocation, parents, tokens, i)
         # TODO: This works since headings are the only form of structural detached
         # modifiers AND in layer two range-able detached modifiers do not exist.
         MatchFound(K"DetachedModifierLocation")
+    elseif kind(tokens[i]) == K"?"
+        MatchFound(K"WikiLocation")
     elseif isnumeric(first(value(tokens[i])))
         MatchFound(K"LineNumberLocation")
     else
