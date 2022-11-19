@@ -40,7 +40,7 @@ AbstractTrees.children(node::NorgDocument) = node.nodes
 AbstractTrees.nodevalue(node::NorgDocument) = "NorgDocument"
 Base.show(io::IO, t::Node) = print_tree(io, t)
 
-function Base.show(io::IO, t::NorgDocument)
+function Base.show(io::IO, ::MIME"text/plain", t::NorgDocument)
     print_tree(io, t) do io, node
         if node isa NorgDocument
             print(io, "NorgDocument")
