@@ -67,14 +67,27 @@ Base.parse(t::T, s) where {T <: Codegen.CodegenTarget} = codegen(t, parse_norg(t
 
 
 """
-Easily parse Norg string to HTML
+Easily parse Norg string to an AST. This can be used in *e.g.* Pluto notebooks,
+because `Base.show` has a method for "text/html" type mime for ASTs.
 
 julia> norg"* Norg Header 1 Example"
-<div class="norg"><section id="section-h1-norg-header-1-example"><h1 id="h1-
-norg-header-1-example">Norg Header 1 Example</h1></section></div>
+NorgDocument
+└─ (K"Heading1", 2, 11)
+   └─ (K"ParagraphSegment", 4, 10)
+      ├─ Norg
+      ├─
+      ├─ Header
+      ├─
+      ├─ 1
+      ├─
+      └─ Example
 """
 macro norg_str(s, t ...)
-	parse(HTMLTarget, s)
+	parse(AST.NorgDocument, s)
+end
+
+function Base.show(io::IO, ::MIME"text/html", ast::AST.NorgDocument)
+    print(io, codegen(HTMLTarget(), ast))
 end
 
 export HTMLTarget, JSONTarget
