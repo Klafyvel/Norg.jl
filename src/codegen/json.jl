@@ -334,6 +334,20 @@ function codegen(::JSONTarget, ::Verbatim, ast, node)
     end
 end
 
+function codegen(::JSONTarget, ::TodoExtension, ast, node)
+    status = first(children(node))
+    checked = kind(status) == K"StatusDone"
+    if checked
+        s = "☑"
+    else
+        s = "☐"
+    end
+    OrderedDict([
+    "t"=>"Str"
+    "c"=>s
+    ])
+end
+
 
 export JSONTarget
 

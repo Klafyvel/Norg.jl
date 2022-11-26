@@ -233,6 +233,7 @@ include("link.jl")
 include("structuralmodifier.jl")
 include("verbatim.jl")
 include("nestablemodifier.jl")
+include("detachedmodifierextensions.jl")
 
 export parse_norg
 end

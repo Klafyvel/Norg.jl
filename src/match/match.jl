@@ -57,6 +57,7 @@ function match_norg end
 
 include("attached_modifiers.jl")
 include("detached_modifiers.jl")
+include("detached_modifier_extension.jl")
 include("tags.jl")
 include("links.jl")
 
@@ -119,6 +120,10 @@ function match_norg(parents, tokens, i)
         match_norg(LesserThanSign(), parents, tokens, i)        
     elseif kind(token) == K"@"
         match_norg(CommercialAtSign(), parents, tokens, i)        
+    elseif kind(token) == K"("
+        match_norg(LeftParenthesis(), parents, tokens, i)
+    elseif kind(token) == K")"
+        match_norg(RightParenthesis(), parents, tokens, i)
     elseif kind(token) == K"EndOfFile"
         MatchClosing(first(parents), false)
     else
@@ -336,6 +341,23 @@ function match_norg(::CommercialAtSign, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(Verbatim(), parents, tokens, i)
+    else
+        MatchNotFound()
+    end
+end
+
+function match_norg(::LeftParenthesis, parents, tokens, i)
+    if is_detached_modifier(first(parents)) || (length(parents) > 1 && is_detached_modifier(parents[2]))
+        match_norg(DetachedModifierExtension(), parents, tokens, i)
+    else
+        MatchNotFound()
+    end
+end
+
+function match_norg(::RightParenthesis, parents, tokens, i)
+    if any(is_detached_modifier_extension.(parents))
+        _, grandparents... = parents
+        MatchClosing(first(parents), !any(is_detached_modifier_extension.(grandparents)))
     else
         MatchNotFound()
     end

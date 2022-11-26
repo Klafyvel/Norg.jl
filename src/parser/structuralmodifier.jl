@@ -14,10 +14,20 @@ function parse_norg(::Heading, parents, tokens, i)
     end
     heading_kind = AST.heading_level(heading_level)
     if is_whitespace(token)
-        title_segment = parse_norg(ParagraphSegment(), [heading_kind, parents...], tokens, nextind(tokens, i))
+        i = nextind(tokens, i)
+        m = match_norg([heading_kind, parents...], tokens, i)
+        children = []
+        if is_detached_modifier_extension(matched(m))
+            extension = parse_norg(DetachedModifierExtension(), parents, tokens, i)
+            push!(children, extension)
+            i = nextind(tokens, extension.stop)
+            if kind(tokens[i]) == K"Whitespace"
+                i = consume_until(K"Whitespace", tokens, i)
+            end
+        end
+        title_segment = parse_norg(ParagraphSegment(), [heading_kind, parents...], tokens, i)
+        push!(children, title_segment)
         i = nextind(tokens, AST.stop(title_segment))
-        children = [title_segment]
-        m = Match.MatchClosing(heading_kind)
         while !is_eof(tokens[i])
             m = match_norg([heading_kind, parents...], tokens, i)
             if isclosing(m)

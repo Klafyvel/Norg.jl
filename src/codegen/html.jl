@@ -246,6 +246,16 @@ function codegen(::HTMLTarget, ::Verbatim, ast, node)
     m("pre", m("code", class=language, litteral(ast, last(others))))
 end
 
+function codegen(::HTMLTarget, ::TodoExtension, ast, node)
+    status = first(children(node))
+    checked = kind(status) == K"StatusDone"
+    if checked
+        m("input", checked="", type="checkbox", disabled="")
+    else
+        m("input", checked="", type="checkbox", disabled="")
+    end
+end
+
 export HTMLTarget
 
 end

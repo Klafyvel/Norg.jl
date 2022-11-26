@@ -44,7 +44,12 @@ const _kind_names = [
     ":"
     "#"
     "?"
+    "("
+    ")"
+    "|"
+    "+"
   "END_PUNCTUATION"
+  "x"
   "Word"
 
   # AST stuff
@@ -137,6 +142,23 @@ const _kind_names = [
           "Quote6"
         "END_QUOTE"
       "END_NESTABLE"
+      "BEGIN_DETACHED_MODIFIER_EXTENSIONS"
+        "TodoExtension"
+        "BEGIN_TODO_STATUS"
+            "StatusUndone"
+            "StatusDone"
+            "StatusNeedFurtherInput"
+            "StatusUrgent"
+            "StatusRecurring"
+            "StatusInProgress"
+            "StatusOnHold"
+            "StatusCancelled"
+        "END_TODO_STATUS"
+        "TimestampExtension"
+        "PriorityExtension"
+        "DueDateExtension"
+        "StartDateExtension"
+      "END_DETACHED_MODIFIER_EXTENSIONS"
     "END_DETACHED_MODIFIER"
   "END_AST_NODE"
 ]
@@ -228,6 +250,7 @@ is_matched_inline(k::Kind) = K"BEGIN_MATCHED_INLINE" < k < K"END_MATCHED_INLINE"
 is_attached_modifier(k::Kind) = K"BEGIN_ATTACHED_MODIFIER" < k < K"END_ATTACHED_MODIFIER"
 is_link_location(k::Kind) = K"BEGIN_LINK_LOCATION" < k < K"END_LINK_LOCATION"
 is_detached_modifier(k::Kind) = K"BEGIN_DETACHED_MODIFIER" < k < K"END_DETACHED_MODIFIER"
+is_detached_modifier_extension(k::Kind) = K"BEGIN_DETACHED_MODIFIER_EXTENSIONS" < k < K"END_DETACHED_MODIFIER_EXTENSIONS"
 is_delimiting_modifier(k::Kind) = K"BEGIN_DELIMITING_MODIFIER" < k < K"END_DELIMITING_MODIFIER"
 is_nestable(k::Kind) = K"BEGIN_NESTABLE" < k < K"END_NESTABLE"
 is_heading(k::Kind) = K"BEGIN_HEADING" < k < K"END_HEADING"
@@ -235,6 +258,9 @@ is_unordered_list(k::Kind) = K"BEGIN_UNORDERED_LIST" < k < K"END_UNORDERED_LIST"
 is_ordered_list(k::Kind) = K"BEGIN_ORDERED_LIST" < k < K"END_ORDERED_LIST"
 is_quote(k::Kind) = K"BEGIN_QUOTE" < k < K"END_QUOTE"
 
-export @K_str, @KSet_str, Kind, kind, is_leaf, is_matched_inline, is_attached_modifier, is_link_location, is_detached_modifier, is_delimiting_modifier, is_nestable, is_heading, is_unordered_list, is_ordered_list, is_quote
+export @K_str, @KSet_str, Kind, kind, is_leaf, is_matched_inline
+export is_attached_modifier, is_link_location, is_detached_modifier
+export is_delimiting_modifier, is_nestable, is_heading, is_unordered_list
+export is_ordered_list, is_quote, is_detached_modifier_extension
 
 end

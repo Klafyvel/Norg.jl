@@ -18,6 +18,8 @@ struct LeftBrace <: FromToken end
 struct RightBrace <: FromToken end
 struct RightSquareBracket <: FromToken end
 struct LeftSquareBracket <: FromToken end
+struct LeftParenthesis <: FromToken end
+struct RightParenthesis <: FromToken end
 struct Tilde <: FromToken end
 struct GreaterThanSign <: FromToken end
 struct LesserThanSign <: FromToken end
@@ -61,8 +63,40 @@ struct InlineLinkTarget <: FromNode end
 struct ParagraphSegment <: FromNode end
 struct Paragraph <: FromNode end
 struct Escape <: FromNode end
+abstract type AbstractDetachedModifierExtension end
+struct DetachedModifierExtension <: AbstractDetachedModifierExtension end
+struct TodoExtension <: AbstractDetachedModifierExtension end
+abstract type TodoStatus <: AbstractDetachedModifierExtension end
+struct StatusUndone <: TodoStatus end
+struct StatusDone <: TodoStatus end
+struct StatusNeedFurtherInput <: TodoStatus end
+struct StatusUrgent <: TodoStatus end
+struct StatusRecurring <: TodoStatus end
+struct StatusInProgress <: TodoStatus end
+struct StatusOnHold <: TodoStatus end
+struct StatusCancelled <: TodoStatus end
+struct TimestampExtension <: AbstractDetachedModifierExtension end
+struct PriorityExtension <: AbstractDetachedModifierExtension end
+struct DueDateExtension <: AbstractDetachedModifierExtension end
+struct StartDateExtension <: AbstractDetachedModifierExtension end
 
-export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark, Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace, RightBrace, RightSquareBracket, LeftSquareBracket, Tilde, GreaterThanSign, LesserThanSign, CommercialAtSign, FromNode, Word, Heading, HeadingTitle, DelimitingModifier, StrongDelimiter, WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList, Quote, NestableItem, Verbatim, AttachedModifierStrategy, Bold, Italic, Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode, Anchor, Link, LinkLocation, URLLocation, LineNumberLocation, DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation, WikiLocation, LinkDescription, LinkSubTarget, InlineLinkTarget, ParagraphSegment, Paragraph, Escape
+export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark
+export Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace
+export RightBrace, RightSquareBracket, LeftSquareBracket, Tilde
+export GreaterThanSign, LesserThanSign, CommercialAtSign, FromNode, Word
+export LeftParenthesis, RightParenthesis
+export Heading, HeadingTitle, DelimitingModifier, StrongDelimiter
+export WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList
+export Quote, NestableItem, Verbatim, AttachedModifierStrategy, Bold, Italic 
+export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode 
+export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation 
+export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation 
+export WikiLocation, LinkDescription, LinkSubTarget, InlineLinkTarget 
+export DetachedModifierExtension
+export TodoExtension, TimestampExtension, PriorityExtension, DueDateExtension, StartDateExtension
+export StatusUndone, StatusDone, StatusNeedFurtherInput, StatusUrgent
+export StatusRecurring, StatusInProgress, StatusOnHold, StatusCancelled
+export ParagraphSegment, Paragraph, Escape
 
 end
 

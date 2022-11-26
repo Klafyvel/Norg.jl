@@ -113,6 +113,10 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, NestableItem(), ast, node)
     elseif kind(node) == K"Verbatim"
         codegen(t, Verbatim(), ast, node)
+    elseif kind(node) == K"TodoExtension"
+        codegen(t, TodoExtension(), ast, node)
+    elseif kind(node) ∈ KSet"TimestampExtension PriorityExtension DueDateExtension StartDateExtension"
+        codegen(t, Word(), ast, node)
     else
         t_start = ast.tokens[AST.start(node)]
         t_stop = ast.tokens[AST.stop(node)]

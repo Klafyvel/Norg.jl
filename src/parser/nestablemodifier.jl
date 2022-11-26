@@ -34,6 +34,15 @@ function parse_norg(::NestableItem, parents, tokens, i)
     end
     # Consume tokens creating the delimiter
     i = consume_until(K"Whitespace", tokens, i)
+    m = match_norg([K"NestableItem", parents...], tokens, i)
+    if is_detached_modifier_extension(matched(m))
+        extension = parse_norg(DetachedModifierExtension(), parents, tokens, i)
+        push!(children, extension)
+        i = nextind(tokens, extension.stop)
+        if kind(tokens[i]) == K"Whitespace"
+            i = consume_until(K"Whitespace", tokens, i)
+        end
+    end
     while !is_eof(tokens[i])
         m = match_norg([K"NestableItem", parents...], tokens, i)
         if isclosing(m)
@@ -55,10 +64,13 @@ function parse_norg(::NestableItem, parents, tokens, i)
             child = parse_norg(Paragraph(), [K"NestableItem", parents...], tokens, i)
         end
         i = nextind(tokens, AST.stop(child))
+        if i > lastindex(tokens)
+            i = lastindex(tokens)
+        end
         push!(children, child)
     end
     if is_eof(tokens[i])
-        i = lastindex(tokens)
+        i = prevind(tokens, i)
     end
     AST.Node(K"NestableItem", children, start, i)
 end
