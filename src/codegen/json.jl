@@ -127,7 +127,6 @@ end
 codegen(t::JSONTarget, ::Escape, ast, node) = codegen(t, ast, first(children(node)))
 
 function codegen(t::JSONTarget, ::Link, ast, node)
-    target = codegen(t, ast, first(node.children))
     if length(node.children) > 1
         text = codegen(t, ast, last(node.children))
     elseif kind(first(node.children)) == K"DetachedModifierLocation"
@@ -136,17 +135,27 @@ function codegen(t::JSONTarget, ::Link, ast, node)
         text = codegen(t, ast, children(first(children(node)))[1])
     elseif kind(first(node.children)) == K"WikiLocation"
         text = codegen(t, ast, children(first(children(node)))[1])
+    elseif kind(first(node.children)) == K"TimestampLocation"
+        text = textify(ast, first(node.children))
     else
         text = [OrderedDict(["t"=>"Str", "c"=>codegen(t, ast, first(node.children))])]
     end
-    OrderedDict([
-        "t"=>"Link"
-        "c"=>[
-            ["", Any[], Any[]],
-            text,
-            [target, ""]
-        ]
-    ])
+    if kind(first(node.children)) == K"TimestampLocation"
+        OrderedDict([
+            "t"=>"Str"
+            "c"=>text
+            ])
+    else
+        target = codegen(t, ast, first(node.children))
+        OrderedDict([
+            "t"=>"Link"
+            "c"=>[
+                ["", Any[], Any[]],
+                text,
+                [target, ""]
+            ]
+        ])
+    end
 end
 
 codegen(::JSONTarget, ::URLLocation, ast, node) = textify(ast, node)
@@ -213,6 +222,8 @@ function codegen(t::JSONTarget, ::WikiLocation, ast, node)
     end
     "/" * target_loc * subtarget_loc
 end
+
+codegen(::JSONTarget, ::TimestampLocation, ast, node) = textify(ast, node)
 
 codegen(t::JSONTarget, ::LinkDescription, ast, node) = collect(Iterators.flatten([codegen(t, ast, c) for c in children(node)]))
 

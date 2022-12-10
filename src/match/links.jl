@@ -13,6 +13,8 @@ function match_norg(::LinkLocation, parents, tokens, i)
         MatchFound(K"DetachedModifierLocation")
     elseif kind(tokens[i]) == K"?"
         MatchFound(K"WikiLocation")
+    elseif kind(tokens[i]) == K"@"
+        MatchFound(K"TimestampLocation")
     elseif isnumeric(first(value(tokens[i])))
         MatchFound(K"LineNumberLocation")
     else

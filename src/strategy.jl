@@ -57,6 +57,7 @@ struct FileLocation <: FromNode end
 struct MagicLocation <: FromNode end
 struct NorgFileLocation <: FromNode end
 struct WikiLocation <: FromNode end
+struct TimestampLocation <: FromNode end
 struct LinkDescription <: FromNode end
 struct LinkSubTarget <: FromNode end
 struct InlineLinkTarget <: FromNode end
@@ -91,7 +92,7 @@ export Quote, NestableItem, Verbatim, AttachedModifierStrategy, Bold, Italic
 export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode 
 export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation 
 export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation 
-export WikiLocation, LinkDescription, LinkSubTarget, InlineLinkTarget 
+export WikiLocation, TimestampLocation, LinkDescription, LinkSubTarget, InlineLinkTarget 
 export DetachedModifierExtension
 export TodoExtension, TimestampExtension, PriorityExtension, DueDateExtension, StartDateExtension
 export StatusUndone, StatusDone, StatusNeedFurtherInput, StatusUrgent

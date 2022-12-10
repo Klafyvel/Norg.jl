@@ -15,6 +15,7 @@ simple_link_tests = [":norg_file:" => K"NorgFileLocation"
                      "file://example.txt" => K"URLLocation"
                      "/ example.txt" => K"FileLocation"
                      "? test" => K"WikiLocation"
+                     "@ Wednesday" => K"TimestampLocation"
 ]
 
 @testset "basic links: $target" for (link, target) in simple_link_tests
@@ -118,6 +119,7 @@ leaves_tests = [
     "https://example.org" => [K"URLTarget"]
     "file://example.txt" => [K"URLTarget"]
     "/ example.txt" => [K"FileTarget", K"None"]
+    "@ Wednesday" => [K"Timestamp"]
 ]
 @testset "Checking leaves :$link => $target" for (link, target) in leaves_tests
     s = "{$link}"
@@ -190,7 +192,10 @@ target = K"DetachedModifierLocation")
                 (input = "[url anchor]\n\n[url anchor]{https://github.com/}",
                  target = K"URLLocation")
                 (input = "[file anchor]\n\n[file anchor]{file:///dev/null}",
-                 target = K"URLLocation")]
+                 target = K"URLLocation")
+                (input = "[timestamp anchor]\n\n[timestamp anchor]{@ Wednesday}",
+                 target = K"TimestampLocation")
+]
 
 @testset "Testing anchor : $(t.target)" for t in anchor_tests
     ast = parse(AST.NorgDocument, t.input)

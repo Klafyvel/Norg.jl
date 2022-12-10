@@ -4,6 +4,7 @@ HTML code generation using [Hyperscript.jl](https://docs.juliahub.com/Hyperscrip
 module HTMLCodegen
 using AbstractTrees
 using Hyperscript
+using Dates
 using ..AST
 using ..Strategies
 using ..Kinds
@@ -11,6 +12,7 @@ import ..CodegenTarget
 import ..codegen
 import ..idify
 import ..textify
+import ..parse_norg_timestamp
 
 """
 HTML target to feed [`codegen`](@ref).
@@ -83,6 +85,8 @@ codegen(t::HTMLTarget, ::Escape, ast, node) = codegen(t, Word(), ast, node)
 
 function codegen(t::HTMLTarget, ::Link, ast, node)
     target = codegen(t, ast, first(node.children))
+    tag = "a"
+    param = "href"
     if length(node.children) > 1
         text = codegen(t, ast, last(node.children))
     elseif kind(first(node.children)) == K"DetachedModifierLocation"
@@ -91,10 +95,16 @@ function codegen(t::HTMLTarget, ::Link, ast, node)
         text = codegen(t, ast, children(first(children(node)))[1])
     elseif kind(first(node.children)) == K"WikiLocation"
         text = codegen(t, ast, children(first(children(node)))[1])
+    elseif kind(first(node.children)) == K"TimestampLocation"
+        text = textify(ast, first(node.children))
     else
         text = codegen(t, ast, first(node.children))
     end
-    m("a", href = target, text)
+    if kind(first(node.children)) == K"TimestampLocation"
+        tag = "time"
+        param = "datetime"
+    end
+    m(tag, href = target, text)
 end
 
 function codegen(t::HTMLTarget, ::URLLocation, ast, node)
@@ -162,6 +172,20 @@ function codegen(t::HTMLTarget, ::WikiLocation, ast, node)
         subtarget_loc = "#" * codegen(t, ast, subtarget)
     end
     "/" * target_loc * subtarget_loc
+end
+
+function codegen(t::HTMLTarget, ::TimestampLocation, ast, node)
+    target = first(children(node))
+    t1, t2 = parse_norg_timestamp(ast.tokens, target.start, target.stop)
+    if !isnothing(t1)
+        res = Dates.format(t1, dateformat"yyyy-mm-dd HH:MM:SS")
+        if !isnothing(t2)
+            res = res * "/" * Dates.format(t2, dateformat"yyyy-mm-dd HH:MM:SS")
+        end
+        res
+    else
+        "" 
+    end
 end
 
 codegen(t::HTMLTarget, ::LinkDescription, ast, node) = [codegen(t, ast, c) for c in children(node)]

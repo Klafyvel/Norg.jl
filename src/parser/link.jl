@@ -57,6 +57,8 @@ function parse_norg(::LinkLocation, parents, tokens, i)
         parse_norg(NorgFileLocation(), p, tokens, i)
     elseif location_kind == K"WikiLocation"
         parse_norg(WikiLocation(), p, tokens, i)
+    elseif location_kind == K"TimestampLocation"
+        parse_norg(TimestampLocation(), p, tokens, i)
     else
         AST.Node(K"None")
     end
@@ -323,6 +325,35 @@ function parse_norg(::WikiLocation, parents, tokens, i,)
         end
     end
     AST.Node(K"WikiLocation", [content, subtarget], start, i)
+end
+
+
+function parse_norg(::TimestampLocation, parents, tokens, i,)
+    start = i
+    i = nextind(tokens, i)
+    token = tokens[i]
+    if kind(token) == K"Whitespace"
+        i = nextind(tokens, i)
+        token = tokens[i]
+    end
+    start_timestamp=i
+    m = match_norg(parents, tokens, i)
+    while !is_eof(token) && !isclosing(m)
+        i = nextind(tokens, i)
+        token = tokens[i]
+        m = match_norg(parents, tokens, i)
+    end
+    if !consume(m) || is_eof(token)
+        i = prevind(tokens, i)
+    end
+    if isclosing(m) && matched(m) != K"TimestampLocation" && kind(token) != K"}"
+        p = parse_norg(Paragraph(), parents, [tokens[begin:i]...; EOFToken()], start)
+        AST.Node(K"None", vcat(getproperty.(p.children, :children)...), start, i)
+    else
+        stop = i
+        i = prevind(tokens, i)
+        AST.Node(K"TimestampLocation", [AST.Node(K"Timestamp", AST.Node[], start_timestamp, i)], start, stop)
+    end
 end
 
 function parse_norg(::LinkDescription, parents, tokens, i)

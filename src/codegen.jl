@@ -9,6 +9,7 @@ using ..AST
 using ..Strategies
 using ..Kinds
 using ..Tokens
+import ..parse_norg_timestamp
 
 abstract type CodegenTarget end
 
@@ -89,6 +90,8 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, NorgFileLocation(), ast, node)
     elseif kind(node) == K"WikiLocation"
         codegen(t, WikiLocation(), ast, node)
+    elseif kind(node) == K"TimestampLocation"
+        codegen(t, TimestampLocation(), ast, node)
     elseif kind(node) == K"LinkDescription"
         codegen(t, LinkDescription(), ast, node)
     elseif kind(node) == K"Anchor"

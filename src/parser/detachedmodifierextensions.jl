@@ -67,7 +67,7 @@ function parse_norg(::TimestampExtension, parents, tokens, i)
     end
     piped = AST.Node(K"None")
     stoptimestamp = i
-    timestamp = AST.Node(K"Word", [], starttimestamp, stoptimestamp)
+    timestamp = AST.Node(K"Timestamp", [], starttimestamp, stoptimestamp)
     if kind(token) == K"|"
         piped = parse_norg(DetachedModifierExtension(), parents, tokens, i)
         i = piped.stop
@@ -113,7 +113,7 @@ function parse_norg(::DueDateExtension, parents, tokens, i)
     end
     piped = AST.Node(K"None")
     stoptimestamp = i
-    timestamp = AST.Node(K"Word", [], starttimestamp, stoptimestamp)
+    timestamp = AST.Node(K"Timestamp", [], starttimestamp, stoptimestamp)
     if kind(token) == K"|"
         piped = parse_norg(DetachedModifierExtension(), parents, tokens, i)
         i = piped.stop
@@ -136,7 +136,7 @@ function parse_norg(::StartDateExtension, parents, tokens, i)
     end
     piped = AST.Node(K"None")
     stoptimestamp = i
-    timestamp = AST.Node(K"Word", [], starttimestamp, stoptimestamp)
+    timestamp = AST.Node(K"Timestamp", [], starttimestamp, stoptimestamp)
     if kind(token) == K"|"
         piped = parse_norg(DetachedModifierExtension(), parents, tokens, i)
         i = piped.stop
