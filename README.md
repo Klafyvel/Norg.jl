@@ -124,6 +124,7 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   -- (x) inline link targets
   -- ( ) Carryover tags
   -- (x) Detached modifier extensions
+  -- ( ) Detached modifier suffix
   -- ( ) Range-able detached modifiers, excluding table cells
   -- ( ) Link modifiers
   #waiting.for Layer 3 support
