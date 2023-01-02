@@ -6,6 +6,7 @@ using ..Kinds
 using ..Strategies
 using ..AST
 using ..Tokens
+import ..consume_until
 
 """
 Holds results of [`Match.match_norg`](@ref). It has a [`Kinds.kind`](@ref), that can
@@ -124,6 +125,8 @@ function match_norg(parents, tokens, i)
         match_norg(LeftParenthesis(), parents, tokens, i)
     elseif kind(token) == K")"
         match_norg(RightParenthesis(), parents, tokens, i)
+    elseif kind(token) == K"+"
+        match_norg(Plus(), parents, tokens, i)
     elseif kind(token) == K"EndOfFile"
         MatchClosing(first(parents), false)
     else
@@ -158,6 +161,8 @@ function match_norg(::Whitespace, parents, tokens, i)
             match_norg(Quote(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"@"
             match_norg(Verbatim(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K"+"
+            match_norg(WeakCarryoverTag(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"_"
             match_norg(HorizontalRule(), parents, tokens, nextind(tokens, i))
         else
@@ -337,10 +342,13 @@ end
 
 match_norg(::LesserThanSign, parents, tokens, i) = match_norg(InlineLinkTarget(), parents, tokens, i)
 
-function match_norg(::CommercialAtSign, parents, tokens, i)
+tag_to_strategy(::CommercialAtSign) = Verbatim()
+tag_to_strategy(::Plus) = WeakCarryoverTag()
+
+function match_norg(t::Union{CommercialAtSign, Plus}, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
-        match_norg(Verbatim(), parents, tokens, i)
+        match_norg(tag_to_strategy(t), parents, tokens, i)
     else
         MatchNotFound()
     end

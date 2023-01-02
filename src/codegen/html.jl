@@ -260,7 +260,7 @@ function codegen(::HTMLTarget, ::Verbatim, ast, node)
     language = if length(others) == 1
         "language-plaintext"
     else
-        if kind(first(others)) == K"VerbatimParameter"
+        if kind(first(others)) == K"TagParameter"
             lang = litteral(ast, first(others))
         else
             lang = litteral(ast, others[2])
@@ -278,6 +278,11 @@ function codegen(::HTMLTarget, ::TodoExtension, ast, node)
     else
         m("input", checked="", type="checkbox", disabled="")
     end
+end
+
+function codegen(t::HTMLTarget, ::WeakCarryoverTag, ast, node)
+    # blatantly ignore weak carryover tags for now.
+    codegen(t, ast, last(children(node)))
 end
 
 export HTMLTarget

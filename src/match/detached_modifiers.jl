@@ -132,6 +132,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:Nestable}
         elseif any(nestable_level.(ancestor_nestable) .== level)
             MatchClosing(first(parents), false)
         elseif first(parents) ∈ [K"Paragraph", K"ParagraphSegment"]
+            @debug "Chérie ça va couper." parents tokens[i]
             MatchClosing(first(parents), false)
         else
             MatchFound(nestable(t, level))

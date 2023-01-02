@@ -30,6 +30,7 @@ function parse_norg(::Heading, parents, tokens, i)
         i = nextind(tokens, AST.stop(title_segment))
         while !is_eof(tokens[i])
             m = match_norg([heading_kind, parents...], tokens, i)
+            @debug "heading loop" 
             if isclosing(m)
                 break
             end
@@ -56,6 +57,8 @@ function parse_norg(::Heading, parents, tokens, i)
                 child = parse_norg(OrderedList(), [heading_kind, parents...], tokens, i)
             elseif kind(to_parse) == K"Verbatim"
                 child = parse_norg(Verbatim(), [heading_kind, parents...], tokens, i)
+            elseif to_parse == K"WeakCarryoverTag"
+                child = parse_norg(WeakCarryoverTag(), parents, tokens, i)
             else
                 child = parse_norg(Paragraph(), [heading_kind, parents...], tokens, i)
             end

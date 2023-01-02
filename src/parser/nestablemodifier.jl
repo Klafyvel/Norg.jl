@@ -14,7 +14,11 @@ function parse_norg(::T, parents, tokens, i) where {T<:Nestable}
             end
             break
         end
-        child = parse_norg(NestableItem(), [nestable_kind, parents...], tokens, i)
+        child = if kind(matched(m)) == K"WeakCarryoverTag"
+            parse_norg(WeakCarryoverTag(), [nestable_kind, parents...], tokens, i)
+        else
+            parse_norg(NestableItem(), [nestable_kind, parents...], tokens, i)
+        end
         i = AST.stop(child)
         if !is_eof(tokens[i])
             i = nextind(tokens, i)

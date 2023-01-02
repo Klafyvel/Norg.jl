@@ -10,3 +10,18 @@ function match_norg(::Verbatim, parents, tokens, i)
         MatchNotFound()
     end
 end
+
+function match_norg(::WeakCarryoverTag, parents, tokens, i)
+    token = tokens[nextind(tokens, i)]
+    if kind(token) == K"Word"
+        nextline = consume_until(K"LineEnding", tokens, i)
+        m = match_norg(parents, tokens, nextline)
+        if isclosing(m)
+            m
+        else
+            MatchFound(K"WeakCarryoverTag")
+        end
+    else
+        MatchNotFound()
+    end
+end

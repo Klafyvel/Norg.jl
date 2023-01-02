@@ -120,10 +120,12 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, TodoExtension(), ast, node)
     elseif kind(node) ∈ KSet"TimestampExtension PriorityExtension DueDateExtension StartDateExtension"
         codegen(t, Word(), ast, node)
+    elseif kind(node) == K"WeakCarryoverTag"
+        codegen(t, WeakCarryoverTag(), ast, node)
     else
         t_start = ast.tokens[AST.start(node)]
         t_stop = ast.tokens[AST.stop(node)]
-        error("""HTML codegen got an unhandled node type: $(kind(node)). 
+        error("""$T codegen got an unhandled node type: $(kind(node)). 
         Faulty node starts at line $(line(t_start)), col. $(char(t_start))
         and stops at line $(line(t_stop)), col. $(char(t_stop))."""
         )

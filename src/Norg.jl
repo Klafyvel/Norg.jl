@@ -42,14 +42,17 @@ include("tokens.jl")
 include("scanners.jl")
 include("tokenize.jl")
 include("ast.jl")
-include("match/match.jl")
-include("parser/parser.jl")
 
 using .Kinds
 using .Tokens
 using .Scanners
 using .Tokenize
 using .AST
+
+include("utils.jl")
+include("match/match.jl")
+include("parser/parser.jl")
+
 using .Parser
 
 include("semantics/timestamps.jl")

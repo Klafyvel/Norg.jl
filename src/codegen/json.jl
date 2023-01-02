@@ -333,7 +333,7 @@ function codegen(::JSONTarget, ::Verbatim, ast, node)
             "c"=>[["", [], []], textify(ast, last(others))]
         ])
     else
-        language = if kind(first(others)) == K"VerbatimParameter"
+        language = if kind(first(others)) == K"TagParameter"
             litteral(ast, first(others))
         else
             litteral(ast, others[2])
@@ -359,6 +359,10 @@ function codegen(::JSONTarget, ::TodoExtension, ast, node)
     ])
 end
 
+function codegen(t::JSONTarget, ::WeakCarryoverTag, ast, node)
+    # blatantly ignore weak carryover tags for now.
+    codegen(t, ast, last(children(node)))
+end
 
 export JSONTarget
 
