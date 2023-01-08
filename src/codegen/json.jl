@@ -359,9 +359,23 @@ function codegen(::JSONTarget, ::TodoExtension, ast, node)
     ])
 end
 
-function codegen(t::JSONTarget, ::WeakCarryoverTag, ast, node)
-    # blatantly ignore weak carryover tags for now.
-    codegen(t, ast, last(children(node)))
+function codegen(t::JSONTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast, node)
+    content = codegen(t, ast, last(children(node)))
+    label = textify(ast, first(children(node)))
+    # TODO: there's most likely some room for improvement here, as some contents
+    # already have a mechanism for attributes, so the Div is not needed.
+    attr = ["", [], []]
+    if length(children(node)) <= 2
+        attr[2] = [label]
+    elseif length(children(node)) == 3
+        attr[3] = [[label, textify(ast, children(node)[2])]]
+    else
+        attr[2] = [join(textify.(Ref(ast), children(node)[1:end-1]), "-")]
+    end
+    OrderedDict([
+        "t"=>"Div"
+        "c"=>[attr, content]
+    ])
 end
 
 export JSONTarget

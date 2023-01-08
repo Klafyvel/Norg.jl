@@ -120,6 +120,14 @@ tagtypes = [
     tagname, _... = children(t)
     @test Norg.Codegen.textify(s, tagname) == "example-tag"
     s = norg"""
+    #example-tag
+    hey
+    """
+    t = first(children(s))
+    @test kind(t) == K"StrongCarryoverTag"
+    tagname, _... = children(t)
+    @test Norg.Codegen.textify(s, tagname) == "example-tag"
+    s = norg"""
     @example-tag
     hi
     @end
@@ -209,6 +217,95 @@ various = [
     ast = AST.parse(AST.NorgDocument, s)
     tag = first(children(ast))
     @test kind(tag) == K"WeakCarryoverTag"
+    label,child = children(tag)
+    @test Norg.Codegen.textify(ast, label) == "test"
+    @test kind(child) == k
+end
+end
+
+@testset "Strong carryover tag applies to the right elements." begin
+@testset "Paragraghs and paragraph segments." begin
+    s = norg"""
+    #test
+    Applied here.
+    Applied here too.
+    """
+    t = first(children(s))
+    @test length(children(t)) == 2
+    label,p = children(t)
+    @test kind(t) == K"StrongCarryoverTag"
+    @test kind(p) == K"Paragraph"
+    @test Norg.Codegen.textify(s, label) == "test"
+    s = norg"""
+    Not applied here.
+    #test
+    Applied here.
+    """
+    p1,t = children(s)
+    @test kind(t) == K"StrongCarryoverTag"
+    @test kind(p1) == K"Paragraph"
+    label, p2 = children(t)
+    @test kind(p2) == K"Paragraph"
+    @test Norg.Codegen.textify(s, label) == "test"
+    @test Norg.Codegen.textify(s, p2) == "Applied here."
+end
+nestables = [
+    ("-", K"UnorderedList1"),
+    ("~", K"OrderedList1"),
+    (">", K"Quote1")
+]
+@testset "Nestable modifiers: $m" for (t,m) in nestables
+        s = """
+        #test
+        $t applied
+        $t applied
+        """
+        ast = AST.parse(AST.NorgDocument, s)
+        tag = first(children(ast))
+        @test kind(tag) == K"StrongCarryoverTag"
+        @test length(children(tag)) == 2
+        nestable = last(children(tag))
+        @test kind(nestable) == m
+        for item in children(nestable)
+            @test kind(item) == K"NestableItem"
+            @test Norg.Codegen.textify(ast, item) == "applied"
+        end
+        label = first(children(tag))
+        @test Norg.Codegen.textify(ast, label) == "test"
+        s = """
+        $t not applied
+        #test
+        $t applied
+        """
+        ast = AST.parse(AST.NorgDocument, s)
+        nestable,tag = children(ast)
+        @test kind(tag) == K"StrongCarryoverTag"
+        @test kind(nestable) == m
+        @test kind(first(children(nestable))) == K"NestableItem"
+        @test Norg.Codegen.textify(ast, nestable) == "not applied"
+        label, nestable = children(tag)
+        @test Norg.Codegen.textify(ast, label) == "test"
+        @test kind(nestable) == m
+        @test kind(first(children(nestable))) == K"NestableItem"
+        @test Norg.Codegen.textify(ast, nestable) == "applied"
+end
+various = [
+    ("""
+    #test
+    * Heading
+    hi there
+    """, K"Heading1")
+    ("""
+    #test
+    @test 
+    blip
+    @end
+    """, K"Verbatim")
+]
+@testset "Various child kind: $k" for (s,k) in various
+    ast = AST.parse(AST.NorgDocument, s)
+    tag = first(children(ast))
+    @test kind(tag) == K"StrongCarryoverTag"
     label,child = children(tag)
     @test Norg.Codegen.textify(ast, label) == "test"
     @test kind(child) == k

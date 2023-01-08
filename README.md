@@ -122,7 +122,7 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   -- (x) Timestamp links
   -- (x) Wiki links
   -- (x) inline link targets
-  -- ( ) Carryover tags
+  -- (x) Carryover tags
   -- (x) Detached modifier extensions
   -- ( ) Detached modifier suffix
   -- ( ) Range-able detached modifiers, excluding table cells

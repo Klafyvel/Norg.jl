@@ -25,3 +25,20 @@ function match_norg(::WeakCarryoverTag, parents, tokens, i)
         MatchNotFound()
     end
 end
+
+function match_norg(::StrongCarryoverTag, parents, tokens, i)
+    token = tokens[nextind(tokens, i)]
+    if kind(token) == K"Word"
+        nextline = consume_until(K"LineEnding", tokens, i)
+        m = match_norg(parents, tokens, nextline)
+        if isclosing(m)
+            m
+        elseif is_nestable(first(parents)) || K"Paragraph" ∈ parents
+            MatchClosing(first(parents), false)
+        else
+            MatchFound(K"StrongCarryoverTag")
+        end
+    else
+        MatchNotFound()
+    end
+end

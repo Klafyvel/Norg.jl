@@ -127,6 +127,8 @@ function match_norg(parents, tokens, i)
         match_norg(RightParenthesis(), parents, tokens, i)
     elseif kind(token) == K"+"
         match_norg(Plus(), parents, tokens, i)
+    elseif kind(token) == K"#"
+        match_norg(NumberSign(), parents, tokens, i)
     elseif kind(token) == K"EndOfFile"
         MatchClosing(first(parents), false)
     else
@@ -344,8 +346,10 @@ match_norg(::LesserThanSign, parents, tokens, i) = match_norg(InlineLinkTarget()
 
 tag_to_strategy(::CommercialAtSign) = Verbatim()
 tag_to_strategy(::Plus) = WeakCarryoverTag()
+tag_to_strategy(::NumberSign) = StrongCarryoverTag()
 
-function match_norg(t::Union{CommercialAtSign, Plus}, parents, tokens, i)
+function match_norg(t::Union{CommercialAtSign, Plus, NumberSign}, parents, tokens, i)
+    @debug "Hello matching tag" t tokens[i]
     prev_token = tokens[prevind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(tag_to_strategy(t), parents, tokens, i)

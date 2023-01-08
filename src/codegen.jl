@@ -122,6 +122,8 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, Word(), ast, node)
     elseif kind(node) == K"WeakCarryoverTag"
         codegen(t, WeakCarryoverTag(), ast, node)
+    elseif kind(node) == K"StrongCarryoverTag"
+        codegen(t, StrongCarryoverTag(), ast, node)
     else
         t_start = ast.tokens[AST.start(node)]
         t_stop = ast.tokens[AST.stop(node)]

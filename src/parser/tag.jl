@@ -97,3 +97,12 @@ function parse_norg(::WeakCarryoverTag, parents, tokens, i)
         AST.Node(K"WeakCarryoverTag", [children..., content], start, AST.stop(content))
     end
 end
+
+function parse_norg(::StrongCarryoverTag, parents, tokens, i)
+    start = i
+    children, i = parse_tag_header(parents, tokens, i)
+    @debug "Strong carryover tag here" tokens[i]
+    content = parse_norg_toplevel_one_step([parents...], tokens, i)
+    @debug "hey there" content parents
+    AST.Node(K"StrongCarryoverTag", [children..., content], start, AST.stop(content))
+end

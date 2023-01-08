@@ -25,6 +25,7 @@ struct GreaterThanSign <: FromToken end
 struct LesserThanSign <: FromToken end
 struct CommercialAtSign <: FromToken end
 struct Plus <: FromToken end
+struct NumberSign <: FromToken end
 abstract type FromNode <: Strategy end
 struct Word <: FromNode end
 struct Heading <: FromNode end
@@ -41,6 +42,7 @@ struct NestableItem <: FromNode end
 abstract type Tag <: FromNode end
 struct Verbatim <: Tag end
 struct WeakCarryoverTag <: FromNode end
+struct StrongCarryoverTag <: FromNode end
 abstract type AttachedModifierStrategy <: FromNode end
 struct Bold <: AttachedModifierStrategy end
 struct Italic <: AttachedModifierStrategy end
@@ -87,13 +89,14 @@ struct StartDateExtension <: AbstractDetachedModifierExtension end
 export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark
 export Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace
 export RightBrace, RightSquareBracket, LeftSquareBracket, Tilde
-export GreaterThanSign, LesserThanSign, CommercialAtSign, Plus
+export GreaterThanSign, LesserThanSign, CommercialAtSign, Plus, NumberSign
 
 export FromNode, Word
 export LeftParenthesis, RightParenthesis
 export Heading, HeadingTitle, DelimitingModifier, StrongDelimiter
 export WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList
-export Quote, NestableItem, Tag, Verbatim, WeakCarryoverTag, AttachedModifierStrategy, Bold, Italic 
+export Quote, NestableItem, Tag, Verbatim, WeakCarryoverTag, StrongCarryoverTag
+export AttachedModifierStrategy, Bold, Italic 
 export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode 
 export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation 
 export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation 

@@ -60,6 +60,8 @@ function parse_norg_toplevel_one_step(parents, tokens, i)
         parse_norg(Heading(), parents, tokens, i)
     elseif to_parse == K"WeakCarryoverTag"
         parse_norg(WeakCarryoverTag(), parents, tokens, i)
+    elseif to_parse == K"StrongCarryoverTag"
+        parse_norg(StrongCarryoverTag(), parents, tokens, i)
     elseif to_parse == K"ParagraphSegment"
         parse_norg(ParagraphSegment(), parents, tokens, i)
     elseif to_parse == K"NestableItem"

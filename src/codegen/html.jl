@@ -26,8 +26,13 @@ end
 function codegen(t::HTMLTarget, ::Paragraph, ast, node)
     res = []
     for c in children(node)
-        append!(res, codegen(t, ast, c))
-        push!(res, " ")
+        gen = codegen(t, ast, c)
+        if gen isa AbstractArray 
+            append!(res, codegen(t, ast, c))
+            push!(res, " ")
+        else
+            push!(res, gen)
+        end
     end
     if !isempty(res)
         pop!(res) # remove last space
@@ -280,9 +285,23 @@ function codegen(::HTMLTarget, ::TodoExtension, ast, node)
     end
 end
 
-function codegen(t::HTMLTarget, ::WeakCarryoverTag, ast, node)
-    # blatantly ignore weak carryover tags for now.
-    codegen(t, ast, last(children(node)))
+function codegen(t::HTMLTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast, node)
+    content = codegen(t, ast, last(children(node)))
+    content = if content isa AbstractArray 
+        m("div", content)
+    else
+        content
+    end
+    if length(children(node)) <= 2
+        getproperty(content, textify(ast, first(children(node))))
+    elseif length(children(node)) == 3
+        label = textify(ast, first(children(node)))
+        param = textify(ast, children(node)[2])
+        content(;Symbol(label)=>param)
+    else
+        class = join(textify.(Ref(ast), children(node)[begin:end-1]), "-")
+        getproperty(content, class)
+    end
 end
 
 export HTMLTarget
