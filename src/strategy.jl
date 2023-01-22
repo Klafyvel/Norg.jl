@@ -26,6 +26,7 @@ struct LesserThanSign <: FromToken end
 struct CommercialAtSign <: FromToken end
 struct Plus <: FromToken end
 struct NumberSign <: FromToken end
+struct DollarSign <: FromToken end
 abstract type FromNode <: Strategy end
 struct Word <: FromNode end
 struct Heading <: FromNode end
@@ -69,6 +70,10 @@ struct InlineLinkTarget <: FromNode end
 struct ParagraphSegment <: FromNode end
 struct Paragraph <: FromNode end
 struct Escape <: FromNode end
+abstract type RangeableDetachedModifier <: FromNode end
+struct Definition <: RangeableDetachedModifier end
+struct Footnote <: RangeableDetachedModifier end
+struct RangeableItem <: FromNode end
 abstract type AbstractDetachedModifierExtension end
 struct DetachedModifierExtension <: AbstractDetachedModifierExtension end
 struct TodoExtension <: AbstractDetachedModifierExtension end
@@ -90,6 +95,7 @@ export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark
 export Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace
 export RightBrace, RightSquareBracket, LeftSquareBracket, Tilde
 export GreaterThanSign, LesserThanSign, CommercialAtSign, Plus, NumberSign
+export DollarSign
 
 export FromNode, Word
 export LeftParenthesis, RightParenthesis
@@ -101,6 +107,7 @@ export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode
 export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation 
 export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation 
 export WikiLocation, TimestampLocation, LinkDescription, LinkSubTarget, InlineLinkTarget 
+export RangeableDetachedModifier, Definition, Footnote, RangeableItem
 export DetachedModifierExtension
 export TodoExtension, TimestampExtension, PriorityExtension, DueDateExtension, StartDateExtension
 export StatusUndone, StatusDone, StatusNeedFurtherInput, StatusUrgent

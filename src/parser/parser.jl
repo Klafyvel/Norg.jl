@@ -37,7 +37,6 @@ function parse_norg end
 function parse_norg_toplevel_one_step(parents, tokens, i)
     m = match_norg(parents, tokens, i)
     to_parse = matched(m)
-    @debug "toplevel one step" parents tokens[i] i to_parse
     if isclosing(m)
         error("Closing token when parsing a top level element at token $(tokens[i]). This is a bug, please report it along with the text you are trying to parse.")
         return AST.Node(K"None", AST.Node[], i, nextind(tokens, i))
@@ -66,6 +65,10 @@ function parse_norg_toplevel_one_step(parents, tokens, i)
         parse_norg(ParagraphSegment(), parents, tokens, i)
     elseif to_parse == K"NestableItem"
         parse_norg(NestableItem(), parents, tokens, i)
+    elseif to_parse == K"Definition"
+        parse_norg(Definition(), parents, tokens, i)
+    elseif to_parse == K"Footnote"
+        parse_norg(Footnote(), parents, tokens, i)
     else
         parse_norg(Paragraph(), parents, tokens, i)
     end
@@ -83,7 +86,6 @@ function parse_norg(tokens)
     while !is_eof(tokens[i])
         child = parse_norg_toplevel_one_step([K"NorgDocument"], tokens, i)
         i = AST.stop(child)
-        @debug "parser main loop" child i
         if !is_eof(tokens[i])
             i = nextind(tokens, i)
         end
@@ -100,14 +102,12 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
     start = i
     while !is_eof(tokens[i])
         m = match_norg([K"Paragraph", parents...], tokens, i)
-        @debug "paragraph match" m
         if isclosing(m)
             break
         elseif iscontinue(m)
             i = nextind(tokens, i)
             continue
         end
-        @debug "Paragraph parsing here" m
         to_parse = matched(m)
         if is_delimiting_modifier(to_parse)
             break
@@ -121,7 +121,6 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
             end
             segment = parse_norg(target, [K"Paragraph", parents...], tokens, i)
             i = nextind(tokens, AST.stop(segment))
-            @debug "paragraph child returned" segment
             if kind(segment) ∈ KSet"None Paragraph"
                 append!(segments, children(segment))
             else
@@ -129,7 +128,6 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
             end
         end
     end
-    @debug "plip"
     if is_eof(tokens[i])
         i = prevind(tokens, i)
     elseif isclosing(m) && matched(m) == K"Paragraph" && !consume(m)
@@ -240,6 +238,7 @@ include("structuralmodifier.jl")
 include("tag.jl")
 include("nestablemodifier.jl")
 include("detachedmodifierextensions.jl")
+include("rangeabledetachedmodifier.jl")
 
 export parse_norg
 end

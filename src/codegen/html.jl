@@ -12,15 +12,70 @@ import ..CodegenTarget
 import ..codegen
 import ..idify
 import ..textify
+import ..getchildren
 import ..parse_norg_timestamp
+
+"""
+Controls the position where footnotes are rendered. It can be within the lowest
+heading level `i` by setting `HiFootnotes` or at the root of the document or
+directly as it appears in the Norg document.
+"""
+@enum FootnotesLevel begin
+    RootFootnotes=0
+    H1Footnotes=1
+    H2Footnotes=2
+    H3Footnotes=3
+    H4Footnotes=4
+    H5Footnotes=5
+    H6Footnotes=6
+    InplaceFootnotes=7
+end
 
 """
 HTML target to feed [`codegen`](@ref).
 """
-struct HTMLTarget <: CodegenTarget end
+struct HTMLTarget <: CodegenTarget 
+    footnotes_level::FootnotesLevel
+end
+
+HTMLTarget() = HTMLTarget(RootFootnotes)
 
 function codegen(t::HTMLTarget, ast::AST.NorgDocument)
-    m("div", class = "norg", [codegen(t, ast, c) for c in children(ast)])
+    content = [codegen(t, ast, c) for c in children(ast)]
+    if t.footnotes_level == RootFootnotes
+        footnotes = getchildren(ast, K"Footnote")
+        items = Iterators.flatten(children.(footnotes))
+        footnotes_node = m(
+            "section", 
+            class="footnotes",
+            m("ol", map(items) do item
+                term, note... = children(item)
+                term_id = "fn_" * idify(textify(ast, term))
+                m("li", id=term_id, [
+                    codegen.(Ref(t), Ref(ast), note), 
+                    m("a", role="doc-backlink", href="fnref_" * idify(textify(ast, term)), "↩︎")
+                ])
+            end)
+        )
+        push!(content, footnotes_node)
+    else # collect all orphan footnotes
+        footnotes = getchildren(ast, K"Footnote", AST.heading_level(t.footnotes_level))
+        items = Iterators.flatten(children.(footnotes))
+        footnotes_node = m(
+            "section", 
+            class="footnotes",
+            m("ol", map(items) do item
+                term, note... = children(item)
+                term_id = "fn_" * idify(textify(ast, term))
+                m("li", id=term_id, [
+                    codegen.(Ref(t), Ref(ast), note), 
+                    m("a", role="doc-backlink", href="fnref_" * idify(textify(ast, term)), "↩︎")
+                ])
+            end)
+        )
+        push!(content, footnotes_node)
+    end
+    m("div", class = "norg", content)
 end
 
 function codegen(t::HTMLTarget, ::Paragraph, ast, node)
@@ -227,7 +282,26 @@ function codegen(t::HTMLTarget, ::Heading, ast, node)
     heading = m(level, id=id_title, codegen(t, ast, heading_title))
     heading_content = [codegen(t, ast, c, ) for c in content]
     id_section = idify("section " * id_title)
-    m("section", id=id_section, [heading, heading_content...])
+
+    if t.footnotes_level == level_num
+        footnotes = getchildren(node, K"Footnote")
+        items = Iterators.flatten(children.(footnotes))
+        footnotes_node = m(
+            "section", 
+            class="footnotes",
+            m("ol", map(items) do item
+                term, note... = children(item)
+                term_id = "fn_" * idify(textify(ast, term))
+                m("li", id=term_id, [
+                    codegen.(Ref(t), Ref(ast), note), 
+                    m("a", role="doc-backlink", href="fnref_" * idify(textify(ast, term)), "↩︎")
+                ])
+            end)
+        )
+        m("section", id=id_section, [heading, heading_content..., footnotes_node])
+    else
+        m("section", id=id_section, [heading, heading_content...])
+    end
 end
 
 codegen(::HTMLTarget, ::StrongDelimiter, ast, node) = []
@@ -301,6 +375,38 @@ function codegen(t::HTMLTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, a
     else
         class = join(textify.(Ref(ast), children(node)[begin:end-1]), "-")
         getproperty(content, class)
+    end
+end
+
+function codegen(t::HTMLTarget, ::Definition, ast, node)
+    items = children(node)
+    m("dl", collect(Iterators.flatten(map(items) do item
+            term, def... = children(item)
+            term_id = "def_" * idify(textify(ast, term))
+            term_node = m("dt", id=term_id, codegen(t, ast, term))
+            def_node = m("dd", codegen.(Ref(t), Ref(ast), def))
+            term_node,def_node
+        end
+    )))
+end
+
+function codegen(t::HTMLTarget, ::Footnote, ast, node)
+    if t.footnotes_level == InplaceFootnotes
+        items = children(node)
+        m(
+            "section", 
+            class="footnotes",
+            m("ol", map(items) do item
+                term, note... = children(item)
+                term_id = "fn_" * idify(textify(ast, term))
+                m("li", id=term_id, [
+                    codegen.(Ref(t), Ref(ast), node), 
+                    m("a", role="doc-backlink", href="fnref_" * idify(textify(ast, term)), "↩︎")
+                ])
+            end)
+        )
+    else
+        ""
     end
 end
 

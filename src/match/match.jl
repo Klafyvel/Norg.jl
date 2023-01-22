@@ -61,6 +61,7 @@ include("detached_modifiers.jl")
 include("detached_modifier_extension.jl")
 include("tags.jl")
 include("links.jl")
+include("rangeable_detached_modifier.jl")
 
 function force_word_context(parents, tokens, i)
     k = kind(first(parents))
@@ -129,6 +130,9 @@ function match_norg(parents, tokens, i)
         match_norg(Plus(), parents, tokens, i)
     elseif kind(token) == K"#"
         match_norg(NumberSign(), parents, tokens, i)
+    elseif kind(token) == K"$"
+        match_norg(DollarSign(), parents, tokens, i)
+
     elseif kind(token) == K"EndOfFile"
         MatchClosing(first(parents), false)
     else
@@ -143,6 +147,7 @@ end
 match_norg(::Word, parents, tokens, i) = MatchFound(K"Word")
 
 function match_norg(::Whitespace, parents, tokens, i)
+    @debug "whitespace" tokens[i]
     prev_token = tokens[prevind(tokens, i)]
     next_token = tokens[nextind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
@@ -167,6 +172,11 @@ function match_norg(::Whitespace, parents, tokens, i)
             match_norg(WeakCarryoverTag(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"_"
             match_norg(HorizontalRule(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K"$"
+            match_norg(Definition(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K"^"
+            @debug "haha footnote"
+            match_norg(Footnote(), parents, tokens, nextind(tokens, i))
         else
             MatchNotFound()
         end
@@ -260,7 +270,20 @@ end
 
 match_norg(::ExclamationMark, parents, tokens, i) = match_norg(Spoiler(), parents, tokens, i)
 
-match_norg(::Circumflex, parents, tokens, i) = match_norg(Superscript(), parents, tokens, i)
+function match_norg(::Circumflex, parents, tokens, i)
+    @debug "bonjour c'est circumflex" tokens[i]
+    prev_token = tokens[prevind(tokens, i)]
+    m = if is_line_ending(prev_token) || is_sof(prev_token)
+        match_norg(Footnote(), parents, tokens, i)    
+    else
+        MatchNotFound()
+    end
+    if isnotfound(m)
+        match_norg(Superscript(), parents, tokens, i)
+    else
+        m
+    end
+end
 
 match_norg(::Comma, parents, tokens, i) = match_norg(Subscript(), parents, tokens, i)
 
@@ -349,10 +372,19 @@ tag_to_strategy(::Plus) = WeakCarryoverTag()
 tag_to_strategy(::NumberSign) = StrongCarryoverTag()
 
 function match_norg(t::Union{CommercialAtSign, Plus, NumberSign}, parents, tokens, i)
-    @debug "Hello matching tag" t tokens[i]
     prev_token = tokens[prevind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(tag_to_strategy(t), parents, tokens, i)
+    else
+        MatchNotFound()
+    end
+end
+
+function match_norg(::DollarSign, parents, tokens, i)
+    @debug "bonjour c'est dollarsign"
+    prev_token = tokens[prevind(tokens, i)]
+    if is_line_ending(prev_token) || is_sof(prev_token)
+        match_norg(Definition(), parents, tokens, i)    
     else
         MatchNotFound()
     end

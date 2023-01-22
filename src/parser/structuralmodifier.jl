@@ -59,6 +59,10 @@ function parse_norg(::Heading, parents, tokens, i)
                 child = parse_norg(Verbatim(), [heading_kind, parents...], tokens, i)
             elseif to_parse == K"WeakCarryoverTag"
                 child = parse_norg(WeakCarryoverTag(), parents, tokens, i)
+            elseif to_parse == K"Definition"
+                child = parse_norg(Definition(), parents, tokens, i)
+            elseif to_parse == K"Footnote"
+                child = parse_norg(Footnote(), parents, tokens, i)
             else
                 child = parse_norg(Paragraph(), [heading_kind, parents...], tokens, i)
             end

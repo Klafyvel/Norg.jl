@@ -15,6 +15,7 @@ import Norg: @K_str, kind, value
         include("ast_tests/test_nestable_detached_modifiers.jl")
         include("ast_tests/test_tags.jl")
         include("ast_tests/test_detached_modifier_extension.jl")
+        include("ast_tests/test_rangeable_detached_modifiers.jl")
         # include("ast_tests/misc_bugs.jl")
     end
     @testset "codegen.jl" begin 

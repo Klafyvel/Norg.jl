@@ -378,6 +378,31 @@ function codegen(t::JSONTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, a
     ])
 end
 
+function codegen(t::JSONTarget, ::Definition, ast, node)
+    items = children(node)
+    OrderedDict([
+        "t"=>"DefinitionList"
+        "c"=>map(items) do item
+            term, def... = children(item)
+            term_id = "def_" * idify(textify(ast, term))
+            term_node = OrderedDict([
+                "t"=>"Span"
+                "c"=>[
+                    (term_id, [], [])
+                    codegen(t, ast, term)
+                ]
+            ])
+            def_node = codegen.(Ref(t), Ref(ast), def)
+            (term_node, def_node)
+        end
+    ])
+end
+
+function codegen(t::JSONTarget, ::Footnote, ast, node)
+    # Return nothing, pandoc expects footnotes to be defined where they are called.
+    []
+end
+
 export JSONTarget
 
 end

@@ -37,6 +37,32 @@ function textify(ast, node)
 end
 
 """
+    getchildren(node, k)
+    getchildren(node, k[, exclude])
+
+Return all children and grandchildren of kind `k`. It can also `exclude` 
+certain nodes from recursion.
+"""
+function getchildren(node, k)
+    filter(
+        x->kind(x)==k,
+        collect(PreOrderDFS(
+            x->kind(x)!=k,
+            node
+        ))
+    )
+end
+function getchildren(node, k, exclude)
+    filter(
+        x->kind(x)==k,
+        collect(PreOrderDFS(
+            x->kind(x)!=k && kind(x)!=exclude,
+            node
+        ))
+    )
+end
+
+"""
     codegen(T, ast)
     codegen(target, ast)
 
@@ -124,6 +150,10 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, WeakCarryoverTag(), ast, node)
     elseif kind(node) == K"StrongCarryoverTag"
         codegen(t, StrongCarryoverTag(), ast, node)
+    elseif kind(node) == K"Definition"
+        codegen(t, Definition(), ast, node)
+    elseif kind(node) == K"Footnote"
+        codegen(t, Footnote(), ast, node)
     else
         t_start = ast.tokens[AST.start(node)]
         t_stop = ast.tokens[AST.stop(node)]
