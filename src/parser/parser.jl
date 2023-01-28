@@ -183,6 +183,9 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
         m = match_norg(parents, tokens, i)
         if isclosing(m)
             break
+        elseif iscontinue(m)
+            i = nextind(tokens, i)
+            continue
         end
         to_parse = matched(m)
         if is_delimiting_modifier(to_parse)

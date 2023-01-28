@@ -59,6 +59,7 @@ value(t::Token) = t.value
 Base.length(t::Token) = length(value(t))::Int
 
 # Kind interface
+const ATTACHED_DELIMITERS = KSet"* / _ - ! ^ , ` $ & %"
 Kinds.kind(t::Token) = t.kind
 is_whitespace(t::Token) = K"BEGIN_WHITESPACE" < kind(t) < K"END_WHITESPACE"
 is_punctuation(t::Token) = K"BEGIN_PUNCTUATION" < kind(t) < K"END_PUNCTUATION"
@@ -67,5 +68,6 @@ is_line_ending(t::Token) = kind(t) == K"LineEnding"
 is_sof(t::Token) = kind(t) == K"StartOfFile"
 is_eof(t::Token) = kind(t) == K"EndOfFile"
 
-export line, char, value, is_whitespace, is_punctuation, is_word, is_line_ending, Token, is_sof, is_eof, SOFToken, EOFToken
+export line, char, value, is_whitespace, is_punctuation, is_word
+export is_line_ending, Token, is_sof, is_eof, SOFToken, EOFToken, ATTACHED_DELIMITERS
 end

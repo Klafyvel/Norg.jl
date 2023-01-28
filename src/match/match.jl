@@ -132,7 +132,8 @@ function match_norg(parents, tokens, i)
         match_norg(NumberSign(), parents, tokens, i)
     elseif kind(token) == K"$"
         match_norg(DollarSign(), parents, tokens, i)
-
+    elseif kind(token) == K":"
+        match_norg(Colon(), parents, tokens, i)
     elseif kind(token) == K"EndOfFile"
         MatchClosing(first(parents), false)
     else
@@ -147,7 +148,6 @@ end
 match_norg(::Word, parents, tokens, i) = MatchFound(K"Word")
 
 function match_norg(::Whitespace, parents, tokens, i)
-    @debug "whitespace" tokens[i]
     prev_token = tokens[prevind(tokens, i)]
     next_token = tokens[nextind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
@@ -191,8 +191,11 @@ function match_norg(::LineEnding, parents, tokens, i)
         MatchContinue()
     elseif is_line_ending(prev_token)
         nestable_parents = filter(is_nestable, parents[2:end])
+        attached_parents = filter(is_attached_modifier, parents)
         if length(nestable_parents) > 0
             MatchClosing(first(parents), false)
+        elseif length(attached_parents) > 0
+            MatchClosing(K"Paragraph", false)
         else
             MatchClosing(first(parents), true)
         end
@@ -290,6 +293,21 @@ match_norg(::Comma, parents, tokens, i) = match_norg(Subscript(), parents, token
 match_norg(::BackApostrophe, parents, tokens, i) = match_norg(InlineCode(), parents, tokens, i)
 
 match_norg(::BackSlash, parents, tokens, i) = MatchFound(K"Escape")
+
+function match_norg(::Colon, parents, tokens, i)
+    next_i = nextind(tokens, i)
+    next_token = tokens[next_i]
+    prev_i = prevind(tokens, i)
+    prev_token = tokens[prev_i]
+    @debug "hey there" kind(prev_token)∈ATTACHED_DELIMITERS prev_token
+    if kind(next_token) ∈ ATTACHED_DELIMITERS 
+        m = match_norg(parents, tokens, next_i)
+        if isfound(m) && AST.is_attached_modifier(kind(matched(m)))
+            return MatchContinue()
+        end
+    end
+    MatchNotFound()    
+end
 
 function match_norg(::EqualSign, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]

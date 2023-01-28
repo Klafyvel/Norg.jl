@@ -17,6 +17,7 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedMo
             push!(children, segment)
         end
     end
+    @debug "hey it's me" m tokens[i]
     if is_eof(tokens[i]) ||
         (isclosing(m) && matched(m) == K"None") || # Special case for inline code precedence.
         (isclosing(m) && matched(m) != node_kind && matched(m) ∈ parents) # we've been tricked in thincking we were in a modifier.
@@ -29,6 +30,8 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedMo
         node_kind = K"None"
     elseif isclosing(m) && !consume(m)
         i = prevind(tokens, i)
+    elseif isclosing(m) && kind(tokens[nextind(tokens, i)]) == K":"
+        i = nextind(tokens, i)
     end
     AST.Node(node_kind, children, start, i)
 end
