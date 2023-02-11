@@ -14,8 +14,12 @@ function match_norg(t::T, parents, tokens, i) where {T<:RangeableDetachedModifie
     next_i = nextind(tokens, i)
     next_token = tokens[next_i]
     if kind(token) == K"Whitespace"
-        @debug "haha, whitespace"
-        if !isdisjoint(parents, KSet"Paragraph NestableItem ParagraphSegment") || AST.is_nestable(first(parents))
+        @debug "haha, whitespace" parents
+        if first(parents) == K"Slide"
+            MatchFound(rangeable_from_strategy(t))
+        elseif (K"NestableItem" ∈ parents || AST.is_nestable(first(parents))) && K"Slide" ∉ parents
+            MatchClosing(first(parents), false)
+        elseif !isdisjoint(parents, KSet"Paragraph ParagraphSegment")
             MatchClosing(first(parents), false)
         elseif first(parents) == rangeable_from_strategy(t)
             MatchFound(K"RangeableItem")
@@ -26,7 +30,11 @@ function match_norg(t::T, parents, tokens, i) where {T<:RangeableDetachedModifie
         if first(parents) == rangeable_from_strategy(t)
             MatchFound(K"RangeableItem")
         else
-            if !isdisjoint(parents, KSet"Paragraph NestableItem ParagraphSegment") || AST.is_nestable(first(parents))
+            if first(parents) == K"Slide"
+                MatchFound(rangeable_from_strategy(t))
+            elseif (K"NestableItem" ∈ parents || AST.is_nestable(first(parents))) && K"Slide" ∉ parents
+                MatchClosing(first(parents), false)
+            elseif !isdisjoint(parents, KSet"Paragraph ParagraphSegment")
                 MatchClosing(first(parents), false)
             else
                 MatchFound(rangeable_from_strategy(t))

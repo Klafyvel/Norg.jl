@@ -1,7 +1,8 @@
 function match_norg(::Verbatim, parents, tokens, i)
     token = tokens[nextind(tokens, i)]
+    @debug "verbatim match" parents tokens[i]
     if kind(token) == K"Word"
-        if !(is_nestable(first(parents)) || is_heading(first(parents)) || kind(first(parents)) == K"NorgDocument")
+        if !(is_nestable(first(parents)) || is_heading(first(parents)) || kind(first(parents)) == K"NorgDocument") || kind(first(parents)) == K"Slide"
             MatchClosing(first(parents), false)
         else
             MatchFound(K"Verbatim")

@@ -177,6 +177,10 @@ const _kind_names = [
         "TableCell"
         "Footnote"
       "END_RANGEABLE_DETACHED_MODIFIERS"
+      "BEGIN_DETACHED_MODIFIER_SUFFIX"
+        "Slide"
+        "IndentSegment"
+      "END_DETACHED_MODIFIER_SUFFIX"
     "END_DETACHED_MODIFIER"
   "END_AST_NODE"
 ]

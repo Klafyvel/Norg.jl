@@ -64,6 +64,8 @@ function parse_norg(::NestableItem, parents, tokens, i)
             child = parse_norg(UnorderedList(), [K"NestableItem", parents...], tokens, i) 
         elseif is_ordered_list(to_parse)
             child = parse_norg(OrderedList(), [K"NestableItem", parents...], tokens, i) 
+        elseif to_parse == K"Slide"
+            child = parse_norg(Slide(), [K"NestableItem", parents...], tokens, i)
         else
             child = parse_norg(Paragraph(), [K"NestableItem", parents...], tokens, i)
         end

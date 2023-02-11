@@ -242,6 +242,7 @@ include("tag.jl")
 include("nestablemodifier.jl")
 include("detachedmodifierextensions.jl")
 include("rangeabledetachedmodifier.jl")
+include("detachedmodifiersuffix.jl")
 
 export parse_norg
 end

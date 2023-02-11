@@ -62,6 +62,7 @@ include("detached_modifier_extension.jl")
 include("tags.jl")
 include("links.jl")
 include("rangeable_detached_modifier.jl")
+include("detached_modifier_suffix.jl")
 
 function force_word_context(parents, tokens, i)
     k = kind(first(parents))
@@ -295,18 +296,23 @@ match_norg(::BackApostrophe, parents, tokens, i) = match_norg(InlineCode(), pare
 match_norg(::BackSlash, parents, tokens, i) = MatchFound(K"Escape")
 
 function match_norg(::Colon, parents, tokens, i)
-    next_i = nextind(tokens, i)
-    next_token = tokens[next_i]
-    prev_i = prevind(tokens, i)
-    prev_token = tokens[prev_i]
-    @debug "hey there" kind(prev_token)∈ATTACHED_DELIMITERS prev_token
-    if kind(next_token) ∈ ATTACHED_DELIMITERS 
-        m = match_norg(parents, tokens, next_i)
-        if isfound(m) && AST.is_attached_modifier(kind(matched(m)))
-            return MatchContinue()
+    m = match_norg(DetachedModifierSuffix(), parents, tokens, i)
+    if isnotfound(m)
+        next_i = nextind(tokens, i)
+        next_token = tokens[next_i]
+        prev_i = prevind(tokens, i)
+        prev_token = tokens[prev_i]
+        @debug "hey there" kind(prev_token)∈ATTACHED_DELIMITERS prev_token
+        if kind(next_token) ∈ ATTACHED_DELIMITERS 
+            m = match_norg(parents, tokens, next_i)
+            if isfound(m) && AST.is_attached_modifier(kind(matched(m)))
+                return MatchContinue()
+            end
         end
+        MatchNotFound()    
+    else
+        m
     end
-    MatchNotFound()    
 end
 
 function match_norg(::EqualSign, parents, tokens, i)
@@ -425,6 +431,6 @@ function match_norg(::RightParenthesis, parents, tokens, i)
     end
 end
 
-export match_norg, isclosing, iscontinue, matched, isnotfound, consume
+export match_norg, isclosing, iscontinue, matched, isnotfound, consume, isfound
 
 end

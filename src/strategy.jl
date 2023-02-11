@@ -74,6 +74,10 @@ abstract type RangeableDetachedModifier <: FromNode end
 struct Definition <: RangeableDetachedModifier end
 struct Footnote <: RangeableDetachedModifier end
 struct RangeableItem <: FromNode end
+abstract type AbstractDetachedModifierSuffix <: FromNode end
+struct DetachedModifierSuffix <: AbstractDetachedModifierSuffix end
+struct Slide <: AbstractDetachedModifierSuffix end
+struct IndentSegment <: AbstractDetachedModifierSuffix end
 abstract type AbstractDetachedModifierExtension end
 struct DetachedModifierExtension <: AbstractDetachedModifierExtension end
 struct TodoExtension <: AbstractDetachedModifierExtension end
@@ -108,6 +112,7 @@ export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation
 export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation 
 export WikiLocation, TimestampLocation, LinkDescription, LinkSubTarget, InlineLinkTarget 
 export RangeableDetachedModifier, Definition, Footnote, RangeableItem
+export DetachedModifierSuffix, Slide, IndentSegment
 export DetachedModifierExtension
 export TodoExtension, TimestampExtension, PriorityExtension, DueDateExtension, StartDateExtension
 export StatusUndone, StatusDone, StatusNeedFurtherInput, StatusUrgent
