@@ -397,7 +397,9 @@ tag_to_strategy(::NumberSign) = StrongCarryoverTag()
 
 function match_norg(t::Union{CommercialAtSign, Plus, NumberSign}, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
+    @debug "Matching" t
     if is_sof(prev_token) || is_line_ending(prev_token)
+        @debug "Prev token is ok" tokens[i] prev_token
         match_norg(tag_to_strategy(t), parents, tokens, i)
     else
         MatchNotFound()

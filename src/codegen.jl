@@ -154,6 +154,8 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, Definition(), ast, node)
     elseif kind(node) == K"Footnote"
         codegen(t, Footnote(), ast, node)
+    elseif kind(node) == K"Slide"
+        codegen(t, Slide(), ast, node)
     else
         t_start = ast.tokens[AST.start(node)]
         t_stop = ast.tokens[AST.stop(node)]

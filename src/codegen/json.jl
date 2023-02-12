@@ -403,6 +403,10 @@ function codegen(t::JSONTarget, ::Footnote, ast, node)
     []
 end
 
+function codegen(t::JSONTarget, ::Slide, ast, node)
+    codegen(t, ast, first(children(node)))
+end
+
 export JSONTarget
 
 end

@@ -410,6 +410,10 @@ function codegen(t::HTMLTarget, ::Footnote, ast, node)
     end
 end
 
+function codegen(t::HTMLTarget, ::Slide, ast, node)
+    codegen(t, ast, first(children(node)))
+end
+
 export HTMLTarget
 
 end
