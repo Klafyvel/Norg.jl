@@ -25,7 +25,7 @@ If you want the latest dev version:
 
 ## What can it do ?
 
-For now layer 2 compatibility is implemented in the parser, and there is code generation for html and pandoc JSON targets. There is no semantic analysis yet, which for example means that links to line number or using the `#` target syntax are poorly handled in code generation.
+For now layer 3 compatibility is implemented in the parser, and there is code generation for html and pandoc JSON targets. There is no semantic analysis yet, which for example means that links to line number or using the `#` target syntax are poorly handled in code generation.
 
 ```julia
 julia> using Norg, Hyperscript
@@ -107,27 +107,7 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
 ```
   - (x) Layer 1 support
   - (x) Layer 2 support
-  -- (x) Headings
-  -- (x) Nestable Detached Modifiers (quotes and lists)
-  -- (x) Linkables (everything except timestamps, wiki links) and anchors
-  --- (x) file location
-  --- (x) line number
-  --- (x) detached modifier
-  --- (x) custom detached modifiers
-  --- (x) anchors
-  -- (x) Verbatim ranged tags
-  -- (x) Delimiting modifiers
-  #waiting.for Layer 2 support
-  - ( ) Layer 3 Support
-  -- (x) Timestamp links
-  -- (x) Wiki links
-  -- (x) inline link targets
-  -- (x) Carryover tags
-  -- (x) Detached modifier extensions
-  -- ( ) Detached modifier suffix
-  -- ( ) Range-able detached modifiers, excluding table cells
-  -- ( ) Link modifiers
-  #waiting.for Layer 3 support
+  - (x) Layer 3 Support
   - ( ) Layer 4 support
   -- ( ) Standard Ranged Tags
   -- ( ) Table cells
@@ -146,7 +126,7 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   -- (-) HTML
   --- (x) Layer 1 support
   --- (x) Layer 2 support
-  --- ( ) Layer 3 support
+  --- (x) Layer 3 support
   --- ( ) Layer 4 support
   --- ( ) Layer 5 support
   -- ( ) Markdown
@@ -155,10 +135,10 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   --- ( ) Layer 3 support
   --- ( ) Layer 4 support
   --- ( ) Layer 5 support
-  -- ( ) Pandoc JSON
-  --- ( ) Layer 1 support
-  --- ( ) Layer 2 support
-  --- ( ) Layer 3 support
+  -- (-) Pandoc JSON
+  --- (x) Layer 1 support
+  --- (x) Layer 2 support
+  --- (x) Layer 3 support
   --- ( ) Layer 4 support
   --- ( ) Layer 5 support
   -- ( ) Julia Terminal display using julia's nice features such as `printstyled` and others.
