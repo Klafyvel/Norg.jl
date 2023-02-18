@@ -17,6 +17,7 @@ using ..Tokenize
 using ..AST
 using ..Match
 import ..consume_until
+import ..findtargets!
 
 """
     parse(AST.NorgDocument, s)
@@ -94,7 +95,9 @@ function parse_norg(tokens)
             push!(children, child)
         end
     end
-    AST.NorgDocument(children, tokens)
+    ast = AST.NorgDocument(children, tokens)
+    findtargets!(ast)
+    ast
 end
 
 function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)

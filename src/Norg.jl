@@ -36,6 +36,8 @@ Path to the Norg semantics specification.
 """
 const NORG_SEMANTICS_PATH = joinpath(NORG_SPEC_ROOT, "1.0-semantics.norg")
 
+using AbstractTrees
+
 include("kind.jl")
 include("strategy.jl")
 include("tokens.jl")

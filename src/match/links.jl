@@ -7,9 +7,7 @@ function match_norg(::LinkLocation, parents, tokens, i)
         MatchFound(K"MagicLocation")
     elseif kind(tokens[i]) == K"/"
         MatchFound(K"FileLocation")
-    elseif kind(tokens[i]) == K"*"
-        # TODO: This works since headings are the only form of structural detached
-        # modifiers AND in layer two range-able detached modifiers do not exist.
+    elseif kind(tokens[i]) ∈ KSet"* $ ^"
         MatchFound(K"DetachedModifierLocation")
     elseif kind(tokens[i]) == K"?"
         MatchFound(K"WikiLocation")

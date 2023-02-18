@@ -166,16 +166,40 @@ function codegen(::JSONTarget, ::LineNumberLocation, ast, node)
 end
 
 function codegen(t::JSONTarget, ::DetachedModifierLocation, ast, node)
-    level_num = AST.heading_level(first(children(node)))
-    level = "h" * string(level_num)
-    title = textify(ast, node)
-    "#" * idify(level * " " * title)
+    kindoftarget = kind(first(children(node)))
+    title = textify(ast, last(children(node)))
+    if AST.is_heading(kindoftarget)
+        level_num = AST.heading_level(first(children(node)))
+        level = "h" * string(level_num)
+        "#" * idify(level * " " * title)
+    elseif kindoftarget == K"Definition"
+        "#" * "def_" * idify(title)
+    elseif kindoftarget == K"Footnote"
+        "#" * "fn_" * idify(title)
+    else
+        error("JSON code generation received an unknown Detached Modifier location: $kindoftarget")
+    end
 end
 
 function codegen(::JSONTarget, ::MagicLocation, ast, node)
-    # Unsupported for now. Later there will be a pass through the AST to change
-    # any node of this type to a DetachedModifierLocation
-    ""
+    key = textify(ast, node)
+    if haskey(ast.targets, key)
+        kindoftarget, targetnoderef = ast.targets[key]
+        title = textify(ast, first(children(targetnoderef[])))
+        if AST.is_heading(kindoftarget)
+            level_num = AST.heading_level(kindoftarget)
+            level = "h" * string(level_num)
+            "#" * idify(level * " " * title)
+        elseif kindoftarget == K"Definition"
+            "#" * "def_" * idify(title)
+        elseif kindoftarget == K"Footnote"
+            "#" * "fn_" * idify(title)
+        else
+            error("JSON code generation received an unknown Detached Modifier location: $kindoftarget")
+        end
+    else
+        "" 
+    end
 end
 
 function codegen(t::JSONTarget, ::FileLocation, ast, node)

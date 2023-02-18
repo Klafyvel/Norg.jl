@@ -112,29 +112,40 @@ end
 function parse_norg(::DetachedModifierLocation, parents, tokens, i)
     start = i
     token = tokens[i]
-    level = 0
-    while kind(token) == K"*"
-        level += 1
-        i = nextind(tokens, i)
-        token = tokens[i]
+    if kind(token) == K"*"
+        level = 0
+        while kind(token) == K"*"
+            level += 1
+            i = nextind(tokens, i)
+            token = tokens[i]
+        end
+        if kind(token) == K"Whitespace"
+            i = nextind(tokens, i)
+            token = tokens[i]
+        end
+        heading_kind = if level == 1
+            K"Heading1"
+        elseif level == 2
+            K"Heading2"
+        elseif level == 3
+            K"Heading3"
+        elseif level == 4
+            K"Heading4"
+        elseif level == 5
+            K"Heading5"
+        elseif level >= 6
+            K"Heading6"
+        end
+    elseif kind(token) == K"$"
+        heading_kind = K"Definition"
+        i = consume_until(K"Whitespace", tokens, i)
+    elseif kind(token) == K"^"
+        heading_kind = K"Footnote"
+        i = consume_until(K"Whitespace", tokens, i)
+    else
+        error("Wrong detached modifier link at token $token")
     end
-    if kind(token) == K"Whitespace"
-        i = nextind(tokens, i)
-        token = tokens[i]
-    end
-    heading_kind = if level == 1
-        K"Heading1"
-    elseif level == 2
-        K"Heading2"
-    elseif level == 3
-        K"Heading3"
-    elseif level == 4
-        K"Heading4"
-    elseif level == 5
-        K"Heading5"
-    elseif level >= 6
-        K"Heading6"
-    end
+
     start_heading_title = i
     m = match_norg(parents, tokens, i)
     while !is_eof(token) && !isclosing(m)

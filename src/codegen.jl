@@ -10,57 +10,11 @@ using ..Strategies
 using ..Kinds
 using ..Tokens
 import ..parse_norg_timestamp
+import ..idify
+import ..textify
+import ..getchildren
 
 abstract type CodegenTarget end
-
-"""
-    idify(text)
-
-Make some text suitable for using it as an id in a document.
-"""
-function idify(text)
-    words = map(lowercase, split(text, r"\W+"))
-    join(filter(!isempty, words), '-')
-end
-
-"""
-    textify(ast, node)
-
-Return the raw text associated with a node.
-"""
-function textify(ast, node)
-    if is_leaf(node)
-        AST.litteral(ast, node)
-    else
-        join(textify(ast, c) for c in children(node))
-    end
-end
-
-"""
-    getchildren(node, k)
-    getchildren(node, k[, exclude])
-
-Return all children and grandchildren of kind `k`. It can also `exclude` 
-certain nodes from recursion.
-"""
-function getchildren(node, k)
-    filter(
-        x->kind(x)==k,
-        collect(PreOrderDFS(
-            x->kind(x)!=k,
-            node
-        ))
-    )
-end
-function getchildren(node, k, exclude)
-    filter(
-        x->kind(x)==k,
-        collect(PreOrderDFS(
-            x->kind(x)!=k && kind(x)!=exclude,
-            node
-        ))
-    )
-end
 
 """
     codegen(T, ast)

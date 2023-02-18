@@ -150,9 +150,28 @@ function codegen(t::HTMLTarget, ::Link, ast, node)
     if length(node.children) > 1
         text = codegen(t, ast, last(node.children))
     elseif kind(first(node.children)) == K"DetachedModifierLocation"
-        text = codegen(t, ast, children(first(children(node)))[2])
+        kindoftarget = kind(first(children(node)))
+        title = codegen(t, Word(), ast, last(children(node)))
+        if kindoftarget == K"Footnote"
+            id = "fnref_" * idify(title)
+            text = m("sup", id=id, title)
+        else
+            text = title
+        end
     elseif kind(first(node.children)) == K"MagicLocation"
-        text = codegen(t, ast, children(first(children(node)))[1])
+        key = textify(ast, node)
+        if haskey(ast.targets, key)
+            kindoftarget, targetnoderef = ast.targets[key]
+            title = codegen(t, Word(), ast, first(children(targetnoderef[])))
+            if kindoftarget == K"Footnote"
+                id = "fnref_" * idify(title)
+                text = m("sup", id=id, title)
+            else
+                text = title
+            end
+        else
+            text = codegen(t, ast, children(first(children(node)))[1])
+        end
     elseif kind(first(node.children)) == K"WikiLocation"
         text = codegen(t, ast, children(first(children(node)))[1])
     elseif kind(first(node.children)) == K"TimestampLocation"
@@ -177,16 +196,40 @@ function codegen(t::HTMLTarget, ::LineNumberLocation, ast, node)
 end
 
 function codegen(t::HTMLTarget, ::DetachedModifierLocation, ast, node)
-    level_num = AST.heading_level(first(children(node)))
-    level = "h" * string(level_num)
+    kindoftarget = kind(first(children(node)))
     title = codegen(t, Word(), ast, last(children(node)))
-    "#" * idify(level * " " * title)
+    if AST.is_heading(kindoftarget)
+        level_num = AST.heading_level(first(children(node)))
+        level = "h" * string(level_num)
+        "#" * idify(level * " " * title)
+    elseif kindoftarget == K"Definition"
+        "#" * "def_" * idify(title)
+    elseif kindoftarget == K"Footnote"
+        "#" * "fn_" * idify(title)
+    else
+        error("HTML code generation received an unknown Detached Modifier location: $kindoftarget")
+    end
 end
 
-function codegen(::HTMLTarget, ::MagicLocation, ast, node)
-    # Unsupported for now. Later there will be a pass through the AST to change
-    # any node of this type to a DetachedModifierLocation
-    ""
+function codegen(t::HTMLTarget, ::MagicLocation, ast, node)
+    key = textify(ast, node)
+    if haskey(ast.targets, key)
+        kindoftarget, targetnoderef = ast.targets[key]
+        title = codegen(t, Word(), ast, first(children(targetnoderef[])))
+        if AST.is_heading(kindoftarget)
+            level_num = AST.heading_level(kindoftarget)
+            level = "h" * string(level_num)
+            "#" * idify(level * " " * title)
+        elseif kindoftarget == K"Definition"
+            "#" * "def_" * idify(title)
+        elseif kindoftarget == K"Footnote"
+            "#" * "fn_" * idify(title)
+        else
+            error("HTML code generation received an unknown Detached Modifier location: $kindoftarget")
+        end
+    else
+        "" 
+    end
 end
 
 function codegen(t::HTMLTarget, ::FileLocation, ast, node)
