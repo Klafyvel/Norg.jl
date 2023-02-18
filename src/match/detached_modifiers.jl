@@ -55,7 +55,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
             new_token = tokens[new_i]
         end
         if is_delimiting
-            if first(parents) ∈ [K"NorgDocument"] || is_heading(first(parents))
+            if first(parents) ∈ KSet"NorgDocument IndentSegment" || is_heading(first(parents))
                 MatchFound(delimitingmodifier(t))
             else
                 MatchClosing(first(parents), false)
@@ -132,6 +132,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:Nestable}
         elseif any(nestable_level.(ancestor_nestable) .== level)
             MatchClosing(first(parents), false)
         elseif first(parents) ∈ [K"Paragraph", K"ParagraphSegment"]
+            @debug "Chérie ça va couper." parents tokens[i]
             MatchClosing(first(parents), false)
         else
             MatchFound(nestable(t, level))

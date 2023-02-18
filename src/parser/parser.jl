@@ -16,6 +16,8 @@ using ..Tokens
 using ..Tokenize
 using ..AST
 using ..Match
+import ..consume_until
+import ..findtargets!
 
 """
     parse(AST.NorgDocument, s)
@@ -27,28 +29,51 @@ function Base.parse(::Type{AST.NorgDocument}, s::AbstractString)
 end
 
 """
-    consume_until(k, tokens, i)
-
-Consume tokens until a token of kind `k` is encountered, or final token is reached.
-"""
-function consume_until(k::Kind, tokens, i)
-    token = tokens[i]
-    while !is_eof(token) && kind(token) != k
-        i = nextind(tokens, i)
-        token = tokens[i]
-    end
-    if kind(token) == k
-        i = nextind(tokens, i)
-    end
-    i
-end
-
-"""
     parse_norg(strategy, tokens, i)
 
 Try to parse the `tokens` sequence starting at index `i` using a given `strategy`.
 """
 function parse_norg end
+
+function parse_norg_toplevel_one_step(parents, tokens, i)
+    m = match_norg(parents, tokens, i)
+    to_parse = matched(m)
+    if isclosing(m)
+        error("Closing token when parsing a top level element at token $(tokens[i]). This is a bug, please report it along with the text you are trying to parse.")
+        return AST.Node(K"None", AST.Node[], i, nextind(tokens, i))
+    elseif iscontinue(m)
+        return AST.Node(K"None", AST.Node[], i, i)
+    end
+    if is_delimiting_modifier(to_parse)
+        start = i
+        stop = prevind(tokens, consume_until(K"LineEnding", tokens, i))
+        AST.Node(to_parse, AST.Node[], start, stop)
+    elseif is_quote(to_parse)
+        parse_norg(Quote(), parents, tokens, i) 
+    elseif is_unordered_list(to_parse)
+        parse_norg(UnorderedList(), parents, tokens, i) 
+    elseif is_ordered_list(to_parse)
+        parse_norg(OrderedList(), parents, tokens, i) 
+    elseif kind(to_parse) == K"Verbatim"
+        parse_norg(Verbatim(), parents, tokens, i)
+    elseif is_heading(to_parse)
+        parse_norg(Heading(), parents, tokens, i)
+    elseif to_parse == K"WeakCarryoverTag"
+        parse_norg(WeakCarryoverTag(), parents, tokens, i)
+    elseif to_parse == K"StrongCarryoverTag"
+        parse_norg(StrongCarryoverTag(), parents, tokens, i)
+    elseif to_parse == K"ParagraphSegment"
+        parse_norg(ParagraphSegment(), parents, tokens, i)
+    elseif to_parse == K"NestableItem"
+        parse_norg(NestableItem(), parents, tokens, i)
+    elseif to_parse == K"Definition"
+        parse_norg(Definition(), parents, tokens, i)
+    elseif to_parse == K"Footnote"
+        parse_norg(Footnote(), parents, tokens, i)
+    else
+        parse_norg(Paragraph(), parents, tokens, i)
+    end
+end
 
 """
     parse_norg(tokens)
@@ -58,43 +83,21 @@ from the begining of the sequence.
 """
 function parse_norg(tokens)
     i = nextind(tokens, firstindex(tokens))
-    paragraphs = AST.Node[]
+    children = AST.Node[]
     while !is_eof(tokens[i])
-        m = match_norg([K"NorgDocument"], tokens, i)
-        if isclosing(m)
-            error("Closing token when parsing NorgDocument at token $(tokens[i]). This is a bug, please report it along with the text you are trying to parse.")
-            return AST.NorgDocument(AST.Node[], tokens)
-        elseif iscontinue(m)
-            i = nextind(tokens, i)
-            continue
-        end
-        to_parse = matched(m)
-        paragraph = if is_delimiting_modifier(to_parse)
-            start = i
-            stop = consume_until(K"LineEnding", tokens, i)
-            AST.Node(to_parse, AST.Node[], start, stop)
-        elseif is_quote(to_parse)
-            parse_norg(Quote(), [K"NorgDocument"], tokens, i) 
-        elseif is_unordered_list(to_parse)
-            parse_norg(UnorderedList(), [K"NorgDocument"], tokens, i) 
-        elseif is_ordered_list(to_parse)
-            parse_norg(OrderedList(), [K"NorgDocument"], tokens, i) 
-        elseif kind(to_parse) == K"Verbatim"
-            parse_norg(Verbatim(), [K"NorgDocument"], tokens, i)
-        elseif is_heading(to_parse)
-            parse_norg(Heading(), [K"NorgDocument"], tokens, i)
-        else
-            parse_norg(Paragraph(), [K"NorgDocument"], tokens, i)
-        end
-        i = AST.stop(paragraph)
+        child = parse_norg_toplevel_one_step([K"NorgDocument"], tokens, i)
+        @debug "toplevel" i child tokens[i]
+        i = AST.stop(child)
         if !is_eof(tokens[i])
             i = nextind(tokens, i)
         end
-        if kind(paragraph) != K"None"
-            push!(paragraphs, paragraph)
+        if kind(child) != K"None"
+            push!(children, child)
         end
     end
-    AST.NorgDocument(paragraphs, tokens)
+    ast = AST.NorgDocument(children, tokens)
+    findtargets!(ast)
+    ast
 end
 
 function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
@@ -115,9 +118,14 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
         elseif is_heading(to_parse)
             break
         else
-            segment = parse_norg(ParagraphSegment(), [K"Paragraph", parents...], tokens, i)
+            target = if to_parse == K"WeakCarryoverTag"
+                WeakCarryoverTag()
+            else
+                ParagraphSegment()
+            end
+            segment = parse_norg(target, [K"Paragraph", parents...], tokens, i)
             i = nextind(tokens, AST.stop(segment))
-            if kind(segment) == K"None"
+            if kind(segment) ∈ KSet"None Paragraph"
                 append!(segments, children(segment))
             else
                 push!(segments, segment)
@@ -160,6 +168,8 @@ function parse_norg_dispatch(to_parse, parents::Vector{Kind}, tokens, i)
         parse_norg(Link(), parents, tokens, i)            
     elseif to_parse == K"Anchor"
         parse_norg(Anchor(), parents, tokens, i)
+    elseif to_parse == K"InlineLinkTarget"
+        parse_norg(InlineLinkTarget(), parents, tokens, i)
     elseif to_parse == K"Word"
         parse_norg(Word(), parents, tokens, i)
     else
@@ -177,6 +187,9 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
         m = match_norg(parents, tokens, i)
         if isclosing(m)
             break
+        elseif iscontinue(m)
+            i = nextind(tokens, i)
+            continue
         end
         to_parse = matched(m)
         if is_delimiting_modifier(to_parse)
@@ -229,8 +242,11 @@ end
 include("attachedmodifier.jl")
 include("link.jl")
 include("structuralmodifier.jl")
-include("verbatim.jl")
+include("tag.jl")
 include("nestablemodifier.jl")
+include("detachedmodifierextensions.jl")
+include("rangeabledetachedmodifier.jl")
+include("detachedmodifiersuffix.jl")
 
 export parse_norg
 end

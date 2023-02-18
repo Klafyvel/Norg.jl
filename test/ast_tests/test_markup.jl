@@ -1,6 +1,8 @@
 # model : https://github.com/nvim-neorg/tree-sitter-norg/blob/dev/test/corpus/markup.txt
 
 Node = Norg.AST.Node
+AST = Norg.AST
+textify = Norg.Codegen.textify
 
 simple_markups = [
 ("*", K"Bold"),
@@ -179,4 +181,16 @@ end
     ic2 = children(ps1)[5]
     @test kind(ic1) == K"InlineCode"
     @test kind(ic2) == K"InlineCode"
+end
+
+@testset "Link modifier for: $T" for (m,T) in simple_markups
+    ast = parse(AST.NorgDocument, "Intra:$(m)word$(m):markup")
+    ps = first(children(first(children(ast))))
+    w1,mark,w2 = children(ps)
+    @test kind(w1) == K"WordNode"
+    @test kind(mark) == T
+    @test kind(w2) == K"WordNode"
+    @test textify(ast, w1) == "Intra"
+    @test textify(ast, mark) == "word"
+    @test textify(ast, w2) == "markup"
 end

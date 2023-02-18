@@ -158,3 +158,13 @@ end
     @test kind(hr) == K"HorizontalRule"
     @test kind(p2) == K"Paragraph"
 end
+
+@testset "Delimiting modifiers should not be too greedy.: $m" for m in ("=", "-", "_")
+    ast = parse(Norg.AST.NorgDocument, """Hello
+    $m$m$m
+    There
+    """)
+    p1,delim,p2 = children(ast)
+    @test Norg.Codegen.textify(ast, p1) == "Hello"
+    @test Norg.Codegen.textify(ast, p2) == "There"
+end

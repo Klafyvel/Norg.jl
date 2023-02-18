@@ -124,7 +124,7 @@ All the registered [`Kinds.Kind`](@ref) that [`Scanners.scan`](@ref) will try wh
 """
 const TOKENKIND_PARSING_ORDER = [
         Kinds.all_single_punctuation_tokens()...;
-        K"LineEnding"; K"Whitespace"; K"Punctuation"; K"Word"
+        K"x"; K"LineEnding"; K"Whitespace"; K"Punctuation"; K"Word"
 ]
 
 """

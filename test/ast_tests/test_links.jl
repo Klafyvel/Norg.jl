@@ -13,7 +13,10 @@ simple_link_tests = [":norg_file:" => K"NorgFileLocation"
                      "42" => K"LineNumberLocation"
                      "https://example.org" => K"URLLocation"
                      "file://example.txt" => K"URLLocation"
-                     "/ example.txt" => K"FileLocation"]
+                     "/ example.txt" => K"FileLocation"
+                     "? test" => K"WikiLocation"
+                     "@ Wednesday" => K"TimestampLocation"
+]
 
 @testset "basic links: $target" for (link, target) in simple_link_tests
     s = "{$link} other"
@@ -89,7 +92,9 @@ subtarget_tests = [":file:1" => K"LineNumberLocation"
                    ":file:****** heading" => K"DetachedModifierLocation"
                    ":file:******* heading" => K"DetachedModifierLocation"
                    ":file:# magic" => K"MagicLocation"
-                   "/ file.txt:1" => K"LineNumberLocation"]
+                   "/ file.txt:1" => K"LineNumberLocation"
+                   "? test:file:" => K"NorgFileLocation"
+]
 @testset "Checking subtarget :$link => $target" for (link, target) in subtarget_tests
     s = "{$link}"
     ast = parse(Norg.AST.NorgDocument, s)
@@ -113,7 +118,9 @@ leaves_tests = [
     "42" => [K"LineNumberTarget"]
     "https://example.org" => [K"URLTarget"]
     "file://example.txt" => [K"URLTarget"]
-    "/ example.txt" => [K"FileTarget", K"None"]    ]
+    "/ example.txt" => [K"FileTarget", K"None"]
+    "@ Wednesday" => [K"Timestamp"]
+]
 @testset "Checking leaves :$link => $target" for (link, target) in leaves_tests
     s = "{$link}"
     ast = parse(Norg.AST.NorgDocument, s)
@@ -185,7 +192,10 @@ target = K"DetachedModifierLocation")
                 (input = "[url anchor]\n\n[url anchor]{https://github.com/}",
                  target = K"URLLocation")
                 (input = "[file anchor]\n\n[file anchor]{file:///dev/null}",
-                 target = K"URLLocation")]
+                 target = K"URLLocation")
+                (input = "[timestamp anchor]\n\n[timestamp anchor]{@ Wednesday}",
+                 target = K"TimestampLocation")
+]
 
 @testset "Testing anchor : $(t.target)" for t in anchor_tests
     ast = parse(AST.NorgDocument, t.input)
@@ -199,6 +209,17 @@ target = K"DetachedModifierLocation")
     if :subtarget in keys(t)
         @test kind(last(children(target))) == t.subtarget
     end
+end
+
+@testset "Testing inline link targets" begin
+    s = "Hi! <inline link target>"
+    ast = parse(AST.NorgDocument, s)
+    p = first(children(ast))
+    ps = first(children(p))
+    i = last(children(ps))
+    @test kind(i) == K"InlineLinkTarget"
+    ps = first(children(i))
+    @test kind(ps) == K"ParagraphSegment"
 end
 
 @testset "Endlines in linkables." begin
@@ -247,6 +268,17 @@ end
     @test kind(l) == K"Link" || kind(l) == K"Anchor"
     @test all(kind.(ws) .== Ref(K"WordNode"))
 end 
+
+    invalid_inlines = [
+    """<
+    hi>"""
+    """<hi
+    >"""
+    ]
+@testset "Invalid examples : $(repr(s))" for s in invalid_inlines
+    ast = parse(AST.NorgDocument, s)
+    @test !any(kind(n) == K"InlineLinkTarget" for n in collect(PreOrderDFS(ast)))
+end 
 end
 
 @testset "Valid endlines" begin
@@ -284,5 +316,16 @@ end
     descr,loc  = children(a)
     @test AST.is_link_location(loc)
     @test kind(descr) == K"LinkDescription"
+
+    valid_inlines = [
+    """<hi 
+    I'm valid>"""
+    ]
+@testset "Valid examples : $(repr(s))" for s in valid_inlines
+    ast = parse(AST.NorgDocument, s)
+    p = first(children(ast))
+    ps = first(children(p))
+    @test kind(first(children(ps))) == K"InlineLinkTarget"
+end 
 end
 end

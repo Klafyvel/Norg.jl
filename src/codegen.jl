@@ -9,31 +9,12 @@ using ..AST
 using ..Strategies
 using ..Kinds
 using ..Tokens
+import ..parse_norg_timestamp
+import ..idify
+import ..textify
+import ..getchildren
 
 abstract type CodegenTarget end
-
-"""
-    idify(text)
-
-Make some text suitable for using it as an id in a document.
-"""
-function idify(text)
-    words = map(lowercase, split(text, r"\W+"))
-    join(filter(!isempty, words), '-')
-end
-
-"""
-    textify(ast, node)
-
-Return the raw text associated with a node.
-"""
-function textify(ast, node)
-    if is_leaf(node)
-        AST.litteral(ast, node)
-    else
-        join(textify(ast, c) for c in children(node))
-    end
-end
 
 """
     codegen(T, ast)
@@ -87,10 +68,16 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, FileLocation(), ast, node)
     elseif kind(node) == K"NorgFileLocation"
         codegen(t, NorgFileLocation(), ast, node)
+    elseif kind(node) == K"WikiLocation"
+        codegen(t, WikiLocation(), ast, node)
+    elseif kind(node) == K"TimestampLocation"
+        codegen(t, TimestampLocation(), ast, node)
     elseif kind(node) == K"LinkDescription"
         codegen(t, LinkDescription(), ast, node)
     elseif kind(node) == K"Anchor"
         codegen(t, Anchor(), ast, node)
+    elseif kind(node) == K"InlineLinkTarget"
+        codegen(t, InlineLinkTarget(), ast, node)
     elseif is_heading(node)
         codegen(t, Heading(), ast, node)
     elseif kind(node) == K"StrongDelimitingModifier"
@@ -109,10 +96,26 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, NestableItem(), ast, node)
     elseif kind(node) == K"Verbatim"
         codegen(t, Verbatim(), ast, node)
+    elseif kind(node) == K"TodoExtension"
+        codegen(t, TodoExtension(), ast, node)
+    elseif kind(node) ∈ KSet"TimestampExtension PriorityExtension DueDateExtension StartDateExtension"
+        codegen(t, Word(), ast, node)
+    elseif kind(node) == K"WeakCarryoverTag"
+        codegen(t, WeakCarryoverTag(), ast, node)
+    elseif kind(node) == K"StrongCarryoverTag"
+        codegen(t, StrongCarryoverTag(), ast, node)
+    elseif kind(node) == K"Definition"
+        codegen(t, Definition(), ast, node)
+    elseif kind(node) == K"Footnote"
+        codegen(t, Footnote(), ast, node)
+    elseif kind(node) == K"Slide"
+        codegen(t, Slide(), ast, node)
+    elseif kind(node) == K"IndentSegment"
+        codegen(t, IndentSegment(), ast, node)
     else
         t_start = ast.tokens[AST.start(node)]
         t_stop = ast.tokens[AST.stop(node)]
-        error("""HTML codegen got an unhandled node type: $(kind(node)). 
+        error("""$T codegen got an unhandled node type: $(kind(node)). 
         Faulty node starts at line $(line(t_start)), col. $(char(t_start))
         and stops at line $(line(t_stop)), col. $(char(t_stop))."""
         )

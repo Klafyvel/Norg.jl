@@ -61,6 +61,7 @@ simple_link_tests = [
 ("https://example.org", "https://example.org", "https://example.org")
 ("file://example.txt", "file://example.txt", "file://example.txt")
 ("/ example.txt", "example.txt", "example.txt")
+("? test", "/test", "test")
 ]
 
 @testset "Test links: $link" for (link, target, text) in simple_link_tests
@@ -136,6 +137,18 @@ nestable_lists = ['~'=>"OrderedList", '-'=>"BulletList", ">"=>"BlockQuote"]
     json = parse(JSONTarget(), s)
     list = json["blocks"][1]
     @test list["t"] == target
+end
+
+@testset "inline link" begin
+    s = """<inline link target>"""
+    json = parse(JSONTarget(), s)
+    p = json["blocks"][1]
+    @test length(p["c"]) == 1
+    span = first(p["c"])
+    @test span["t"] == "Span"
+    attrs, inlines = span["c"]
+    id = first(attrs)
+    @test id == "inline-link-target"
 end
 
 @testset "Parse the entire Norg spec without error." begin

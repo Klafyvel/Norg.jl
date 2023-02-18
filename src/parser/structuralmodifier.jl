@@ -14,12 +14,23 @@ function parse_norg(::Heading, parents, tokens, i)
     end
     heading_kind = AST.heading_level(heading_level)
     if is_whitespace(token)
-        title_segment = parse_norg(ParagraphSegment(), [heading_kind, parents...], tokens, nextind(tokens, i))
+        i = nextind(tokens, i)
+        m = match_norg([heading_kind, parents...], tokens, i)
+        children = []
+        if is_detached_modifier_extension(matched(m))
+            extension = parse_norg(DetachedModifierExtension(), parents, tokens, i)
+            push!(children, extension)
+            i = nextind(tokens, extension.stop)
+            if kind(tokens[i]) == K"Whitespace"
+                i = consume_until(K"Whitespace", tokens, i)
+            end
+        end
+        title_segment = parse_norg(ParagraphSegment(), [heading_kind, parents...], tokens, i)
+        push!(children, title_segment)
         i = nextind(tokens, AST.stop(title_segment))
-        children = [title_segment]
-        m = Match.MatchClosing(heading_kind)
         while !is_eof(tokens[i])
             m = match_norg([heading_kind, parents...], tokens, i)
+            @debug "heading loop" 
             if isclosing(m)
                 break
             end
@@ -46,6 +57,12 @@ function parse_norg(::Heading, parents, tokens, i)
                 child = parse_norg(OrderedList(), [heading_kind, parents...], tokens, i)
             elseif kind(to_parse) == K"Verbatim"
                 child = parse_norg(Verbatim(), [heading_kind, parents...], tokens, i)
+            elseif to_parse == K"WeakCarryoverTag"
+                child = parse_norg(WeakCarryoverTag(), parents, tokens, i)
+            elseif to_parse == K"Definition"
+                child = parse_norg(Definition(), parents, tokens, i)
+            elseif to_parse == K"Footnote"
+                child = parse_norg(Footnote(), parents, tokens, i)
             else
                 child = parse_norg(Paragraph(), [heading_kind, parents...], tokens, i)
             end

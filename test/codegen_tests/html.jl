@@ -64,6 +64,7 @@ simple_link_tests = [
 ("https://example.org", "https://example.org", "https://example.org")
 ("file://example.txt", "file://example.txt", "file://example.txt")
 ("/ example.txt", "example.txt", "example.txt")
+("? test", "/test", "test")
 ]
 
 @testset "Test links: $link" for (link, target, text) in simple_link_tests
@@ -148,6 +149,16 @@ end
     html = parse(HTMLTarget(), s)
     q = first(getfield(html, :children))
     @test getfield(q, :tag) == "blockquote"
+end
+
+@testset "inline link" begin
+    s = """<inline link target>"""
+    html = parse(HTMLTarget(), s)
+    p = first(getfield(html, :children))
+    @test length(getfield(p, :children)) == 1
+    span = first(getfield(p, :children))
+    @test haskey(getfield(span, :attrs), "id")
+    @test getfield(span, :attrs)["id"] == "inline-link-target"
 end
 
 @testset "Parse the entier Norg spec without error." begin

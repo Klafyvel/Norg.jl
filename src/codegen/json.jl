@@ -127,24 +127,35 @@ end
 codegen(t::JSONTarget, ::Escape, ast, node) = codegen(t, ast, first(children(node)))
 
 function codegen(t::JSONTarget, ::Link, ast, node)
-    target = codegen(t, ast, first(node.children))
     if length(node.children) > 1
         text = codegen(t, ast, last(node.children))
     elseif kind(first(node.children)) == K"DetachedModifierLocation"
         text = codegen(t, ast, children(first(children(node)))[2])
     elseif kind(first(node.children)) == K"MagicLocation"
         text = codegen(t, ast, children(first(children(node)))[1])
+    elseif kind(first(node.children)) == K"WikiLocation"
+        text = codegen(t, ast, children(first(children(node)))[1])
+    elseif kind(first(node.children)) == K"TimestampLocation"
+        text = textify(ast, first(node.children))
     else
         text = [OrderedDict(["t"=>"Str", "c"=>codegen(t, ast, first(node.children))])]
     end
-    OrderedDict([
-        "t"=>"Link"
-        "c"=>[
-            ["", Any[], Any[]],
-            text,
-            [target, ""]
-        ]
-    ])
+    if kind(first(node.children)) == K"TimestampLocation"
+        OrderedDict([
+            "t"=>"Str"
+            "c"=>text
+            ])
+    else
+        target = codegen(t, ast, first(node.children))
+        OrderedDict([
+            "t"=>"Link"
+            "c"=>[
+                ["", Any[], Any[]],
+                text,
+                [target, ""]
+            ]
+        ])
+    end
 end
 
 codegen(::JSONTarget, ::URLLocation, ast, node) = textify(ast, node)
@@ -155,16 +166,40 @@ function codegen(::JSONTarget, ::LineNumberLocation, ast, node)
 end
 
 function codegen(t::JSONTarget, ::DetachedModifierLocation, ast, node)
-    level_num = AST.heading_level(first(children(node)))
-    level = "h" * string(level_num)
-    title = textify(ast, node)
-    "#" * idify(level * " " * title)
+    kindoftarget = kind(first(children(node)))
+    title = textify(ast, last(children(node)))
+    if AST.is_heading(kindoftarget)
+        level_num = AST.heading_level(first(children(node)))
+        level = "h" * string(level_num)
+        "#" * idify(level * " " * title)
+    elseif kindoftarget == K"Definition"
+        "#" * "def_" * idify(title)
+    elseif kindoftarget == K"Footnote"
+        "#" * "fn_" * idify(title)
+    else
+        error("JSON code generation received an unknown Detached Modifier location: $kindoftarget")
+    end
 end
 
 function codegen(::JSONTarget, ::MagicLocation, ast, node)
-    # Unsupported for now. Later there will be a pass through the AST to change
-    # any node of this type to a DetachedModifierLocation
-    ""
+    key = textify(ast, node)
+    if haskey(ast.targets, key)
+        kindoftarget, targetnoderef = ast.targets[key]
+        title = textify(ast, first(children(targetnoderef[])))
+        if AST.is_heading(kindoftarget)
+            level_num = AST.heading_level(kindoftarget)
+            level = "h" * string(level_num)
+            "#" * idify(level * " " * title)
+        elseif kindoftarget == K"Definition"
+            "#" * "def_" * idify(title)
+        elseif kindoftarget == K"Footnote"
+            "#" * "fn_" * idify(title)
+        else
+            error("JSON code generation received an unknown Detached Modifier location: $kindoftarget")
+        end
+    else
+        "" 
+    end
 end
 
 function codegen(t::JSONTarget, ::FileLocation, ast, node)
@@ -201,6 +236,19 @@ function codegen(t::JSONTarget, ::NorgFileLocation, ast, node)
     start * target_loc * subtarget_loc
 end
 
+function codegen(t::JSONTarget, ::WikiLocation, ast, node)
+    target, subtarget = children(node)
+    target_loc = textify(ast, target)
+    if kind(subtarget) == K"None"
+        subtarget_loc = "" 
+    else
+        subtarget_loc = "#" * codegen(t, ast, subtarget)
+    end
+    "/" * target_loc * subtarget_loc
+end
+
+codegen(::JSONTarget, ::TimestampLocation, ast, node) = textify(ast, node)
+
 codegen(t::JSONTarget, ::LinkDescription, ast, node) = collect(Iterators.flatten([codegen(t, ast, c) for c in children(node)]))
 
 function codegen(t::JSONTarget, ::Anchor, ast, node)
@@ -216,6 +264,25 @@ function codegen(t::JSONTarget, ::Anchor, ast, node)
             ["", Any[], Any[]],
             text,
             [target, ""]
+        ]
+    ])
+end
+
+function codegen(t::JSONTarget, ::InlineLinkTarget, ast, node)
+    text = []
+    for c in children(node)
+        append!(text, codegen(t, ast, c))
+        push!(text, " ")
+    end
+    if !isempty(text)
+        pop!(text) # remove last space
+    end
+    id = idify(join(textify(ast, node)))
+    OrderedDict([
+        "t"=>"Span"
+        "c"=>[
+            [id, Any[], Any[]],
+            text
         ]
     ])
 end
@@ -290,7 +357,7 @@ function codegen(::JSONTarget, ::Verbatim, ast, node)
             "c"=>[["", [], []], textify(ast, last(others))]
         ])
     else
-        language = if kind(first(others)) == K"VerbatimParameter"
+        language = if kind(first(others)) == K"TagParameter"
             litteral(ast, first(others))
         else
             litteral(ast, others[2])
@@ -302,6 +369,71 @@ function codegen(::JSONTarget, ::Verbatim, ast, node)
     end
 end
 
+function codegen(::JSONTarget, ::TodoExtension, ast, node)
+    status = first(children(node))
+    checked = kind(status) == K"StatusDone"
+    if checked
+        s = "☑"
+    else
+        s = "☐"
+    end
+    OrderedDict([
+    "t"=>"Str"
+    "c"=>s
+    ])
+end
+
+function codegen(t::JSONTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast, node)
+    content = codegen(t, ast, last(children(node)))
+    label = textify(ast, first(children(node)))
+    # TODO: there's most likely some room for improvement here, as some contents
+    # already have a mechanism for attributes, so the Div is not needed.
+    attr = ["", [], []]
+    if length(children(node)) <= 2
+        attr[2] = [label]
+    elseif length(children(node)) == 3
+        attr[3] = [[label, textify(ast, children(node)[2])]]
+    else
+        attr[2] = [join(textify.(Ref(ast), children(node)[1:end-1]), "-")]
+    end
+    OrderedDict([
+        "t"=>"Div"
+        "c"=>[attr, content]
+    ])
+end
+
+function codegen(t::JSONTarget, ::Definition, ast, node)
+    items = children(node)
+    OrderedDict([
+        "t"=>"DefinitionList"
+        "c"=>map(items) do item
+            term, def... = children(item)
+            term_id = "def_" * idify(textify(ast, term))
+            term_node = OrderedDict([
+                "t"=>"Span"
+                "c"=>[
+                    (term_id, [], [])
+                    codegen(t, ast, term)
+                ]
+            ])
+            def_node = codegen.(Ref(t), Ref(ast), def)
+            (term_node, def_node)
+        end
+    ])
+end
+
+function codegen(t::JSONTarget, ::Footnote, ast, node)
+    # Return nothing, pandoc expects footnotes to be defined where they are called.
+    []
+end
+
+function codegen(t::JSONTarget, ::Slide, ast, node)
+    codegen(t, ast, first(children(node)))
+end
+
+function codegen(t::JSONTarget, ::IndentSegment, ast, node)
+    codegen.(Ref(t), Ref(ast), children(node))
+end
 
 export JSONTarget
 

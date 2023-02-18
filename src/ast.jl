@@ -27,7 +27,9 @@ Stores the Abstract Syntax Tree (AST) for a Norg document. It implements the
 struct NorgDocument
     nodes::Vector{Node}
     tokens::Vector{Token}
+    targets::Dict{String, Tuple{Kind,Ref{Node}}}
 end
+NorgDocument(nodes, tokens) = NorgDocument(nodes, tokens, Dict{String, Tuple{Kind,Ref{Node}}}())
 
 Kinds.kind(::NorgDocument) = K"NorgDocument"
 Kinds.kind(node::Node) = node.kind

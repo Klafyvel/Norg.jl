@@ -7,10 +7,12 @@ function match_norg(::LinkLocation, parents, tokens, i)
         MatchFound(K"MagicLocation")
     elseif kind(tokens[i]) == K"/"
         MatchFound(K"FileLocation")
-    elseif kind(tokens[i]) == K"*"
-        # TODO: This works since headings are the only form of structural detached
-        # modifiers AND in layer two range-able detached modifiers do not exist.
+    elseif kind(tokens[i]) ∈ KSet"* $ ^"
         MatchFound(K"DetachedModifierLocation")
+    elseif kind(tokens[i]) == K"?"
+        MatchFound(K"WikiLocation")
+    elseif kind(tokens[i]) == K"@"
+        MatchFound(K"TimestampLocation")
     elseif isnumeric(first(value(tokens[i])))
         MatchFound(K"LineNumberLocation")
     else
@@ -53,6 +55,14 @@ end
 function match_norg(::Anchor, parents, tokens, i)
     if kind(tokens[i]) == K"[" && kind(tokens[nextind(tokens, i)]) != K"LineEnding"
         MatchFound(K"Anchor")
+    else
+        MatchNotFound()
+    end
+end
+
+function match_norg(::InlineLinkTarget, parents, tokens, i)
+    if kind(tokens[i]) == K"<" && kind(tokens[nextind(tokens, i)]) != K"LineEnding"
+        MatchFound(K"InlineLinkTarget")
     else
         MatchNotFound()
     end

@@ -36,23 +36,32 @@ Path to the Norg semantics specification.
 """
 const NORG_SEMANTICS_PATH = joinpath(NORG_SPEC_ROOT, "1.0-semantics.norg")
 
+using AbstractTrees
+
 include("kind.jl")
 include("strategy.jl")
 include("tokens.jl")
 include("scanners.jl")
 include("tokenize.jl")
 include("ast.jl")
-include("match/match.jl")
-include("parser/parser.jl")
-include("codegen.jl")
 
 using .Kinds
 using .Tokens
 using .Scanners
 using .Tokenize
 using .AST
+
+include("utils.jl")
+include("match/match.jl")
+include("parser/parser.jl")
+
 using .Parser
+
+include("semantics/timestamps.jl")
+
+include("codegen.jl")
 using .Codegen
+
 
 """
     parse(HTMLTarget(), s)
