@@ -407,6 +407,10 @@ function codegen(t::JSONTarget, ::Slide, ast, node)
     codegen(t, ast, first(children(node)))
 end
 
+function codegen(t::JSONTarget, ::IndentSegment, ast, node)
+    codegen.(Ref(t), Ref(ast), children(node))
+end
+
 export JSONTarget
 
 end

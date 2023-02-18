@@ -53,7 +53,7 @@ function codegen(t::HTMLTarget, ast::AST.NorgDocument)
                 term_id = "fn_" * idify(textify(ast, term))
                 m("li", id=term_id, [
                     codegen.(Ref(t), Ref(ast), note), 
-                    m("a", role="doc-backlink", href="fnref_" * idify(textify(ast, term)), "↩︎")
+                    m("a", role="doc-backlink", href="#fnref_" * idify(textify(ast, term)), "↩︎")
                 ])
             end)
         )
@@ -69,7 +69,7 @@ function codegen(t::HTMLTarget, ast::AST.NorgDocument)
                 term_id = "fn_" * idify(textify(ast, term))
                 m("li", id=term_id, [
                     codegen.(Ref(t), Ref(ast), note), 
-                    m("a", role="doc-backlink", href="fnref_" * idify(textify(ast, term)), "↩︎")
+                    m("a", role="doc-backlink", href="#fnref_" * idify(textify(ast, term)), "↩︎")
                 ])
             end)
         )
@@ -401,7 +401,7 @@ function codegen(t::HTMLTarget, ::Footnote, ast, node)
                 term_id = "fn_" * idify(textify(ast, term))
                 m("li", id=term_id, [
                     codegen.(Ref(t), Ref(ast), node), 
-                    m("a", role="doc-backlink", href="fnref_" * idify(textify(ast, term)), "↩︎")
+                    m("a", role="doc-backlink", href="#fnref_" * idify(textify(ast, term)), "↩︎")
                 ])
             end)
         )
@@ -412,6 +412,10 @@ end
 
 function codegen(t::HTMLTarget, ::Slide, ast, node)
     codegen(t, ast, first(children(node)))
+end
+
+function codegen(t::HTMLTarget, ::IndentSegment, ast, node)
+    codegen.(Ref(t), Ref(ast), children(node))
 end
 
 export HTMLTarget

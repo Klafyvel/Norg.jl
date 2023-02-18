@@ -146,7 +146,13 @@ function match_norg(parents, tokens, i)
     m
 end
 
-match_norg(::Word, parents, tokens, i) = MatchFound(K"Word")
+function match_norg(::Word, parents, tokens, i) 
+    if is_nestable(first(parents))
+        MatchClosing(first(parents), false)
+    else
+        MatchFound(K"Word")
+    end
+end
 
 function match_norg(::Whitespace, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
@@ -193,7 +199,9 @@ function match_norg(::LineEnding, parents, tokens, i)
     elseif is_line_ending(prev_token)
         nestable_parents = filter(is_nestable, parents[2:end])
         attached_parents = filter(is_attached_modifier, parents)
-        if length(nestable_parents) > 0
+        if first(parents) == K"IndentSegment"
+            MatchContinue()
+        elseif length(nestable_parents) > 0
             MatchClosing(first(parents), false)
         elseif length(attached_parents) > 0
             MatchClosing(K"Paragraph", false)

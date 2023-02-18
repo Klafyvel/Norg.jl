@@ -55,7 +55,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
             new_token = tokens[new_i]
         end
         if is_delimiting
-            if first(parents) ∈ [K"NorgDocument"] || is_heading(first(parents))
+            if first(parents) ∈ KSet"NorgDocument IndentSegment" || is_heading(first(parents))
                 MatchFound(delimitingmodifier(t))
             else
                 MatchClosing(first(parents), false)

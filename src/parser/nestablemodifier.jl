@@ -14,6 +14,7 @@ function parse_norg(::T, parents, tokens, i) where {T<:Nestable}
             end
             break
         end
+        @debug "nestable loop" m tokens[i]
         child = if kind(matched(m)) == K"WeakCarryoverTag"
             parse_norg(WeakCarryoverTag(), [nestable_kind, parents...], tokens, i)
         else
@@ -66,6 +67,8 @@ function parse_norg(::NestableItem, parents, tokens, i)
             child = parse_norg(OrderedList(), [K"NestableItem", parents...], tokens, i) 
         elseif to_parse == K"Slide"
             child = parse_norg(Slide(), [K"NestableItem", parents...], tokens, i)
+        elseif to_parse == K"IndentSegment"
+            child = parse_norg(IndentSegment(), [K"NestableItem", parents...], tokens, i)
         else
             child = parse_norg(Paragraph(), [K"NestableItem", parents...], tokens, i)
         end
@@ -74,6 +77,10 @@ function parse_norg(::NestableItem, parents, tokens, i)
             i = lastindex(tokens)
         end
         push!(children, child)
+        if to_parse ∈ KSet"Slide IndentSegment"
+            i = prevind(tokens, i)
+            break
+        end
     end
     if is_eof(tokens[i])
         i = prevind(tokens, i)

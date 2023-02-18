@@ -41,7 +41,7 @@ function parse_norg_toplevel_one_step(parents, tokens, i)
         error("Closing token when parsing a top level element at token $(tokens[i]). This is a bug, please report it along with the text you are trying to parse.")
         return AST.Node(K"None", AST.Node[], i, nextind(tokens, i))
     elseif iscontinue(m)
-        return AST.Node(K"None", AST.Node[], i, nextind(tokens, i))
+        return AST.Node(K"None", AST.Node[], i, i)
     end
     if is_delimiting_modifier(to_parse)
         start = i
@@ -85,6 +85,7 @@ function parse_norg(tokens)
     children = AST.Node[]
     while !is_eof(tokens[i])
         child = parse_norg_toplevel_one_step([K"NorgDocument"], tokens, i)
+        @debug "toplevel" i child tokens[i]
         i = AST.stop(child)
         if !is_eof(tokens[i])
             i = nextind(tokens, i)
