@@ -64,16 +64,27 @@ using .Codegen
 
 
 """
-    parse(HTMLTarget(), s)
-    parse(JSONTarget(), s)
+    norg([codegentarget, ] s)
 
-Parse a Norg string to the specified targets.
+Parse the input `s` to an AST. If codegentarget is included, return the result
+of code generation for the given target.
 
-See also: [`HTMLTarget`](@ref), [`JSONTarget`](@ref)
+# Examples
+```julia-repl
+julia> norg("* Hello world!")
+NorgDocument
+└─ (K"Heading1", 2, 8)
+   └─ (K"ParagraphSegment", 4, 7)
+      ├─ Hello
+      ├─
+      ├─ world
+      └─ !
+julia> norg(HTMLTarget(), "* Hello world!")
+<div class="norg"><section id="section-h1-hello-world"><h1 id="h1-hello-world">Hello world&#33;</h1></section><section class="footnotes"><ol></ol></section></div>
+```
 """
-Base.parse(::Type{T}, s) where {T <: Codegen.CodegenTarget} = codegen(T(), parse_norg(tokenize(s)))
-Base.parse(t::T, s) where {T <: Codegen.CodegenTarget} = codegen(t, parse_norg(tokenize(s)))
-
+norg(s)= parse_norg(tokenize(s))
+norg(t::T, s) where {T <: Codegen.CodegenTarget} = codegen(t, norg(s))
 
 """
 Easily parse Norg string to an AST. This can be used in *e.g.* Pluto notebooks,
@@ -92,7 +103,7 @@ NorgDocument
       └─ Example
 """
 macro norg_str(s, t ...)
-	parse(AST.NorgDocument, s)
+	norg(s)
 end
 
 function Base.show(io::IO, ::MIME"text/html", ast::AST.NorgDocument)
@@ -100,6 +111,6 @@ function Base.show(io::IO, ::MIME"text/html", ast::AST.NorgDocument)
 end
 
 export HTMLTarget, JSONTarget
-export @norg_str
+export @norg_str, norg
 
 end

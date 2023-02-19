@@ -20,15 +20,6 @@ import ..consume_until
 import ..findtargets!
 
 """
-    parse(AST.NorgDocument, s)
-
-Produce an [`AST.NorgDocument`](@ref) from a string `s`. Calls [`Tokenize.tokenize`](@ref).
-"""
-function Base.parse(::Type{AST.NorgDocument}, s::AbstractString)
-    parse_norg(Tokenize.tokenize(s))
-end
-
-"""
     parse_norg(strategy, tokens, i)
 
 Try to parse the `tokens` sequence starting at index `i` using a given `strategy`.

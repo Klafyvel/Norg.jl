@@ -8,7 +8,7 @@ s = open(Norg.NORG_SPEC_PATH, "r") do f
     read(f, String)
 end;
 md_path = joinpath(@__DIR__, "src", "1.0-specification.md")
-ast = parse(Norg.AST.NorgDocument, s)
+ast = norg(s)
 function mk_toc(ast)
     toc_tree = filter(!isnothing, [mk_toc(ast, c) for c in children(ast)])
 end
@@ -50,7 +50,7 @@ open(md_path, "w") do f
     write(f, "```@raw html\n")
     write(f, string(toc_html|>Pretty))
     write(f, "\n")
-    write(f, string(parse(Norg.HTMLTarget(), s)|>Pretty))
+    write(f, string(norg(Norg.HTMLTarget(), s)|>Pretty))
     write(f, "\n```")
 end
 
