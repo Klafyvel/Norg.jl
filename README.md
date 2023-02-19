@@ -41,7 +41,7 @@ julia> s = """
        But it's easier to read if you use a link description, as in this link towards {https://klafyvel.me}[my *website*] !
        """;
 
-julia> parse(HTMLTarget, s) |> Pretty
+julia> norg(HTMLTarget(), s) |> Pretty
 # pretty HTML prints there, but have a look at its rendering below
 
 julia> norg"Neorg also has a string macro that can be used in Pluto"
@@ -83,7 +83,7 @@ s = open(Norg.NORG_SPEC_PATH, "r") do f
     read(f, String)
 end;
 open("1.0-specification.html", "w") do f
-    write(f, string(parse(Norg.HTMLTarget, s)|>Pretty))
+    write(f, string(norg(HTMLTarget(), s)|>Pretty))
 end
 ```
 
@@ -93,7 +93,7 @@ Norg files to pandoc!
 ```julia
 import JSON
 open("1.0-specification.json", "w") do f
-  JSON.print(f, parse(Norg.JSONTarget, s), 2)
+  JSON.print(f, norg(JSONTarget(), s), 2)
 end;
 ```
 
