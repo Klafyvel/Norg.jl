@@ -1,9 +1,8 @@
-"""
-HTML code generation using [Hyperscript.jl](https://docs.juliahub.com/Hyperscript/L2xXR/0.0.4/).
+"""HTML code generation using [Hyperscript.jl](https://docs.juliahub.com/Hyperscript/L2xXR/0.0.4/).
 """
 module HTMLCodegen
 using AbstractTrees
-using Hyperscript
+using HypertextLiteral
 using Dates
 using ..AST
 using ..Strategies
@@ -14,6 +13,8 @@ import ..idify
 import ..textify
 import ..getchildren
 import ..parse_norg_timestamp
+
+HTR = HypertextLiteral.Result
 
 """
 Controls the position where footnotes are rendered. It can be within the lowest
@@ -40,67 +41,61 @@ end
 
 HTMLTarget() = HTMLTarget(RootFootnotes)
 
-function codegen(t::HTMLTarget, ast::AST.NorgDocument)
-    content = [codegen(t, ast, c) for c in children(ast.root)]
-    if t.footnotes_level == RootFootnotes
-        footnotes = getchildren(ast, K"Footnote")
-        items = Iterators.flatten(children.(footnotes))
-        footnotes_node = m(
-            "section", 
-            class="footnotes",
-            m("ol", map(items) do item
-                term, note... = children(item)
-                term_id = "fn_" * idify(textify(ast, term))
-                m("li", id=term_id, [
-                    codegen.(Ref(t), Ref(ast), note), 
-                    m("a", role="doc-backlink", href="#fnref_" * idify(textify(ast, term)), "↩︎")
-                ])
-            end)
-        )
-        push!(content, footnotes_node)
-    else # collect all orphan footnotes
-        footnotes = getchildren(ast, K"Footnote", AST.heading_level(t.footnotes_level))
-        items = Iterators.flatten(children.(footnotes))
-        footnotes_node = m(
-            "section", 
-            class="footnotes",
-            m("ol", map(items) do item
-                term, note... = children(item)
-                term_id = "fn_" * idify(textify(ast, term))
-                m("li", id=term_id, [
-                    codegen.(Ref(t), Ref(ast), note), 
-                    m("a", role="doc-backlink", href="#fnref_" * idify(textify(ast, term)), "↩︎")
-                ])
-            end)
-        )
-        push!(content, footnotes_node)
-    end
-    m("div", class = "norg", content)
+"""
+A special target for link location, this ensure type-stability.
+"""
+struct HTMLLocationTarget <: CodegenTarget end
+
+function do_footnote_item(ast, item) 
+    term, note... = children(item)
+    term_id = "fn_" * idify(textify(ast, term))
+    backref = "#fnref_" * idify(textify(ast, term))
+    @htl """
+        <li id=$term_id>
+            $(codegen.(Ref(HTMLTarget()), Ref(ast), note))
+            <a role="doc-backlink" href=$backref>↩︎</a>
+        </li>
+    """
 end
 
-function codegen(t::HTMLTarget, ::Paragraph, ast, node)
-    res = []
+function codegen(t::HTMLTarget, ast::NorgDocument)
+    c = children(ast.root)
+    if t.footnotes_level == RootFootnotes
+        footnotes = getchildren(ast.root, K"Footnote")
+        items = Iterators.flatten(children.(footnotes))
+    else # collect all orphan footnotes
+        footnotes = getchildren(ast.root, K"Footnote", AST.heading_level(t.footnotes_level))
+        items = Iterators.flatten(children.(footnotes))
+    end
+    footnotes_node = @htl """
+    <section class="footnotes">
+        <ol>
+            $((do_footnote_item(ast, item) for item in items))
+        </ol>
+    </section>
+    """
+    @htl """<div class="norg">
+        $((codegen(t, ast, c) for c in children(ast.root)))
+        $footnotes_node
+    </div>
+    """
+end
+
+function codegen(t::HTMLTarget, ::Paragraph, ast::NorgDocument, node::Node)
+    res = HTR[]
     for c in children(node)
         gen = codegen(t, ast, c)
-        if gen isa AbstractArray 
-            append!(res, codegen(t, ast, c))
-            push!(res, " ")
-        else
-            push!(res, gen)
-        end
+        push!(res, gen)
     end
-    if !isempty(res)
-        pop!(res) # remove last space
-    end
-    m("p", res)
+    @htl "<p>$res</p>"
 end
 
-function codegen(t::HTMLTarget, ::ParagraphSegment, ast, node)
-    res = []
+function codegen(t::HTMLTarget, ::ParagraphSegment, ast::NorgDocument, node::Node)
+    res = HTR[]
     for c in children(node)
         push!(res, codegen(t, ast, c))
     end
-    res
+    @htl "$res"
 end
 
 html_node(::Bold) = "b"
@@ -121,51 +116,58 @@ html_class(::Superscript) = []
 html_class(::Subscript) = []
 html_class(::InlineCode) = []
 
-function codegen(t::HTMLTarget, s::T, ast, node) where {T<:AttachedModifierStrategy}
-    res = []
+function codegen(t::HTMLTarget, s::T, ast::NorgDocument, node::Node) where {T<:AttachedModifierStrategy}
+    res = HTR[]
     for c in children(node)
         push!(res, codegen(t, ast, c))
     end
     class = html_class(s)
     if isempty(class)
-        m(html_node(s), res)
+        @htl "<$(html_node(s))>$res</$(html_node(s))>"
     else
-        m(html_node(s), class = join(html_class(s), " "), res)
+        @htl "<$(html_node(s)) class=$(html_class(s))>$res</$(html_node(s))>"
     end
 end
 
-function codegen(t::HTMLTarget, ::Word, ast, node)
+function codegen(t::HTMLTarget, ::Word, ast::NorgDocument, node::Node)
     if is_leaf(node)
-        AST.litteral(ast, node)
+        @htl "$(AST.litteral(ast, node))"
     else
-        join(codegen(t, Word(), ast, c) for c in children(node))
+        @htl "$((codegen(t, Word(), ast, c) for c in children(node)))"
     end
 end
 codegen(t::HTMLTarget, ::Escape, ast, node) = codegen(t, Word(), ast, node)
 
-function codegen(t::HTMLTarget, ::Link, ast, node)
-    target = codegen(t, ast, first(node.children))
+function codegen(t::HTMLTarget, ::Link, ast::NorgDocument, node::Node)
+    target = codegen(HTMLLocationTarget(), ast, first(node.children))
     tag = "a"
     param = "href"
     if length(node.children) > 1
         text = codegen(t, ast, last(node.children))
     elseif kind(first(node.children)) == K"DetachedModifierLocation"
-        kindoftarget = kind(first(children(node)))
-        title = codegen(t, Word(), ast, last(children(node)))
+        location = first(node.children)
+        kindoftarget = kind(first(children(location)))
+        title_node = last(children(location))
+        title = textify(ast, title_node)
+        title_node = codegen(t, ast, title_node)
         if kindoftarget == K"Footnote"
             id = "fnref_" * idify(title)
-            text = m("sup", id=id, title)
+            text = @htl "<sup id=$id>$(title_node)</sup>"
         else
-            text = title
+            text = title_node
         end
     elseif kind(first(node.children)) == K"MagicLocation"
-        key = textify(ast, node)
+        location = first(node.children)
+        key = textify(ast, last(children(location)))
         if haskey(ast.targets, key)
             kindoftarget, targetnoderef = ast.targets[key]
-            title = codegen(t, Word(), ast, first(children(targetnoderef[])))
+            kindoftarget = kind(kindoftarget)
+            title_node = first(children(targetnoderef[]))
+            title = textify(ast, title_node)
+            title_node = codegen(t, ast, title_node)
             if kindoftarget == K"Footnote"
                 id = "fnref_" * idify(title)
-                text = m("sup", id=id, title)
+                text = @htl "<sup id=$id>$title_node</sup>"
             else
                 text = title
             end
@@ -177,27 +179,28 @@ function codegen(t::HTMLTarget, ::Link, ast, node)
     elseif kind(first(node.children)) == K"TimestampLocation"
         text = textify(ast, first(node.children))
     else
-        text = codegen(t, ast, first(node.children))
+        text = codegen(HTMLLocationTarget(), ast, first(node.children))
     end
     if kind(first(node.children)) == K"TimestampLocation"
         tag = "time"
         param = "datetime"
     end
-    m(tag, href = target, text)
+    @htl """<$tag $(Pair(param, target))>$text</$tag>"""
 end
 
-function codegen(t::HTMLTarget, ::URLLocation, ast, node)
-    codegen(t, Word(), ast, first(children(node)))
+function codegen(t::HTMLLocationTarget, ::URLLocation, ast::NorgDocument, node::Node)
+    textify(ast, first(children(node)))
 end
 
-function codegen(t::HTMLTarget, ::LineNumberLocation, ast, node)
+function codegen(t::HTMLLocationTarget, ::LineNumberLocation, ast::NorgDocument, node::Node)
     # Who are you, people who link to line location ?
-    "#l-$(codegen(t, Word(), ast, first(children(node))))"
+    "#l-$(textify(ast, first(children(node))))"
 end
 
-function codegen(t::HTMLTarget, ::DetachedModifierLocation, ast, node)
+function codegen(t::HTMLLocationTarget, ::DetachedModifierLocation, ast::NorgDocument, node::Node)
     kindoftarget = kind(first(children(node)))
-    title = codegen(t, Word(), ast, last(children(node)))
+    title_node = last(children(node))
+    title = textify(ast, title_node)
     if AST.is_heading(kindoftarget)
         level_num = AST.heading_level(first(children(node)))
         level = "h" * string(level_num)
@@ -211,11 +214,11 @@ function codegen(t::HTMLTarget, ::DetachedModifierLocation, ast, node)
     end
 end
 
-function codegen(t::HTMLTarget, ::MagicLocation, ast, node)
+function codegen(t::HTMLLocationTarget, ::MagicLocation, ast::NorgDocument, node::Node)
     key = textify(ast, node)
     if haskey(ast.targets, key)
         kindoftarget, targetnoderef = ast.targets[key]
-        title = codegen(t, Word(), ast, first(children(targetnoderef[])))
+        title = textify(ast, first(children(targetnoderef[])))
         if AST.is_heading(kindoftarget)
             level_num = AST.heading_level(kindoftarget)
             level = "h" * string(level_num)
@@ -232,52 +235,52 @@ function codegen(t::HTMLTarget, ::MagicLocation, ast, node)
     end
 end
 
-function codegen(t::HTMLTarget, ::FileLocation, ast, node)
+function codegen(t::HTMLLocationTarget, ::FileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
         start = "/" 
     else
         start = "" 
     end
-    target_loc = codegen(t, Word(), ast, target)
+    target_loc = textify(ast, target)
     if kind(subtarget) == K"None"
         subtarget_loc = "" 
     else
-        subtarget_loc = "#" * codegen(t, ast, subtarget)
+        subtarget_loc = "#" * codegen(t, ast, subtarget)::String
     end
     
     start * target_loc * subtarget_loc
 end
 
-function codegen(t::HTMLTarget, ::NorgFileLocation, ast, node)
+function codegen(t::HTMLLocationTarget, ::NorgFileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
         start = "/" 
     else
         start = "" 
     end
-    target_loc = codegen(t, Word(), ast, target)
+    target_loc = textify(ast, target)
     if kind(subtarget) == K"None"
         subtarget_loc = "" 
     else
-        subtarget_loc = "#" * codegen(t, ast, subtarget)
+        subtarget_loc = "#" * codegen(t, ast, subtarget)::String
     end
     
     start * target_loc * subtarget_loc
 end
 
-function codegen(t::HTMLTarget, ::WikiLocation, ast, node)
+function codegen(t::HTMLLocationTarget, ::WikiLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
-    target_loc = codegen(t, Word(), ast, target)
+    target_loc = textify(ast, target)
     if kind(subtarget) == K"None"
         subtarget_loc = "" 
     else
-        subtarget_loc = "#" * codegen(t, ast, subtarget)
+        subtarget_loc = "#" * codegen(t, ast, subtarget)::String
     end
     "/" * target_loc * subtarget_loc
 end
 
-function codegen(t::HTMLTarget, ::TimestampLocation, ast, node)
+function codegen(t::HTMLLocationTarget, ::TimestampLocation, ast::NorgDocument, node::Node)
     target = first(children(node))
     t1, t2 = parse_norg_timestamp(ast.tokens, target.start, target.stop)
     if !isnothing(t1)
@@ -291,93 +294,101 @@ function codegen(t::HTMLTarget, ::TimestampLocation, ast, node)
     end
 end
 
-codegen(t::HTMLTarget, ::LinkDescription, ast, node) = [codegen(t, ast, c) for c in children(node)]
+function codegen(t::HTMLTarget, ::LinkDescription, ast::NorgDocument, node::Node)
+    @htl "$((codegen(t, ast, c) for c in children(node)))"
+end
 
-function codegen(t::HTMLTarget, ::Anchor, ast, node)
+function codegen(t::HTMLTarget, ::Anchor, ast::NorgDocument, node::Node)
     text = codegen(t, ast, first(node.children))
     if length(children(node)) == 1
         target = "#"
     else
-        target = codegen(t, ast, last(children(node)))
+        target = codegen(HTMLLocationTarget(), ast, last(children(node)))
     end
-    m("a", href = target, text)
+    @htl "<a href=$target>$text</a>"
 end
 
-function codegen(t::HTMLTarget, ::InlineLinkTarget, ast, node)
-    text = []
+function codegen(t::HTMLTarget, ::InlineLinkTarget, ast::NorgDocument, node::Node)
+    text = HTR[]
     for c in children(node)
-        append!(text, codegen(t, ast, c))
-        push!(text, " ")
+        push!(text, codegen(t, ast, c))
+        push!(text, @htl " ")
     end
     if !isempty(text)
         pop!(text) # remove last space
     end
     id = idify(join(textify(ast, node)))
-    m("span", id=id, text)
+    @htl "<span id=$id>$text</span>"
 end
 
-function codegen(t::HTMLTarget, ::Heading, ast, node)
+function codegen(t::HTMLTarget, ::Heading, ast::NorgDocument, node::Node)
     level_num = AST.heading_level(node)
     level = "h" * string(level_num)
     heading_title, content... = children(node)
-    title = codegen(t, Word(), ast, heading_title)
+    title = textify(ast, heading_title)
     id_title = idify(level * " " * title)
-    heading = m(level, id=id_title, codegen(t, ast, heading_title))
-    heading_content = [codegen(t, ast, c, ) for c in content]
+    heading = @htl "<$level id=$id_title>$(codegen(t, ast, heading_title))</$level>"
+    heading_content = HTR[codegen(t, ast, c)::HTR for c in content]
     id_section = idify("section " * id_title)
 
     if t.footnotes_level == level_num
         footnotes = getchildren(node, K"Footnote")
         items = Iterators.flatten(children.(footnotes))
-        footnotes_node = m(
-            "section", 
-            class="footnotes",
-            m("ol", map(items) do item
-                term, note... = children(item)
-                term_id = "fn_" * idify(textify(ast, term))
-                m("li", id=term_id, [
-                    codegen.(Ref(t), Ref(ast), note), 
-                    m("a", role="doc-backlink", href="fnref_" * idify(textify(ast, term)), "↩︎")
-                ])
-            end)
-        )
-        m("section", id=id_section, [heading, heading_content..., footnotes_node])
+        footnotes_node = @htl """
+        <section class="footnotes">
+            <ol>
+            $(map(do_footnote_item(ast, item)))
+            </ol>
+        </section>
+        """
+        @htl """
+        <section id=$id_section>
+        $heading
+        $heading_content
+        $footnotes_node
+        </section>
+        """
     else
-        m("section", id=id_section, [heading, heading_content...])
+        @htl """
+        <section id=$id_section>
+        $heading
+        $heading_content
+        </section>
+        """
     end
 end
 
-codegen(::HTMLTarget, ::StrongDelimiter, ast, node) = []
-codegen(::HTMLTarget, ::WeakDelimiter, ast, node) = []
-codegen(::HTMLTarget, ::HorizontalRule, ast, node) = m("hr")
+codegen(::HTMLTarget, ::StrongDelimiter, ast, node) = @htl ""
+codegen(::HTMLTarget, ::WeakDelimiter, ast, node) = @htl ""
+codegen(::HTMLTarget, ::HorizontalRule, ast, node) = @htl "<hr/>"
 
-function codegen(t::HTMLTarget, ::UnorderedList, ast, node)
-    m("ul", [codegen(t, ast, c) for c in children(node)])
+function codegen(t::HTMLTarget, ::UnorderedList, ast::NorgDocument, node::Node)
+    @htl "<ul>$([codegen(t, ast, c) for c in children(node)])</ul>"
 end
 
-function codegen(t::HTMLTarget, ::OrderedList, ast, node)
-    m("ol", [codegen(t, ast, c) for c in children(node)])
+function codegen(t::HTMLTarget, ::OrderedList, ast::NorgDocument, node::Node)
+    @htl "<ol>$([codegen(t, ast, c) for c in children(node)])</ol>"
 end
 
-function codegen(t::HTMLTarget, ::NestableItem, ast, node)
-    m("li", [codegen(t, ast, c) for c in children(node)])
+function codegen(t::HTMLTarget, ::NestableItem, ast::NorgDocument, node::Node)
+    @htl "<li>$([codegen(t, ast, c) for c in children(node)])</li>"
 end
 
-function codegen(t::HTMLTarget, ::Quote, ast, node)
+function codegen(t::HTMLTarget, ::Quote, ast::NorgDocument, node::Node)
     # <blockquote> does not have an 'item' notion, so we have to short-circuit
     # that.
-    res = []
+    res = HTR[]
     for c in children(node)
         append!(res, codegen.(Ref(t), Ref(ast), children(c)))
     end
-    m("blockquote", res)
+    @htl "<blockquote>$res</blockquote>"
 end
 
-function codegen(::HTMLTarget, ::Verbatim, ast, node)
+function codegen(::HTMLTarget, ::Verbatim, ast::NorgDocument, node::Node)
     # cowardly ignore any verbatim that is not code
     tag, others... = children(node)
     if litteral(ast, tag) != "code"
-        return []
+        return @htl ""
     end
     language = if length(others) == 1
         "language-plaintext"
@@ -389,76 +400,75 @@ function codegen(::HTMLTarget, ::Verbatim, ast, node)
         end
         "language-" * lang
     end
-    m("pre", m("code", class=language, litteral(ast, last(others))))
+    @htl """
+    <pre>
+        <code class=$language>
+            $(litteral(ast, last(others)))
+        </code>
+    </pre>
+    """
 end
 
-function codegen(::HTMLTarget, ::TodoExtension, ast, node)
+function codegen(::HTMLTarget, ::TodoExtension, ast::NorgDocument, node::Node)
     status = first(children(node))
     checked = kind(status) == K"StatusDone"
     if checked
-        m("input", checked="", type="checkbox", disabled="")
+        @htl """<input checked type="checkbox" disabled/>"""
     else
-        m("input", checked="", type="checkbox", disabled="")
+        @htl """<input type="checkbox" disabled/>"""
     end
 end
 
-function codegen(t::HTMLTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast, node)
+function codegen(t::HTMLTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast::NorgDocument, node::Node)
     content = codegen(t, ast, last(children(node)))
-    content = if content isa AbstractArray 
-        m("div", content)
-    else
-        content
-    end
+    params = Dict{Symbol,String}()
     if length(children(node)) <= 2
-        getproperty(content, textify(ast, first(children(node))))
+        params[:class] = textify(ast, first(children(node)))
     elseif length(children(node)) == 3
         label = textify(ast, first(children(node)))
         param = textify(ast, children(node)[2])
-        content(;Symbol(label)=>param)
+        params[Symbol(label)] = param
     else
         class = join(textify.(Ref(ast), children(node)[begin:end-1]), "-")
-        getproperty(content, class)
+        params[:class] = class
     end
+    @htl "<div $params>$content</div>"
 end
 
-function codegen(t::HTMLTarget, ::Definition, ast, node)
+function codegen(t::HTMLTarget, ::Definition, ast::NorgDocument, node::Node)
     items = children(node)
-    m("dl", collect(Iterators.flatten(map(items) do item
+    content = Iterators.flatten(map(items) do item
             term, def... = children(item)
             term_id = "def_" * idify(textify(ast, term))
-            term_node = m("dt", id=term_id, codegen(t, ast, term))
-            def_node = m("dd", codegen.(Ref(t), Ref(ast), def))
+            term_node = @htl "<dt id=$term_id>$(codegen(t, ast, term))</dt>"
+            def_node = @htl "<dd>$(codegen.(Ref(t), Ref(ast), def))</dd>"
             term_node,def_node
         end
-    )))
+    )
+    @htl "<dl>$content</dl>"
 end
 
-function codegen(t::HTMLTarget, ::Footnote, ast, node)
+function codegen(t::HTMLTarget, ::Footnote, ast::NorgDocument, node::Node)
     if t.footnotes_level == InplaceFootnotes
         items = children(node)
-        m(
-            "section", 
-            class="footnotes",
-            m("ol", map(items) do item
-                term, note... = children(item)
-                term_id = "fn_" * idify(textify(ast, term))
-                m("li", id=term_id, [
-                    codegen.(Ref(t), Ref(ast), node), 
-                    m("a", role="doc-backlink", href="#fnref_" * idify(textify(ast, term)), "↩︎")
-                ])
-            end)
-        )
+        @htl """
+        <section class="footnotes">
+            <ol>
+            $(map(do_footnote_item(ast, item)))
+            </ol>
+        </section>
+        """
     else
-        ""
+        @htl ""
     end
 end
 
-function codegen(t::HTMLTarget, ::Slide, ast, node)
-    codegen(t, ast, first(children(node)))
+function codegen(t::HTMLTarget, ::Slide, ast::NorgDocument, node::Node)
+    @htl "$(codegen(t, ast, first(children(node))))"
 end
 
-function codegen(t::HTMLTarget, ::IndentSegment, ast, node)
-    codegen.(Ref(t), Ref(ast), children(node))
+function codegen(t::HTMLTarget, ::IndentSegment, ast::NorgDocument, node::Node)
+    @htl "$((codegen(t, ast, c) for c in children(node)))"
 end
 
 export HTMLTarget

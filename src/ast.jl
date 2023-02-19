@@ -41,6 +41,9 @@ AbstractTrees.nodevalue(node::Node) = (kind(node), start(node), stop(node))
 AbstractTrees.ChildIndexing(::Type{Node}) = AbstractTrees.IndexedChildren()
 AbstractTrees.NodeType(::Type{<:Node}) = HasNodeType()
 AbstractTrees.nodetype(::Type{<:Node}) = Node
+AbstractTrees.childtype(::Type{Node}) = Node
+Base.IteratorEltype(::Type{<:TreeIterator{Node}}) = Base.HasEltype()
+Base.eltype(::Type{<:TreeIterator{Node}}) = Node
 
 Base.show(io::IO, t::Node) = print_tree(io, t)
 
@@ -240,6 +243,6 @@ function nestable_level(k::Kind)
     end
 end
 
-export is_first_class_node, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level, litteral
+export is_first_class_node, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level, litteral, NorgDocument, Node
 
 end

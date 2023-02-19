@@ -28,7 +28,7 @@ If you want the latest dev version:
 For now layer 3 compatibility is implemented in the parser, and there is code generation for html and pandoc JSON targets. There is no semantic analysis yet, which for example means that links to line number or using the `#` target syntax are poorly handled in code generation.
 
 ```julia
-julia> using Norg, Hyperscript
+julia> using Norg
 
 julia> s = """
        Hi ! I am a Norg document. For now only /basic/ *markup* is !implemented!.
@@ -41,7 +41,7 @@ julia> s = """
        But it's easier to read if you use a link description, as in this link towards {https://klafyvel.me}[my *website*] !
        """;
 
-julia> norg(HTMLTarget(), s) |> Pretty
+julia> norg(HTMLTarget(), s)
 # pretty HTML prints there, but have a look at its rendering below
 
 julia> norg"Neorg also has a string macro that can be used in Pluto"
@@ -77,13 +77,13 @@ julia> norg"Neorg also has a string macro that can be used in Pluto"
 
 Note that you can parse the entire Norg specification just like that:
 ```julia
-using Norg, Hyperscript
+using Norg
 
 s = open(Norg.NORG_SPEC_PATH, "r") do f
     read(f, String)
 end;
 open("1.0-specification.html", "w") do f
-    write(f, string(norg(HTMLTarget(), s)|>Pretty))
+    write(f, string(norg(HTMLTarget(), s)))
 end
 ```
 

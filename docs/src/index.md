@@ -19,25 +19,25 @@ Pages = ["index.md"]
 There are currently two available code generation targets for Norg.jl: HTML and Pandoc JSON. Given a string to barse `s`, you can use:
 
 ```julia
-parse(HTMLTarget, s)
+norg(HTMLTarget(), s)
 ```
 
 or
 
 ```julia
-parse(JSONTarget, s)
+norg(JSONTarget(), s)
 ```
 
 The sources for the Norg specification are available in an artifact of this package. Thus, you can generate an HTML version of the specification using:
 
 ```julia
-using Norg, Hyperscript
+using Norg
 
 s = open(Norg.NORG_SPEC_PATH, "r") do f
     read(f, String)
 end;
 open("1.0-specification.html", "w") do f
-    write(f, string(parse(Norg.HTMLTarget, s)|>Pretty))
+    write(f, string(norg(HTMLTarget(), s)))
 end
 ```
 
@@ -46,7 +46,7 @@ Since Pandoc JSON is also available, you can export to Pandoc JSON and feed it t
 ```julia
 import JSON
 open("1.0-specification.json", "w") do f
-  JSON.print(f, parse(Norg.JSONTarget, s), 2)
+  JSON.print(f, norg(JSONTarget(), s), 2)
 end;
 ```
 
@@ -57,10 +57,10 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
 
 ## Advanced usage
 
-You can also generate an Abstract Syntax Tree (AST) that implements AbstractTrees.jl interface using `Base.parse`. See also the [`AST`](@ref) module.
+You can also generate an Abstract Syntax Tree (AST) that implements AbstractTrees.jl interface using `norg`. See also the [`AST`](@ref) module.
 
 ```julia
-parse(Norg.AST.NorgDocument, s)
+norg(s)
 ```
 
 ## Public API

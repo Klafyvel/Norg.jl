@@ -169,12 +169,18 @@ using SnoopPrecompile
     +color red
     test
     """
+
+    full_spec = open(NORG_SPEC_PATH, "r") do f
+        read(f, String)
+    end
     @precompile_all_calls begin
         # all calls in this block will be precompiled, regardless of whether
         # they belong to your package or not (on Julia 1.8 and higher)
         ast = norg(s)
         html = norg(HTMLTarget(), s)
         json = norg(JSONTarget(), s)
+        html_spec = norg(HTMLTarget(), s)
+        json_spec = norg(JSONTarget(), s)
     end
 end
 
