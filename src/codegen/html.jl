@@ -1,4 +1,4 @@
-"""HTML code generation using [Hyperscript.jl](https://docs.juliahub.com/Hyperscript/L2xXR/0.0.4/).
+"""HTML code generation using [HypertextLiteral.jl](https://github.com/JuliaPluto/HypertextLiteral.jl).
 """
 module HTMLCodegen
 using AbstractTrees

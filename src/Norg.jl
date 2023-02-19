@@ -8,8 +8,8 @@ is `HTMLTarget`.
 Example usage :
 
 ```julia
-using Norg, Hyperscript
-parse(HTMLTarget, "Read {https://github.com/nvim-neorg/norg-specs}[the spec !]")
+using Norg
+norg(HTMLTarget(), "Read {https://github.com/nvim-neorg/norg-specs}[the spec !]")
 ```
 """
 module Norg

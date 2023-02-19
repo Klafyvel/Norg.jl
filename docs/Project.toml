@@ -1,5 +1,5 @@
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-Hyperscript = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 Norg = "64228516-68de-4e23-8112-6940bc1970d1"
