@@ -8,8 +8,8 @@ is `HTMLTarget`.
 Example usage :
 
 ```julia
-using Norg, Hyperscript
-parse(HTMLTarget, "Read {https://github.com/nvim-neorg/norg-specs}[the spec !]")
+using Norg
+norg(HTMLTarget(), "Read {https://github.com/nvim-neorg/norg-specs}[the spec !]")
 ```
 """
 module Norg
@@ -108,6 +108,80 @@ end
 
 function Base.show(io::IO, ::MIME"text/html", ast::AST.NorgDocument)
     print(io, codegen(HTMLTarget(), ast))
+end
+
+using SnoopPrecompile
+
+@precompile_setup begin
+    # Putting some things in `setup` can reduce the size of the
+    # precompile file and potentially make loading faster.
+    # The following string should call all method specializations.
+    s = """* Hello, world!
+    First, attached modifiers. *bold*, /italic/, _underline_, -strike-through-, !spoiler!, ^superscript^, ,subscript,, `inlinde code`.
+
+    Then, nestables
+    - Hi
+    - :
+    Hi
+    - ::
+    Hi
+    ---
+    - ( ) Undone
+    - (x) Done
+    - (?) needs further input
+    - (!) Urgent
+    - (+) recurring
+    - (-) In progress
+    - (=) On hold
+    - (_) cancelled
+    - (@ Tue 5th Feb) timestamp extension
+    - (< Tue 5th Feb) Due date extenion
+    - (> Tue 5th Feb) Start date extenion
+    - (# A) Priority extension
+
+    > A quote
+
+    ~ An ordered list.
+
+    Next comes the links. {https://klafyvel.me}[a link]. {12} {* Hello, world!} {/ /home/klafyvel} {# Hello, world!} {:path/to/norg/file:} {? wiki-link} {@ Tue 5th Feb}. Let's not forget [Anchors]{https://klafyvel.me}.
+
+    \$ Definition
+    A simple definition
+
+    \$\$ Definition 2
+    A longer definition
+    \$\$
+
+    ^ Footnote
+    Simple footnote
+
+    ^^ Longer Footnote
+    Longer Footnote
+    ^^
+
+    @code julia
+    println("hello")
+    @end
+
+    #color red
+    test
+
+    +color red
+    test
+    """
+
+    full_spec = open(NORG_SPEC_PATH, "r") do f
+        read(f, String)
+    end
+    @precompile_all_calls begin
+        # all calls in this block will be precompiled, regardless of whether
+        # they belong to your package or not (on Julia 1.8 and higher)
+        ast = norg(s)
+        html = norg(HTMLTarget(), s)
+        json = norg(JSONTarget(), s)
+        html_spec = norg(HTMLTarget(), s)
+        json_spec = norg(JSONTarget(), s)
+    end
 end
 
 export HTMLTarget, JSONTarget

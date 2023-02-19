@@ -1,4 +1,4 @@
-function parse_norg(::T, parents, tokens, i) where {T<:Nestable}
+function parse_norg(::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where {T<:Nestable}
     start = i
     # TODO: This is innefficient because this match has already been done at this
     # point, so we could transmit the information through the strategy. But this
@@ -29,7 +29,7 @@ function parse_norg(::T, parents, tokens, i) where {T<:Nestable}
     AST.Node(nestable_kind, children, start, i)
 end
 
-function parse_norg(::NestableItem, parents, tokens, i)
+function parse_norg(::NestableItem, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     token = tokens[i]
     children = AST.Node[]

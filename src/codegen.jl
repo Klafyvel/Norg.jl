@@ -25,10 +25,6 @@ Do code generation for a given [`AST.NorgDocument`](@ref) to a given target.
 function codegen end
 codegen(t::Type{T}, ast::AST.NorgDocument) where {T <: CodegenTarget} = codegen(t(), ast)
 
-function codegen(t::T, strategy::S, ast, node) where {T <: CodegenTarget, S <: Strategies.Strategy}
-    error("Unimplemented codegen strategy $strategy for $t.")
-end
-
 function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: CodegenTarget}
     if kind(node) == K"Paragraph"
         codegen(t, Paragraph(), ast, node)        

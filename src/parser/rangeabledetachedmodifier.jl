@@ -1,6 +1,6 @@
 strategy_to_kind(::Definition) = K"Definition"
 strategy_to_kind(::Footnote) = K"Footnote"
-function parse_norg(t::RangeableDetachedModifier, parents, tokens, i)
+function parse_norg(t::RangeableDetachedModifier, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     parents = [strategy_to_kind(t), parents...]
     children = []
@@ -41,7 +41,7 @@ function parse_norg(t::RangeableDetachedModifier, parents, tokens, i)
     AST.Node(strategy_to_kind(t), children, start, i)
 end
 
-function parse_norg(::RangeableItem, parents, tokens, i)
+function parse_norg(::RangeableItem, parents::Vector{Kind}, tokens::Vector{Token}, i)
     parents = [K"RangeableItem", parents...]
     if AST.is_whitespace(tokens[i])
         i = nextind(tokens, i)

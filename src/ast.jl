@@ -25,11 +25,11 @@ Stores the Abstract Syntax Tree (AST) for a Norg document. It implements the
 `AbstractTrees.jl` interface.
 """
 struct NorgDocument
-    nodes::Vector{Node}
+    root::Node
     tokens::Vector{Token}
     targets::Dict{String, Tuple{Kind,Ref{Node}}}
 end
-NorgDocument(nodes, tokens) = NorgDocument(nodes, tokens, Dict{String, Tuple{Kind,Ref{Node}}}())
+NorgDocument(root, tokens) = NorgDocument(root, tokens, Dict{String, Tuple{Kind,Ref{Node}}}())
 
 Kinds.kind(::NorgDocument) = K"NorgDocument"
 Kinds.kind(node::Node) = node.kind
@@ -38,15 +38,18 @@ stop(node::Node) = node.stop
 
 AbstractTrees.children(node::Node) = node.children
 AbstractTrees.nodevalue(node::Node) = (kind(node), start(node), stop(node))
-AbstractTrees.children(node::NorgDocument) = node.nodes
-AbstractTrees.nodevalue(node::NorgDocument) = "NorgDocument"
+AbstractTrees.ChildIndexing(::Type{Node}) = AbstractTrees.IndexedChildren()
+AbstractTrees.NodeType(::Type{<:Node}) = HasNodeType()
+AbstractTrees.nodetype(::Type{<:Node}) = Node
+AbstractTrees.childtype(::Type{Node}) = Node
+Base.IteratorEltype(::Type{<:TreeIterator{Node}}) = Base.HasEltype()
+Base.eltype(::Type{<:TreeIterator{Node}}) = Node
+
 Base.show(io::IO, t::Node) = print_tree(io, t)
 
 function Base.show(io::IO, ::MIME"text/plain", t::NorgDocument)
-    print_tree(io, t) do io, node
-        if node isa NorgDocument
-            print(io, "NorgDocument")
-        elseif is_leaf(node)
+    print_tree(io, t.root) do io, node
+        if is_leaf(node)
             print(io, join(value.(t.tokens[start(node):stop(node)])))
         else
             print(io, repr(nodevalue(node)))
@@ -68,7 +71,7 @@ Kinds.is_quote(node::Node) = is_quote(kind(node))
 is_first_class_node(k::Kind) = k ∈ [K"Paragraph", K"Verbatim"] || is_detached_modifier(k) || is_nestable(k) || is_heading(k)
 is_first_class_node(node::Node) = is_first_class_node(kind(node))
 
-litteral(ast::NorgDocument, node::Node) = join(value.(ast.tokens[start(node):stop(node)]))
+litteral(ast::NorgDocument, node::Node) = join(map(value, ast.tokens[start(node):stop(node)]))
 
 heading_level(node::Node) = heading_level(kind(node))
 function heading_level(k::Kind)
@@ -240,6 +243,6 @@ function nestable_level(k::Kind)
     end
 end
 
-export is_first_class_node, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level, litteral
+export is_first_class_node, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level, litteral, NorgDocument, Node
 
 end

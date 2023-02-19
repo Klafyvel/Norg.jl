@@ -2,12 +2,12 @@
 Pandoc AST code generation. The best reference of Pandoc's AST I could find is
 [here](https://hackage.haskell.org/package/pandoc-types-1.22.2.1/docs/Text-Pandoc-Definition.html)
 
-The code generated consists in `OrderedDict`s from [DataStructures.jl](https://juliacollections.github.io/DataStructures.jl/latest/) that
+The code generated consists in `OrderedDict`s from [OrderedCollections.jl](https://github.com/JuliaCollections/OrderedCollections.jl) that
 follow the Pandoc JSON AST API. You can then export using *e.g.* [JSON.jl](https://github.com/JuliaIO/JSON.jl).
 """
 module JSONCodegen
 using Base: CacheHeaderIncludes
-using DataStructures
+using OrderedCollections
 using AbstractTrees
 
 using ..AST
@@ -29,12 +29,12 @@ function codegen(t::JSONTarget, ast::AST.NorgDocument)
         "pandoc-api-version" => [1, 22, 2, 1]
         "meta" => OrderedDict{String, String}()
         "blocks" => [
-            codegen(t, ast, c) for c in children(ast)
+            codegen(t, ast, c) for c in children(ast.root)
         ]
     ])
 end
 
-function codegen(t::JSONTarget, ::Paragraph, ast, node)
+function codegen(t::JSONTarget, ::Paragraph, ast::NorgDocument, node::Node)
     res = []
     for c in children(node)
         append!(res, codegen(t, ast, c))
@@ -49,7 +49,7 @@ function codegen(t::JSONTarget, ::Paragraph, ast, node)
     ])
 end
 
-function codegen(t::JSONTarget, ::ParagraphSegment, ast, node)
+function codegen(t::JSONTarget, ::ParagraphSegment, ast::NorgDocument, node::Node)
     res = []
     for c in children(node)
         push!(res, codegen(t, ast, c))
@@ -75,7 +75,7 @@ pandoc_attr(::Superscript) = []
 pandoc_attr(::Subscript) = []
 pandoc_attr(::InlineCode) = ["", [], []]
 
-function codegen(t::JSONTarget, s::T, ast, node) where {T<:AttachedModifierStrategy}
+function codegen(t::JSONTarget, s::T, ast::NorgDocument, node::Node) where {T<:AttachedModifierStrategy}
     res = []
     for c in children(node)
         # each children is a paragraph segment
@@ -95,14 +95,14 @@ function codegen(t::JSONTarget, s::T, ast, node) where {T<:AttachedModifierStrat
     end
 end
 
-function codegen(t::JSONTarget, s::InlineCode, ast, node)
+function codegen(t::JSONTarget, s::InlineCode, ast::NorgDocument, node::Node)
     OrderedDict([
         "t"=>pandoc_t(s)
         "c" => [pandoc_attr(s), textify(ast, node)]
     ])
 end
 
-function codegen(t::JSONTarget, ::Word, ast, node)
+function codegen(t::JSONTarget, ::Word, ast::NorgDocument, node::Node)
     if is_leaf(node) && (AST.stop(node) - AST.start(node) > 0)
         OrderedDict([
             "t"=>"Str"
@@ -126,7 +126,7 @@ function codegen(t::JSONTarget, ::Word, ast, node)
 end
 codegen(t::JSONTarget, ::Escape, ast, node) = codegen(t, ast, first(children(node)))
 
-function codegen(t::JSONTarget, ::Link, ast, node)
+function codegen(t::JSONTarget, ::Link, ast::NorgDocument, node::Node)
     if length(node.children) > 1
         text = codegen(t, ast, last(node.children))
     elseif kind(first(node.children)) == K"DetachedModifierLocation"
@@ -160,12 +160,12 @@ end
 
 codegen(::JSONTarget, ::URLLocation, ast, node) = textify(ast, node)
 
-function codegen(::JSONTarget, ::LineNumberLocation, ast, node)
+function codegen(::JSONTarget, ::LineNumberLocation, ast::NorgDocument, node::Node)
     # Who are you, people who link to line location ?
     "#l-$(textify(ast, node))"
 end
 
-function codegen(t::JSONTarget, ::DetachedModifierLocation, ast, node)
+function codegen(t::JSONTarget, ::DetachedModifierLocation, ast::NorgDocument, node::Node)
     kindoftarget = kind(first(children(node)))
     title = textify(ast, last(children(node)))
     if AST.is_heading(kindoftarget)
@@ -181,7 +181,7 @@ function codegen(t::JSONTarget, ::DetachedModifierLocation, ast, node)
     end
 end
 
-function codegen(::JSONTarget, ::MagicLocation, ast, node)
+function codegen(::JSONTarget, ::MagicLocation, ast::NorgDocument, node::Node)
     key = textify(ast, node)
     if haskey(ast.targets, key)
         kindoftarget, targetnoderef = ast.targets[key]
@@ -202,7 +202,7 @@ function codegen(::JSONTarget, ::MagicLocation, ast, node)
     end
 end
 
-function codegen(t::JSONTarget, ::FileLocation, ast, node)
+function codegen(t::JSONTarget, ::FileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
         start = "/" 
@@ -219,7 +219,7 @@ function codegen(t::JSONTarget, ::FileLocation, ast, node)
     start * target_loc * subtarget_loc
 end
 
-function codegen(t::JSONTarget, ::NorgFileLocation, ast, node)
+function codegen(t::JSONTarget, ::NorgFileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
         start = "/" 
@@ -236,7 +236,7 @@ function codegen(t::JSONTarget, ::NorgFileLocation, ast, node)
     start * target_loc * subtarget_loc
 end
 
-function codegen(t::JSONTarget, ::WikiLocation, ast, node)
+function codegen(t::JSONTarget, ::WikiLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     target_loc = textify(ast, target)
     if kind(subtarget) == K"None"
@@ -247,11 +247,11 @@ function codegen(t::JSONTarget, ::WikiLocation, ast, node)
     "/" * target_loc * subtarget_loc
 end
 
-codegen(::JSONTarget, ::TimestampLocation, ast, node) = textify(ast, node)
+codegen(::JSONTarget, ::TimestampLocation, ast::NorgDocument, node::Node) = textify(ast, node)
 
-codegen(t::JSONTarget, ::LinkDescription, ast, node) = collect(Iterators.flatten([codegen(t, ast, c) for c in children(node)]))
+codegen(t::JSONTarget, ::LinkDescription, ast::NorgDocument, node::Node) = collect(Iterators.flatten([codegen(t, ast, c) for c in children(node)]))
 
-function codegen(t::JSONTarget, ::Anchor, ast, node)
+function codegen(t::JSONTarget, ::Anchor, ast::NorgDocument, node::Node)
     text = codegen(t, ast, first(node.children))
     if length(children(node)) == 1
         target = "#"
@@ -268,7 +268,7 @@ function codegen(t::JSONTarget, ::Anchor, ast, node)
     ])
 end
 
-function codegen(t::JSONTarget, ::InlineLinkTarget, ast, node)
+function codegen(t::JSONTarget, ::InlineLinkTarget, ast::NorgDocument, node::Node)
     text = []
     for c in children(node)
         append!(text, codegen(t, ast, c))
@@ -287,7 +287,7 @@ function codegen(t::JSONTarget, ::InlineLinkTarget, ast, node)
     ])
 end
 
-function codegen(t::JSONTarget, ::Heading, ast, node)
+function codegen(t::JSONTarget, ::Heading, ast::NorgDocument, node::Node)
     level_num = AST.heading_level(node)
     level = "h" * string(level_num)
     heading_title, content... = children(node)
@@ -305,11 +305,11 @@ function codegen(t::JSONTarget, ::Heading, ast, node)
         ])
 end
 
-codegen(::JSONTarget, ::StrongDelimiter, ast, node) = OrderedDict(["t"=>"Null"])
-codegen(::JSONTarget, ::WeakDelimiter, ast, node) = OrderedDict(["t"=>"Null"])
-codegen(::JSONTarget, ::HorizontalRule, ast, node) = OrderedDict(["t"=>"HorizontalRule", "c"=>[]])
+codegen(::JSONTarget, ::StrongDelimiter, ast::NorgDocument, node::Node) = OrderedDict(["t"=>"Null"])
+codegen(::JSONTarget, ::WeakDelimiter, ast::NorgDocument, node::Node) = OrderedDict(["t"=>"Null"])
+codegen(::JSONTarget, ::HorizontalRule, ast::NorgDocument, node::Node) = OrderedDict(["t"=>"HorizontalRule", "c"=>[]])
 
-function codegen(t::JSONTarget, ::UnorderedList, ast, node)
+function codegen(t::JSONTarget, ::UnorderedList, ast::NorgDocument, node::Node)
     OrderedDict([
         "t"=>"BulletList"
         "c"=>[
@@ -318,7 +318,7 @@ function codegen(t::JSONTarget, ::UnorderedList, ast, node)
     ])
 end
 
-function codegen(t::JSONTarget, ::OrderedList, ast, node)
+function codegen(t::JSONTarget, ::OrderedList, ast::NorgDocument, node::Node)
     OrderedDict([
         "t"=>"OrderedList"
         "c"=>[
@@ -328,11 +328,11 @@ function codegen(t::JSONTarget, ::OrderedList, ast, node)
     ])
 end
 
-function codegen(t::JSONTarget, ::NestableItem, ast, node)
+function codegen(t::JSONTarget, ::NestableItem, ast::NorgDocument, node::Node)
     [codegen(t, ast, c) for c in children(node)]
 end
 
-function codegen(t::JSONTarget, ::Quote, ast, node)
+function codegen(t::JSONTarget, ::Quote, ast::NorgDocument, node::Node)
     # <blockquote> does not have an 'item' notion, so we have to short-circuit
     # that.
     res = []
@@ -345,7 +345,7 @@ function codegen(t::JSONTarget, ::Quote, ast, node)
     ])
 end
 
-function codegen(::JSONTarget, ::Verbatim, ast, node)
+function codegen(::JSONTarget, ::Verbatim, ast::NorgDocument, node::Node)
     # cowardly ignore any verbatim that is not code
     tag, others... = children(node)
     if litteral(ast, tag) != "code"
@@ -369,7 +369,7 @@ function codegen(::JSONTarget, ::Verbatim, ast, node)
     end
 end
 
-function codegen(::JSONTarget, ::TodoExtension, ast, node)
+function codegen(::JSONTarget, ::TodoExtension, ast::NorgDocument, node::Node)
     status = first(children(node))
     checked = kind(status) == K"StatusDone"
     if checked
@@ -383,7 +383,7 @@ function codegen(::JSONTarget, ::TodoExtension, ast, node)
     ])
 end
 
-function codegen(t::JSONTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast, node)
+function codegen(t::JSONTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast::NorgDocument, node::Node)
     content = codegen(t, ast, last(children(node)))
     label = textify(ast, first(children(node)))
     # TODO: there's most likely some room for improvement here, as some contents
@@ -402,7 +402,7 @@ function codegen(t::JSONTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, a
     ])
 end
 
-function codegen(t::JSONTarget, ::Definition, ast, node)
+function codegen(t::JSONTarget, ::Definition, ast::NorgDocument, node::Node)
     items = children(node)
     OrderedDict([
         "t"=>"DefinitionList"
@@ -422,16 +422,16 @@ function codegen(t::JSONTarget, ::Definition, ast, node)
     ])
 end
 
-function codegen(t::JSONTarget, ::Footnote, ast, node)
+function codegen(t::JSONTarget, ::Footnote, ast::NorgDocument, node::Node)
     # Return nothing, pandoc expects footnotes to be defined where they are called.
     []
 end
 
-function codegen(t::JSONTarget, ::Slide, ast, node)
+function codegen(t::JSONTarget, ::Slide, ast::NorgDocument, node::Node)
     codegen(t, ast, first(children(node)))
 end
 
-function codegen(t::JSONTarget, ::IndentSegment, ast, node)
+function codegen(t::JSONTarget, ::IndentSegment, ast::NorgDocument, node::Node)
     codegen.(Ref(t), Ref(ast), children(node))
 end
 

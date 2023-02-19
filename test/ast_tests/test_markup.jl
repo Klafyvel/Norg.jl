@@ -18,7 +18,7 @@ simple_markups = [
 @testset "Standalone markup for $m" for (m,k) in simple_markups
     ast = norg("$(m)inner$(m)")
     @test ast isa Norg.AST.NorgDocument
-    p = first(children(ast))
+    p = first(children(ast.root))
     @test kind(p) == K"Paragraph"
     ps = first(children(p))
     @test kind(ps) == K"ParagraphSegment"
@@ -34,7 +34,7 @@ end
 @testset "Markup inside a sentence for $m" for (m, k) in simple_markups
     ast = norg("When put inside a sentence $(m)inner$(m).")
     @test ast isa Norg.AST.NorgDocument
-    p = first(children(ast))
+    p = first(children(ast.root))
     @test kind(p) == K"Paragraph"
     ps = first(children(p))
     @test kind(ps) == K"ParagraphSegment"
@@ -64,7 +64,7 @@ simple_nested_outer = [
     end
     s = "$(m)Nested $(n)inner$(n)$(m)"
     ast = norg(s)
-    outernode = first(children(first(children(first(children(ast))))))
+    outernode = first(children(first(children(first(children(ast.root))))))
     @test kind(outernode) == T
     ps = first(children(outernode))
     @test kind(ps) == K"ParagraphSegment"
@@ -83,7 +83,7 @@ end
     end
     s = "`Nested $(m)inner$(m)`"
     ast = norg(s)
-    outernode = first(children(first(children(first(children(ast))))))
+    outernode = first(children(first(children(first(children(ast.root))))))
     @test kind(outernode) == K"InlineCode"
     ps = first(children(outernode))
     @test kind(ps) == K"ParagraphSegment"
@@ -95,7 +95,7 @@ end
 @testset "Escaping modifier $m" for (m, _) in simple_markups
     s = "This is \\$(m)normal\\$(m)"
     ast = norg(s)
-    ps = first(children(first(children(ast))))
+    ps = first(children(first(children(ast.root))))
     for n in children(ps)
         @test kind(n) ∈ [K"Escape", K"WordNode"]
     end
@@ -104,7 +104,7 @@ end
 @testset "No empty modifier $m" for (m, T) in simple_markups
     s = "nothing to see $(m)$(m) here"
     ast = norg(s)
-    ps = first(children(first(children(ast))))
+    ps = first(children(first(children(ast.root))))
     for n in children(ps)
         @test kind(n) == K"WordNode"
     end
@@ -113,7 +113,7 @@ end
 @testset "First closing modifier has precedence" begin
     s = "*first bold* some /italic/ and not bold*"
     ast = norg(s)
-    ps = first(children(first(children(ast))))
+    ps = first(children(first(children(ast.root))))
     b = children(ps)[1]
     i = children(ps)[5]
     @test kind(b) == K"Bold"
@@ -123,7 +123,7 @@ end
 @testset "First closing modifier has precedence" begin
     s = "*This /is bold*/"
     ast = norg(s)
-    ps = first(children(first(children(ast))))
+    ps = first(children(first(children(ast.root))))
     b = children(ps)[1]
     @test kind(b) == K"Bold"
 end
@@ -131,7 +131,7 @@ end
 @testset "Yet another precedence test." begin
     s = "*/Bold and italic*/"
     ast = norg(s)
-    ps = first(children(first(children(ast))))
+    ps = first(children(first(children(ast.root))))
     b,w = children(ps)
     @test kind(b) == K"Bold"
     @test kind(w) == K"WordNode"
@@ -144,7 +144,7 @@ end
 @testset "Verbatim precedence" begin
     s = "*not bold `because verbatim* has higher precedence`"
     ast = norg(s)
-    ps = first(children(first(children(ast))))
+    ps = first(children(first(children(ast.root))))
     for n in first(children(ps), 5)
         @test kind(n) == K"WordNode"
     end
@@ -155,7 +155,7 @@ end
 @testset "Escaping is allowed in inline code" begin
     s = "`\\` still verbatim`"
     ast = norg(s)
-    ps = first(children(first(children(ast))))
+    ps = first(children(first(children(ast.root))))
     @test length(children(ps)) == 1
     @test kind(first(children(ps))) == K"InlineCode"
 end
@@ -163,7 +163,7 @@ end
 @testset "Line endings are allowed withing attached modifiers." begin
     s = "/italic\ntoo/"
     ast = norg(s)
-    p = first(children(ast))
+    p = first(children(ast.root))
     ps = first(children(p))
     @test length(children(ps)) == 1
     it = first(children(ps))
@@ -173,7 +173,7 @@ end
 @testset "Precedence torture test." begin
     s = "test `1.`/`1)`, Norg \ntest"
     ast = norg(s)
-    ps1, ps2 = children(first(children(ast)))
+    ps1, ps2 = children(first(children(ast.root)))
     @test kind(ps1) == K"ParagraphSegment"
     @test kind(ps2) == K"ParagraphSegment"
     ic1 = children(ps1)[3]
@@ -184,7 +184,7 @@ end
 
 @testset "Link modifier for: $T" for (m,T) in simple_markups
     ast = norg("Intra:$(m)word$(m):markup")
-    ps = first(children(first(children(ast))))
+    ps = first(children(first(children(ast.root))))
     w1,mark,w2 = children(ps)
     @test kind(w1) == K"WordNode"
     @test kind(mark) == T

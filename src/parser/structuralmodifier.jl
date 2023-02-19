@@ -1,4 +1,4 @@
-function parse_norg(::Heading, parents, tokens, i)
+function parse_norg(::Heading, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     token = tokens[i]
     if is_whitespace(token) # consume leading whitespace

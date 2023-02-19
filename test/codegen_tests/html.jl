@@ -1,23 +1,23 @@
 @testset "HTML target" begin
-using Hyperscript
+using Gumbo
 
 @testset "Test paragraphs" begin
     s = "Hi I am first paragraph.\n\nOh, hello there, I am second paragraph !"
-    html = Norg.codegen(Norg.HTMLTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    pars = getfield(html, :children)
-    @test getfield(pars[1], :tag) == "p"
-    @test getfield(pars[2], :tag) == "p"
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    pars = html.root[2][1]
+    @test tag(pars[1]) == :p
+    @test tag(pars[2]) == :p
 end
 
 simple_markups_nodes = [
-    ('*', "b"),
-    ('/', "i"),
-    ('_', "ins"),
-    ('-', "del"),
-    ('!', "span"),
-    ('^', "sup"),
-    (',', "sub"),
-    ('`', "code"),
+    ('*', :b),
+    ('/', :i),
+    ('_', :ins),
+    ('-', :del),
+    ('!', :span),
+    ('^', :sup),
+    (',', :sub),
+    ('`', :code),
 ]
 
 simple_markups_class = [
@@ -33,20 +33,20 @@ simple_markups_class = [
 
 @testset "Test correct markup for $m" for (m, html_node) in simple_markups_nodes
     s = "$(m)inner$(m)"
-    html = Norg.codegen(Norg.HTMLTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    b = first(getfield(first(getfield(html, :children)), :children))
-    @test getfield(b, :tag) == html_node
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    b = html.root[2][1][1][1]
+    @test tag(b) == html_node
 end
 
 @testset "Test correct class for $m" for (m, html_class) in simple_markups_class
     s = "$(m)inner$(m)"
-    html = Norg.codegen(Norg.HTMLTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    b = first(getfield(first(getfield(html, :children)), :children))
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    b = html.root[2][1][1][1]
     if isnothing(html_class)
-        @test !haskey(getfield(b, :attrs), "class")
+        @test !haskey(attrs(b), "class")
     else
-        @test haskey(getfield(b, :attrs), "class")
-        @test getfield(b, :attrs)["class"] == html_class
+        @test haskey(attrs(b), "class")
+        @test getattr(b, "class") == html_class
     end
 end
 
@@ -69,46 +69,45 @@ simple_link_tests = [
 
 @testset "Test links: $link" for (link, target, text) in simple_link_tests
     s = "{$link}"
-    html = norg(HTMLTarget(), s)
-    link = first(getfield(first(getfield(html, :children)), :children))
-    @test getfield(link, :tag) == "a"
-    @test getfield(link, :attrs)["href"] == target
-    @test first(getfield(link, :children)) == text
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    link = html.root[2][1][1][1]
+    @test tag(link) == :a
+    @test getattr(link, "href") == target
+    @test string(link[1]) == text
 end
 
 @testset "Test links with description: $link" for (link, target) in simple_link_tests
     s = "{$link}[website]"
-    html = norg(HTMLTarget(), s)
-    link = first(getfield(first(getfield(html, :children)), :children))
-    @test getfield(link, :tag) == "a"
-    @test getfield(link, :attrs)["href"] == target
-    @test first(getfield(link, :children)) == "website"
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    link = html.root[2][1][1][1]
+    @test tag(link) == :a
+    @test getattr(link, "href") == target
+    @test string(link[1]) == "website"
 end
 
 @testset "Anchors with embedded definition: $link" for (link, target) in simple_link_tests
     s = "[website]{$link}"
-    html = norg(HTMLTarget(), s)
-    link = first(getfield(first(getfield(html, :children)), :children))
-    @test getfield(link, :tag) == "a"
-    @test getfield(link, :attrs)["href"] == target
-    @test first(getfield(link, :children)) == "website"
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    link = html.root[2][1][1][1]
+    @test tag(link) == :a
+    @test getattr(link, "href") == target
+    @test string(link[1]) == "website"
 end
 
 @testset "Verbatim code" begin
     s = """@code julia
     using Norg, Hyperscript
     s = "*Hi there*"
-    html = norg(Norg.HTMLTarget, s)
-    html |> Pretty
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
     @end
     """
-    html = norg(HTMLTarget(), s)
-    pre = first(getfield(html, :children))
-    @test getfield(pre, :tag) == "pre"
-    code = first(getfield(pre, :children))
-    @test getfield(code, :tag) == "code"
-    @test haskey(getfield(code, :attrs), "class")
-    @test getfield(code, :attrs)["class"] == "language-julia"
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    pre = html.root[2][1][1]
+    @test tag(pre) == :pre
+    code = pre[2]
+    @test tag(code) == :code
+    @test haskey(attrs(code), "class")
+    @test getattr(code, "class") == "language-julia"
 end
 
 heading_levels = 1:6
@@ -117,55 +116,55 @@ heading_levels = 1:6
     s = """$(repeat("*", i)) heading
     text
     """
-    html = norg(HTMLTarget(), s)
-    section = first(getfield(html, :children))
-    @test getfield(section, :tag) == "section"
-    @test haskey(getfield(section, :attrs), "id")
-    @test getfield(section, :attrs)["id"] == "section-h$(i)-heading"
-    h,p = getfield(section, :children)
-    @test getfield(h, :tag) == "h$i"
-    @test haskey(getfield(h, :attrs), "id")
-    @test getfield(h, :attrs)["id"] == "h$(i)-heading"
-    @test first(getfield(h, :children)) == "heading"
-    @test getfield(p, :tag) == "p"
-    @test first(getfield(p, :children)) == "text"
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    section = html.root[2][1][1]
+    @test tag(section) == :section
+    @test haskey(attrs(section), "id")
+    @test getattr(section, "id") == "section-h$(i)-heading"
+    h,p = children(section)
+    @test tag(h) == Symbol("h$i")
+    @test haskey(attrs(h), "id")
+    @test getattr(h, "id") == "h$(i)-heading"
+    @test text(first(children(h))) == "heading"
+    @test tag(p) == :p
+    @test text(first(children(p))) == "text"
 end
 
-nestable_lists = ['~'=>"ol", '-'=>"ul"]
+nestable_lists = ['~'=>:ol, '-'=>:ul]
 @testset "$target list" for (m, target) in nestable_lists
     s = """$m Hello, salute sinchero oon kydooke
     $m Shintero yuo been na
     $m Na sinchere fedicheda
     """
-    html = norg(HTMLTarget(), s)
-    list = first(getfield(html, :children))
-    @test getfield(list, :tag) == target
-    lis = getfield(list, :children)
-    @test all(getfield.(lis, :tag) .== "li")
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    list = html.root[2][1][1]
+    @test tag(list) == target
+    lis = children(list)
+    @test all(tag.(lis) .== :li)
 end
 
 @testset "quote" begin
     s = "> I QUOTE you"
-    html = norg(HTMLTarget(), s)
-    q = first(getfield(html, :children))
-    @test getfield(q, :tag) == "blockquote"
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    q = html.root[2][1][1]
+    @test tag(q) == :blockquote
 end
 
 @testset "inline link" begin
     s = """<inline link target>"""
-    html = norg(HTMLTarget(), s)
-    p = first(getfield(html, :children))
-    @test length(getfield(p, :children)) == 1
-    span = first(getfield(p, :children))
-    @test haskey(getfield(span, :attrs), "id")
-    @test getfield(span, :attrs)["id"] == "inline-link-target"
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    p = html.root[2][1][1]
+    @test length(children(p)) == 1
+    span = first(children(p))
+    @test haskey(attrs(span), "id")
+    @test getattr(span, "id") == "inline-link-target"
 end
 
 @testset "Parse the entier Norg spec without error." begin
     s = open(Norg.NORG_SPEC_PATH, "r") do f
         read(f, String)
     end
-    html = norg(HTMLTarget(), s)
-    @test html isa Hyperscript.Node{Hyperscript.HTMLSVG}
+    html = norg(HTMLTarget(), s) |> string |> parsehtml
+    @test html isa HTMLDocument
 end
 end

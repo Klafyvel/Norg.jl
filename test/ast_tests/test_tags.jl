@@ -6,7 +6,7 @@ AST = Norg.AST
     @end
     """
     ast = norg(s)
-    verb = first(children(ast))
+    verb = first(children(ast.root))
     @test kind(verb) == K"Verbatim"
     @test length(children(verb)) == 2
     verb_body = last(children(verb))
@@ -24,7 +24,7 @@ end
     @end
     """
     ast = norg(s)
-    verb = first(children(ast))
+    verb = first(children(ast.root))
     tag, subtag, _ = children(verb)
     @test AST.litteral(ast, tag) == "document"
     @test AST.litteral(ast, subtag) == "meta"
@@ -36,7 +36,7 @@ end
     @end
     """
     ast = norg(s)
-    verb = first(children(ast))
+    verb = first(children(ast.root))
     tag, lang, _ = children(verb)
     @test AST.litteral(ast, tag) == "code"
     @test AST.litteral(ast, lang) == "julia"
@@ -48,7 +48,7 @@ end
         @end
     """
     ast = norg(s)
-    verb = first(children(ast))
+    verb = first(children(ast.root))
     tag, lang, _ = children(verb)
     @test AST.litteral(ast, tag) == "code"
     @test AST.litteral(ast, lang) == "julia"
@@ -61,7 +61,7 @@ end
     outside verbatim
     """
     ast = norg(s)
-    verb, p = children(ast)
+    verb, p = children(ast.root)
     tag, subtag, beep, bop, p, body = children(verb)
     @test AST.litteral(ast, tag) == "verbatim"
     @test AST.litteral(ast, subtag) == "subtag"
@@ -84,7 +84,7 @@ end
     @end
     """
     ast = norg(s)
-    p, verb = children(ast)
+    p, verb = children(ast.root)
     @test kind(p) == K"Paragraph"
     @test kind(verb) == K"Verbatim"
 end
@@ -99,7 +99,7 @@ end
     @end
     """
     ast = norg(s)
-    h1 = first(children(ast))
+    h1 = first(children(ast.root))
     h1_title, verb = children(h1)
     @test kind(h1_title) == K"ParagraphSegment"
     @test kind(verb) == K"Verbatim"
@@ -111,59 +111,59 @@ tagtypes = [
 ]
 
 @testset "Tag names with punctuation" begin
-    s = norg"""
+    ast = norg"""
     +example-tag
     hey
     """
-    t = first(children(first(children(s))))
+    t = first(children(first(children(ast.root))))
     @test kind(t) == K"WeakCarryoverTag"
     tagname, _... = children(t)
-    @test Norg.Codegen.textify(s, tagname) == "example-tag"
-    s = norg"""
+    @test Norg.Codegen.textify(ast, tagname) == "example-tag"
+    ast = norg"""
     #example-tag
     hey
     """
-    t = first(children(s))
+    t = first(children(ast.root))
     @test kind(t) == K"StrongCarryoverTag"
     tagname, _... = children(t)
-    @test Norg.Codegen.textify(s, tagname) == "example-tag"
-    s = norg"""
+    @test Norg.Codegen.textify(ast, tagname) == "example-tag"
+    ast = norg"""
     @example-tag
     hi
     @end
     """
-    t = first(children(s))
+    t = first(children(ast.root))
     @test kind(t) == K"Verbatim"
     tagname, _... = children(t)
-    @test Norg.Codegen.textify(s, tagname) == "example-tag"
+    @test Norg.Codegen.textify(ast, tagname) == "example-tag"
 end
 
 @testset "Weak carryover tag applies to the right elements." begin
 @testset "Paragraghs and paragraph segments." begin
-    s = norg"""
+    ast = norg"""
     +test
     Applied here.
     Not applied here.
     """
-    p = first(children(s))
+    p = first(children(ast.root))
     t,ps = children(p)
     @test kind(t) == K"WeakCarryoverTag"
     @test kind(ps) == K"ParagraphSegment"
     label, ps = children(t)
-    @test Norg.Codegen.textify(s, label) == "test"
-    @test Norg.Codegen.textify(s, ps) == "Applied here."
-    s = norg"""
+    @test Norg.Codegen.textify(ast, label) == "test"
+    @test Norg.Codegen.textify(ast, ps) == "Applied here."
+    ast = norg"""
     Not applied here.
     +test
     Applied here.
     """
-    p = first(children(s))
+    p = first(children(ast.root))
     ps,t = children(p)
     @test kind(t) == K"WeakCarryoverTag"
     @test kind(ps) == K"ParagraphSegment"
     label, ps = children(t)
-    @test Norg.Codegen.textify(s, label) == "test"
-    @test Norg.Codegen.textify(s, ps) == "Applied here."
+    @test Norg.Codegen.textify(ast, label) == "test"
+    @test Norg.Codegen.textify(ast, ps) == "Applied here."
 end
 nestables = [
     ("-", K"UnorderedList1"),
@@ -177,7 +177,7 @@ nestables = [
         $t not applied
         """
         ast = norg(s)
-        nestable = first(children(ast))
+        nestable = first(children(ast.root))
         tag,item = children(nestable)
         @test kind(tag) == K"WeakCarryoverTag"
         @test kind(item) == K"NestableItem"
@@ -191,7 +191,7 @@ nestables = [
         $t applied
         """
         ast = norg(s)
-        nestable = first(children(ast))
+        nestable = first(children(ast.root))
         item,tag = children(nestable)
         @test kind(tag) == K"WeakCarryoverTag"
         @test kind(item) == K"NestableItem"
@@ -215,7 +215,7 @@ various = [
 ]
 @testset "Various child kind: $k" for (s,k) in various
     ast = norg(s)
-    tag = first(children(ast))
+    tag = first(children(ast.root))
     @test kind(tag) == K"WeakCarryoverTag"
     label,child = children(tag)
     @test Norg.Codegen.textify(ast, label) == "test"
@@ -225,29 +225,29 @@ end
 
 @testset "Strong carryover tag applies to the right elements." begin
 @testset "Paragraghs and paragraph segments." begin
-    s = norg"""
+    ast = norg"""
     #test
     Applied here.
     Applied here too.
     """
-    t = first(children(s))
+    t = first(children(ast.root))
     @test length(children(t)) == 2
     label,p = children(t)
     @test kind(t) == K"StrongCarryoverTag"
     @test kind(p) == K"Paragraph"
-    @test Norg.Codegen.textify(s, label) == "test"
-    s = norg"""
+    @test Norg.Codegen.textify(ast, label) == "test"
+    ast = norg"""
     Not applied here.
     #test
     Applied here.
     """
-    p1,t = children(s)
+    p1,t = children(ast.root)
     @test kind(t) == K"StrongCarryoverTag"
     @test kind(p1) == K"Paragraph"
     label, p2 = children(t)
     @test kind(p2) == K"Paragraph"
-    @test Norg.Codegen.textify(s, label) == "test"
-    @test Norg.Codegen.textify(s, p2) == "Applied here."
+    @test Norg.Codegen.textify(ast, label) == "test"
+    @test Norg.Codegen.textify(ast, p2) == "Applied here."
 end
 nestables = [
     ("-", K"UnorderedList1"),
@@ -261,7 +261,7 @@ nestables = [
         $t applied
         """
         ast = norg(s)
-        tag = first(children(ast))
+        tag = first(children(ast.root))
         @test kind(tag) == K"StrongCarryoverTag"
         @test length(children(tag)) == 2
         nestable = last(children(tag))
@@ -278,7 +278,7 @@ nestables = [
         $t applied
         """
         ast = norg(s)
-        nestable,tag = children(ast)
+        nestable,tag = children(ast.root)
         @test kind(tag) == K"StrongCarryoverTag"
         @test kind(nestable) == m
         @test kind(first(children(nestable))) == K"NestableItem"
@@ -304,7 +304,7 @@ various = [
 ]
 @testset "Various child kind: $k" for (s,k) in various
     ast = norg(s)
-    tag = first(children(ast))
+    tag = first(children(ast.root))
     @test kind(tag) == K"StrongCarryoverTag"
     label,child = children(tag)
     @test Norg.Codegen.textify(ast, label) == "test"

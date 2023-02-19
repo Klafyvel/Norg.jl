@@ -1,16 +1,16 @@
-using Hyperscript: Node
 using Norg
 using Documenter
+using HypertextLiteral
 
 # pre-rendering the Norg specification
-using Hyperscript, AbstractTrees
+using AbstractTrees
 s = open(Norg.NORG_SPEC_PATH, "r") do f
     read(f, String)
 end;
 md_path = joinpath(@__DIR__, "src", "1.0-specification.md")
 ast = norg(s)
 function mk_toc(ast)
-    toc_tree = filter(!isnothing, [mk_toc(ast, c) for c in children(ast)])
+    toc_tree = filter(!isnothing, [mk_toc(ast, c) for c in children(ast.root)])
 end
 function mk_toc(ast, node)
     c = children(node)
@@ -37,20 +37,30 @@ function mk_toc(ast, node)
 end
 toc = mk_toc(ast)
 function mk_html_toc(toc_elem)
-    [m("a", href="#"*"h$(toc_elem.level)-"*Norg.Codegen.idify(toc_elem.title), toc_elem.title),
-    m("ul", [m("li", mk_html_toc(t)) for t in toc_elem.children])
+    href = "#"*"h$(toc_elem.level)-"*Norg.Codegen.idify(toc_elem.title)
+    lis = [
+        @htl("<li>$(mk_html_toc(t))</li>") for t in toc_elem.children
     ]
+
+    @htl """<a href=$href>$(toc_elem.title)</a>
+    <ul>
+        $lis
+    </ul>
+    """
 end
-toc_html = m("ul", [m("li", mk_html_toc(c)) for c in toc])
+
+lis = [@htl("<li>$(mk_html_toc(c))</li>") for c in toc]
+toc_html = @htl """<ul>$lis</ul>"""
+
 open(md_path, "w") do f
     write(f, """This is an automated rendering of the [norg specification](https://github.com/nvim-neorg/norg-specs) using Norg.jl.
 
     # Table of contents
     """)
     write(f, "```@raw html\n")
-    write(f, string(toc_html|>Pretty))
+    write(f, string(toc_html))
     write(f, "\n")
-    write(f, string(norg(Norg.HTMLTarget(), s)|>Pretty))
+    write(f, string(norg(Norg.HTMLTarget(), s)))
     write(f, "\n```")
 end
 

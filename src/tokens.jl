@@ -36,7 +36,7 @@ See also: [`Tokens.TokenPosition`](@ref)
 struct Token
     kind::Kind
     position::TokenPosition
-    value::SubString
+    value::SubString{String}
 end
 
 """

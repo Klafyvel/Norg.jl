@@ -1,4 +1,4 @@
-function parse_norg(t::T, parents::Vector{Kind}, tokens, i) where {T<:AttachedModifierStrategy}
+function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where {T<:AttachedModifierStrategy}
     start = i
     children = AST.Node[]
     i = nextind(tokens, i)

@@ -1,5 +1,5 @@
 @testset "JSON target" begin
-using DataStructures
+using OrderedCollections
 
 @testset "Test paragraphs" begin
     s = "Hi I am first paragraph.\n\nOh, hello there, I am second paragraph !"
