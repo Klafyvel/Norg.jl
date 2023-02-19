@@ -5,7 +5,7 @@ AST = Norg.AST
     hey
     @end
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     verb = first(children(ast))
     @test kind(verb) == K"Verbatim"
     @test length(children(verb)) == 2
@@ -23,7 +23,7 @@ end
     version: 1.0
     @end
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     verb = first(children(ast))
     tag, subtag, _ = children(verb)
     @test AST.litteral(ast, tag) == "document"
@@ -35,7 +35,7 @@ end
     println("hey you")
     @end
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     verb = first(children(ast))
     tag, lang, _ = children(verb)
     @test AST.litteral(ast, tag) == "code"
@@ -47,7 +47,7 @@ end
     println("hey you")
         @end
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     verb = first(children(ast))
     tag, lang, _ = children(verb)
     @test AST.litteral(ast, tag) == "code"
@@ -60,7 +60,7 @@ end
     @end
     outside verbatim
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     verb, p = children(ast)
     tag, subtag, beep, bop, p, body = children(verb)
     @test AST.litteral(ast, tag) == "verbatim"
@@ -83,7 +83,7 @@ end
     }
     @end
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     p, verb = children(ast)
     @test kind(p) == K"Paragraph"
     @test kind(verb) == K"Verbatim"
@@ -98,7 +98,7 @@ end
     }
     @end
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     h1 = first(children(ast))
     h1_title, verb = children(h1)
     @test kind(h1_title) == K"ParagraphSegment"
@@ -176,7 +176,7 @@ nestables = [
         $t applied
         $t not applied
         """
-        ast = AST.parse(AST.NorgDocument, s)
+        ast = norg(s)
         nestable = first(children(ast))
         tag,item = children(nestable)
         @test kind(tag) == K"WeakCarryoverTag"
@@ -190,7 +190,7 @@ nestables = [
         +test
         $t applied
         """
-        ast = AST.parse(AST.NorgDocument, s)
+        ast = norg(s)
         nestable = first(children(ast))
         item,tag = children(nestable)
         @test kind(tag) == K"WeakCarryoverTag"
@@ -214,7 +214,7 @@ various = [
     """, K"Verbatim")
 ]
 @testset "Various child kind: $k" for (s,k) in various
-    ast = AST.parse(AST.NorgDocument, s)
+    ast = norg(s)
     tag = first(children(ast))
     @test kind(tag) == K"WeakCarryoverTag"
     label,child = children(tag)
@@ -260,7 +260,7 @@ nestables = [
         $t applied
         $t applied
         """
-        ast = AST.parse(AST.NorgDocument, s)
+        ast = norg(s)
         tag = first(children(ast))
         @test kind(tag) == K"StrongCarryoverTag"
         @test length(children(tag)) == 2
@@ -277,7 +277,7 @@ nestables = [
         #test
         $t applied
         """
-        ast = AST.parse(AST.NorgDocument, s)
+        ast = norg(s)
         nestable,tag = children(ast)
         @test kind(tag) == K"StrongCarryoverTag"
         @test kind(nestable) == m
@@ -303,7 +303,7 @@ various = [
     """, K"Verbatim")
 ]
 @testset "Various child kind: $k" for (s,k) in various
-    ast = AST.parse(AST.NorgDocument, s)
+    ast = norg(s)
     tag = first(children(ast))
     @test kind(tag) == K"StrongCarryoverTag"
     label,child = children(tag)

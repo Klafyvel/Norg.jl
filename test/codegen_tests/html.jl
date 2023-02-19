@@ -69,7 +69,7 @@ simple_link_tests = [
 
 @testset "Test links: $link" for (link, target, text) in simple_link_tests
     s = "{$link}"
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     link = first(getfield(first(getfield(html, :children)), :children))
     @test getfield(link, :tag) == "a"
     @test getfield(link, :attrs)["href"] == target
@@ -78,7 +78,7 @@ end
 
 @testset "Test links with description: $link" for (link, target) in simple_link_tests
     s = "{$link}[website]"
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     link = first(getfield(first(getfield(html, :children)), :children))
     @test getfield(link, :tag) == "a"
     @test getfield(link, :attrs)["href"] == target
@@ -87,7 +87,7 @@ end
 
 @testset "Anchors with embedded definition: $link" for (link, target) in simple_link_tests
     s = "[website]{$link}"
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     link = first(getfield(first(getfield(html, :children)), :children))
     @test getfield(link, :tag) == "a"
     @test getfield(link, :attrs)["href"] == target
@@ -98,11 +98,11 @@ end
     s = """@code julia
     using Norg, Hyperscript
     s = "*Hi there*"
-    html = parse(Norg.HTMLTarget, s)
+    html = norg(Norg.HTMLTarget, s)
     html |> Pretty
     @end
     """
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     pre = first(getfield(html, :children))
     @test getfield(pre, :tag) == "pre"
     code = first(getfield(pre, :children))
@@ -117,7 +117,7 @@ heading_levels = 1:6
     s = """$(repeat("*", i)) heading
     text
     """
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     section = first(getfield(html, :children))
     @test getfield(section, :tag) == "section"
     @test haskey(getfield(section, :attrs), "id")
@@ -137,7 +137,7 @@ nestable_lists = ['~'=>"ol", '-'=>"ul"]
     $m Shintero yuo been na
     $m Na sinchere fedicheda
     """
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     list = first(getfield(html, :children))
     @test getfield(list, :tag) == target
     lis = getfield(list, :children)
@@ -146,14 +146,14 @@ end
 
 @testset "quote" begin
     s = "> I QUOTE you"
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     q = first(getfield(html, :children))
     @test getfield(q, :tag) == "blockquote"
 end
 
 @testset "inline link" begin
     s = """<inline link target>"""
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     p = first(getfield(html, :children))
     @test length(getfield(p, :children)) == 1
     span = first(getfield(p, :children))
@@ -165,7 +165,7 @@ end
     s = open(Norg.NORG_SPEC_PATH, "r") do f
         read(f, String)
     end
-    html = parse(HTMLTarget(), s)
+    html = norg(HTMLTarget(), s)
     @test html isa Hyperscript.Node{Hyperscript.HTMLSVG}
 end
 end

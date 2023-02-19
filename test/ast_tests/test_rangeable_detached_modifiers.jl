@@ -13,7 +13,7 @@ rangeable = [
 
     outside
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     rang,p = children(ast)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
@@ -35,7 +35,7 @@ end
     $m$m
     outside
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     rang,p = children(ast)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
@@ -58,7 +58,7 @@ end
 
     outside
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     t = first(children(ast))
     _,rang,p = children(t)
     @test kind(rang) == T
@@ -82,7 +82,7 @@ end
     $m$m
     outside
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     t = first(children(ast))
     _,rang,p = children(t)
     @test kind(rang) == T
@@ -105,7 +105,7 @@ end
 
     outside
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     rang,p = children(ast)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
@@ -127,7 +127,7 @@ end
         $m$m
     outside
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     rang,p = children(ast)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
@@ -161,7 +161,7 @@ end
             for c in ("simple", "matched")
                 s_c = make_str(c, "c")
                 s = s_a*s_b*s_c
-                ast = parse(AST.NorgDocument, s)
+                ast = norg(s)
                 rang = first(children(ast))
                 @test kind(rang) == T
                 for (l,item) in zip(["a", "b", "c"], children(rang))

@@ -18,7 +18,7 @@ todos = [
     @testset "Level" for n in 1:7
         @testset "Simple Todos: ($t)" for (t,res) in todos
             s = "$(repeat(m, n)) ($t) hey"
-            ast = parse(AST.NorgDocument, s)
+            ast = norg(s)
             nestable = first(children(ast))
             if m == "*"
                 item = nestable
@@ -30,7 +30,7 @@ todos = [
         end
         @testset "Due time extension" begin
             s = "$(repeat(m, n)) (< Monday) hey"
-            ast = parse(AST.NorgDocument, s)
+            ast = norg(s)
             nestable = first(children(ast))
             if m == "*"
                 item = nestable
@@ -42,7 +42,7 @@ todos = [
         end
         @testset "Start time extension" begin
             s = "$(repeat(m, n)) (> Monday) hey"
-            ast = parse(AST.NorgDocument, s)
+            ast = norg(s)
             nestable = first(children(ast))
             if m == "*"
                 item = nestable
@@ -54,7 +54,7 @@ todos = [
         end
         @testset "Timestamp extension" begin
             s = "$(repeat(m, n)) (@ Monday) hey"
-            ast = parse(AST.NorgDocument, s)
+            ast = norg(s)
             nestable = first(children(ast))
             if m == "*"
                 item = nestable
@@ -66,7 +66,7 @@ todos = [
         end
         @testset "Todos chained with timestamp: ($t)" for (t,res) in todos
             s = "$(repeat(m, n)) ($t|@ Tuesday) hey"
-            ast = parse(AST.NorgDocument, s)
+            ast = norg(s)
             nestable = first(children(ast))
             if m == "*"
                 item = nestable
@@ -80,7 +80,7 @@ todos = [
         end
         @testset "Todos chained with due date: ($t)" for (t,res) in todos
             s = "$(repeat(m, n)) ($t|< Tuesday) hey"
-            ast = parse(AST.NorgDocument, s)
+            ast = norg(s)
             nestable = first(children(ast))
             if m == "*"
                 item = nestable
@@ -94,7 +94,7 @@ todos = [
         end
         @testset "Todos chained with start date: ($t)" for (t,res) in todos
             s = "$(repeat(m, n)) ($t|> Tuesday) hey"
-            ast = parse(AST.NorgDocument, s)
+            ast = norg(s)
             nestable = first(children(ast))
             if m == "*"
                 item = nestable
@@ -108,7 +108,7 @@ todos = [
         end
         @testset "Todos chained with priority: ($t)" for (t,res) in todos
             s = "$(repeat(m, n)) ($t|# A) hey"
-            ast = parse(AST.NorgDocument, s)
+            ast = norg(s)
             nestable = first(children(ast))
             if m == "*"
                 item = nestable

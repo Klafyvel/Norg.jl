@@ -10,7 +10,7 @@ nestable = [('-', K"UnorderedList1")
     s = """$m first item
     $m second item
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     nest = first(children(ast))
     @test kind(nest) == T
     item1, item2 = children(nest)
@@ -23,7 +23,7 @@ end
 
     $m second item
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     nest1, nest2 = children(ast)
     @test kind(nest1) == T
     @test kind(nest2) == T
@@ -43,7 +43,7 @@ nestable_check = [('-', AST.is_unordered_list)
     $m$m subitem2
     $m item2
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     nest = first(children(ast))
     @test verif(nest)
     item1, item2 = children(nest)
@@ -63,7 +63,7 @@ nestable_level_check = [
 ]
 @testset "$T of level $i" for (m, T) in nestable_level_check, i in 1:6
     s = "$(repeat(m, i)) item"
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     nest = first(children(ast))
     @test kind(nest) == T(i)
 end
@@ -72,7 +72,7 @@ end
     s = """$m item1
     * Not in item1
     """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     nest, h1 = children(ast)
     @test kind(nest) == T
     @test kind(h1) == K"Heading1"
@@ -97,7 +97,7 @@ end
       $m In the first $T
       * But $(T)s have to behave, for a heading shall break them.
       """
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     nest, h1, h1bis = children(ast)
     @test kind(nest) == T
     @test kind(h1) == K"Heading1"
@@ -113,7 +113,7 @@ end
           - Any of the {** ranged tags}
           - Any of the {*** strong carryover tags}
        """
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     title, p, ul = children(first(children(ast)))
     @test kind(title) == K"ParagraphSegment"
     @test kind(p) == K"Paragraph"

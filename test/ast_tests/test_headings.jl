@@ -9,7 +9,7 @@ Node = Norg.AST.Node
 
     This is no longer part of the heading."""
 
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
 
     h1,sd,p = children(ast)
 
@@ -43,7 +43,7 @@ heading_levels = 2:6
 And here is some more text that has broken out of the matrix.
 """
 
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
 
     hi = first(children(ast))
     h1 = children(ast)[2]
@@ -88,7 +88,7 @@ end
 
     This should no longer be part of the heading."""
 
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
 
     p1, h1, strong_delimiter, p2 = children(ast)
 
@@ -125,7 +125,7 @@ end
 
     This should though."""
 
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
 
     h1, p = children(ast)
     @test kind(h1) == K"Heading1"
@@ -137,7 +137,7 @@ end
 ___
 Separated by a horizontal line."""
 
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     p1, hr, p2 = children(ast)
     @test kind(p1) == K"Paragraph"
     @test kind(hr) == K"HorizontalRule"
@@ -151,7 +151,7 @@ end
              ___
              This is a new paragraph separated from the previous one by a horizontal
              """
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     h1 = first(children(ast))
     h1_title, p1, hr, p2 = children(h1)
     @test kind(p1) == K"Paragraph"
@@ -160,7 +160,7 @@ end
 end
 
 @testset "Delimiting modifiers should not be too greedy.: $m" for m in ("=", "-", "_")
-    ast = parse(Norg.AST.NorgDocument, """Hello
+    ast = norg("""Hello
     $m$m$m
     There
     """)

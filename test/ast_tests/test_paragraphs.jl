@@ -1,7 +1,7 @@
 Node = Norg.AST.Node
 
 @testset "Two newlines should separate two paragraphs." begin
-    ast = parse(Norg.AST.NorgDocument,
+    ast = norg(
                 "Hi I am first paragraph.\n\nOh, hello there, I am second paragraph !")
     p1, p2 = children(ast)
     @test kind(p1) == K"Paragraph"
@@ -9,7 +9,7 @@ Node = Norg.AST.Node
 end
 
 @testset "One newline should separate two paragraph segments." begin
-    ast = parse(Norg.AST.NorgDocument,
+    ast = norg(
                 "Hi I am first paragraph segment...\nAnd I am second paragraph segment !\n\nOh, hello there, I am second paragraph !")
     p1, p2 = children(ast)
     ps1,ps2 = children(p1)

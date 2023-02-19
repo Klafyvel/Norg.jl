@@ -16,7 +16,7 @@ simple_markups = [
 ]
 
 @testset "Standalone markup for $m" for (m,k) in simple_markups
-    ast = parse(Norg.AST.NorgDocument, "$(m)inner$(m)")
+    ast = norg("$(m)inner$(m)")
     @test ast isa Norg.AST.NorgDocument
     p = first(children(ast))
     @test kind(p) == K"Paragraph"
@@ -32,8 +32,7 @@ simple_markups = [
 end
 
 @testset "Markup inside a sentence for $m" for (m, k) in simple_markups
-    ast = parse(Norg.AST.NorgDocument,
-                "When put inside a sentence $(m)inner$(m).")
+    ast = norg("When put inside a sentence $(m)inner$(m).")
     @test ast isa Norg.AST.NorgDocument
     p = first(children(ast))
     @test kind(p) == K"Paragraph"
@@ -64,7 +63,7 @@ simple_nested_outer = [
         continue
     end
     s = "$(m)Nested $(n)inner$(n)$(m)"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     outernode = first(children(first(children(first(children(ast))))))
     @test kind(outernode) == T
     ps = first(children(outernode))
@@ -83,7 +82,7 @@ end
         continue
     end
     s = "`Nested $(m)inner$(m)`"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     outernode = first(children(first(children(first(children(ast))))))
     @test kind(outernode) == K"InlineCode"
     ps = first(children(outernode))
@@ -95,7 +94,7 @@ end
 
 @testset "Escaping modifier $m" for (m, _) in simple_markups
     s = "This is \\$(m)normal\\$(m)"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps = first(children(first(children(ast))))
     for n in children(ps)
         @test kind(n) ∈ [K"Escape", K"WordNode"]
@@ -104,7 +103,7 @@ end
 
 @testset "No empty modifier $m" for (m, T) in simple_markups
     s = "nothing to see $(m)$(m) here"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps = first(children(first(children(ast))))
     for n in children(ps)
         @test kind(n) == K"WordNode"
@@ -113,7 +112,7 @@ end
 
 @testset "First closing modifier has precedence" begin
     s = "*first bold* some /italic/ and not bold*"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps = first(children(first(children(ast))))
     b = children(ps)[1]
     i = children(ps)[5]
@@ -123,7 +122,7 @@ end
 
 @testset "First closing modifier has precedence" begin
     s = "*This /is bold*/"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps = first(children(first(children(ast))))
     b = children(ps)[1]
     @test kind(b) == K"Bold"
@@ -131,7 +130,7 @@ end
 
 @testset "Yet another precedence test." begin
     s = "*/Bold and italic*/"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps = first(children(first(children(ast))))
     b,w = children(ps)
     @test kind(b) == K"Bold"
@@ -144,7 +143,7 @@ end
 
 @testset "Verbatim precedence" begin
     s = "*not bold `because verbatim* has higher precedence`"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps = first(children(first(children(ast))))
     for n in first(children(ps), 5)
         @test kind(n) == K"WordNode"
@@ -155,7 +154,7 @@ end
 # TODO: this is actually not in the spec, but useful while layer 4 is not implemented.
 @testset "Escaping is allowed in inline code" begin
     s = "`\\` still verbatim`"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps = first(children(first(children(ast))))
     @test length(children(ps)) == 1
     @test kind(first(children(ps))) == K"InlineCode"
@@ -163,7 +162,7 @@ end
 
 @testset "Line endings are allowed withing attached modifiers." begin
     s = "/italic\ntoo/"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     @test length(children(ps)) == 1
@@ -173,7 +172,7 @@ end
 
 @testset "Precedence torture test." begin
     s = "test `1.`/`1)`, Norg \ntest"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps1, ps2 = children(first(children(ast)))
     @test kind(ps1) == K"ParagraphSegment"
     @test kind(ps2) == K"ParagraphSegment"
@@ -184,7 +183,7 @@ end
 end
 
 @testset "Link modifier for: $T" for (m,T) in simple_markups
-    ast = parse(AST.NorgDocument, "Intra:$(m)word$(m):markup")
+    ast = norg("Intra:$(m)word$(m):markup")
     ps = first(children(first(children(ast))))
     w1,mark,w2 = children(ps)
     @test kind(w1) == K"WordNode"

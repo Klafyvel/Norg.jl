@@ -40,7 +40,7 @@ nestable = [('-', K"UnorderedList1")
         $m :
         $(child_text)
         $m last line"""
-        ast = parse(AST.NorgDocument, s)
+        ast = norg(s)
         nest = first(children(ast))
         @test kind(nest) == nestable_T
         i1,i2,i3 = children(nest)

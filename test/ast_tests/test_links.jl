@@ -20,7 +20,7 @@ simple_link_tests = [":norg_file:" => K"NorgFileLocation"
 
 @testset "basic links: $target" for (link, target) in simple_link_tests
     s = "{$link} other"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     l, space, word = children(ps)
@@ -33,7 +33,7 @@ end
 
 @testset "basic links with description: $target" for (link, target) in simple_link_tests
     s = "{$link}[descr]"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     l = first(children(ps))
@@ -49,7 +49,7 @@ end
 
 @testset "Checking markup in link description :$link => $target" for (link, target) in simple_link_tests
     s = "{$link}[*descr*]"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     l = first(children(ps))
@@ -66,7 +66,7 @@ end
 
 @testset "Test special neorg root path" begin
     s = "{:\$file:}"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     l = first(children(ps))
@@ -74,7 +74,7 @@ end
     target = first(children(loc))
     @test kind(target) == K"FileNorgRootTarget"
     s = "{/ \$file}"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     l = first(children(ps))
@@ -97,7 +97,7 @@ subtarget_tests = [":file:1" => K"LineNumberLocation"
 ]
 @testset "Checking subtarget :$link => $target" for (link, target) in subtarget_tests
     s = "{$link}"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     l = first(children(ps))
@@ -123,7 +123,7 @@ leaves_tests = [
 ]
 @testset "Checking leaves :$link => $target" for (link, target) in leaves_tests
     s = "{$link}"
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     for (l,t) in zip(collect(Leaves(ast)), target)
         @test kind(l) == t
     end
@@ -135,7 +135,7 @@ end
 
     I like shilling [Neorg]{https://github.com/nvim-neorg/neorg} sorry :(
     """
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     ps1, ps2 = first.(children.(children(ast)))
     anchor1 = first(children(ps1))
     anchor2 = children(ps2)[7]
@@ -198,7 +198,7 @@ target = K"DetachedModifierLocation")
 ]
 
 @testset "Testing anchor : $(t.target)" for t in anchor_tests
-    ast = parse(AST.NorgDocument, t.input)
+    ast = norg(t.input)
     anchor1, anchor2 = first.(children.(first.(children.(children(ast)))))
     @test kind(anchor1) == K"Anchor"
     @test kind(anchor2) == K"Anchor"
@@ -213,7 +213,7 @@ end
 
 @testset "Testing inline link targets" begin
     s = "Hi! <inline link target>"
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     i = last(children(ps))
@@ -242,7 +242,7 @@ end
     """{ $k}"""
     ]
 @testset "Invalid examples : $(repr(s))" for s in invalid_singles
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     @test !any(kind(n) == K"Link" for n in collect(PreOrderDFS(ast)))
 end 
     invalid_complexes = [
@@ -259,7 +259,7 @@ end
     text]"""
     ]
 @testset "Invalid examples : $(repr(s))" for s in invalid_complexes
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps1, ps2 = children(p)
     @test kind(ps1) == K"ParagraphSegment"
@@ -276,7 +276,7 @@ end
     >"""
     ]
 @testset "Invalid examples : $(repr(s))" for s in invalid_inlines
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     @test !any(kind(n) == K"InlineLinkTarget" for n in collect(PreOrderDFS(ast)))
 end 
 end
@@ -288,7 +288,7 @@ end
     "{* a link\nto a heading}"
     ]
 @testset "Valid examples : $(repr(s))" for s in valid_singles
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     @test kind(first(children(ps))) == K"Link"
@@ -298,7 +298,7 @@ end
     "{* a\n    link to a heading}[with\n    a description]"
     ]
 @testset "Valid examples : $(repr(s))" for s in valid_complexes
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     l = first(children(ps))
@@ -308,7 +308,7 @@ end
     @test kind(descr) == K"LinkDescription"
 end 
     s = "[te\n    xt]{# linkable}"
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     a = first(children(ps))
@@ -322,7 +322,7 @@ end
     I'm valid>"""
     ]
 @testset "Valid examples : $(repr(s))" for s in valid_inlines
-    ast = parse(AST.NorgDocument, s)
+    ast = norg(s)
     p = first(children(ast))
     ps = first(children(p))
     @test kind(first(children(ps))) == K"InlineLinkTarget"

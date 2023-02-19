@@ -8,6 +8,6 @@ Node = Norg.AST.Node
         - [ ] nice
         - [-] {https://github.com/}[i error]
     """
-    ast = parse(Norg.AST.NorgDocument, s)
+    ast = norg(s)
     @test ast isa Node{Norg.AST.NorgDocument}
 end

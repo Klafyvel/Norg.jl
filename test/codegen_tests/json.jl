@@ -98,15 +98,15 @@ end
     s = """@code julia
     using Norg
     s = "*Hi there*"
-    json = parse(Norg.JSONTarget(), s)
+    json = norg(Norg.JSONTarget(), s)
     @end
     """
-    json = parse(JSONTarget(), s)
+    json = norg(JSONTarget(), s)
     cb = json["blocks"][1]
     @test cb["t"] == "CodeBlock"
     attr, content = cb["c"]
     @test attr[2][1] == "julia"
-    @test content == """using Norg\ns = "*Hi there*"\njson = parse(Norg.JSONTarget(), s)\n"""
+    @test content == """using Norg\ns = "*Hi there*"\njson = norg(Norg.JSONTarget(), s)\n"""
 end
 
 heading_levels = 1:6
@@ -115,7 +115,7 @@ heading_levels = 1:6
     s = """$(repeat("*", i)) heading
     text
     """
-    json = parse(JSONTarget(), s)
+    json = norg(JSONTarget(), s)
     container = json["blocks"][1]
     @test container["t"] == "Div"
     attr, content = container["c"]
@@ -134,14 +134,14 @@ nestable_lists = ['~'=>"OrderedList", '-'=>"BulletList", ">"=>"BlockQuote"]
     $m Shintero yuo been na
     $m Na sinchere fedicheda
     """
-    json = parse(JSONTarget(), s)
+    json = norg(JSONTarget(), s)
     list = json["blocks"][1]
     @test list["t"] == target
 end
 
 @testset "inline link" begin
     s = """<inline link target>"""
-    json = parse(JSONTarget(), s)
+    json = norg(JSONTarget(), s)
     p = json["blocks"][1]
     @test length(p["c"]) == 1
     span = first(p["c"])
@@ -155,7 +155,7 @@ end
     s = open(Norg.NORG_SPEC_PATH) do f
         read(f, String)
     end
-    json = parse(JSONTarget(), s)
+    json = norg(JSONTarget(), s)
     @test json isa OrderedDict
 end
 
