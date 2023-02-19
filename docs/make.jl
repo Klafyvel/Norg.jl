@@ -10,7 +10,7 @@ end;
 md_path = joinpath(@__DIR__, "src", "1.0-specification.md")
 ast = norg(s)
 function mk_toc(ast)
-    toc_tree = filter(!isnothing, [mk_toc(ast, c) for c in children(ast)])
+    toc_tree = filter(!isnothing, [mk_toc(ast, c) for c in children(ast.root)])
 end
 function mk_toc(ast, node)
     c = children(node)

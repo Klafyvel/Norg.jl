@@ -26,7 +26,7 @@ Try to parse the `tokens` sequence starting at index `i` using a given `strategy
 """
 function parse_norg end
 
-function parse_norg_toplevel_one_step(parents, tokens, i)
+function parse_norg_toplevel_one_step(parents::Vector{Kind}, tokens::Vector{Token}, i)
     m = match_norg(parents, tokens, i)
     to_parse = matched(m)
     if isclosing(m)
@@ -72,7 +72,7 @@ end
 Try to parse the `tokens` sequence as an [`AST.NorgDocument`](@ref) starting
 from the begining of the sequence.
 """
-function parse_norg(tokens)
+function parse_norg(tokens::Vector{Token})
     i = nextind(tokens, firstindex(tokens))
     children = AST.Node[]
     while !is_eof(tokens[i])
@@ -86,12 +86,13 @@ function parse_norg(tokens)
             push!(children, child)
         end
     end
-    ast = AST.NorgDocument(children, tokens)
+    root = AST.Node(K"NorgDocument", children, firstindex(tokens), lastindex(tokens))
+    ast = AST.NorgDocument(root, tokens)
     findtargets!(ast)
     ast
 end
 
-function parse_norg(::Paragraph, parents::Vector{Kind}, tokens, i)
+function parse_norg(::Paragraph, parents::Vector{Kind}, tokens::Vector{Token}, i)
     segments = AST.Node[]
     m = Match.MatchClosing(K"Paragraph")
     start = i
@@ -136,7 +137,7 @@ end
 """
 Main dispatch utility.
 """
-function parse_norg_dispatch(to_parse, parents::Vector{Kind}, tokens, i)
+function parse_norg_dispatch(to_parse::Kind, parents::Vector{Kind}, tokens::Vector{Token}, i)
     if to_parse == K"Escape"
         parse_norg(Escape(), parents, tokens, i)            
     elseif to_parse == K"Bold"
@@ -168,7 +169,7 @@ function parse_norg_dispatch(to_parse, parents::Vector{Kind}, tokens, i)
     end
 end
 
-function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
+function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     children = AST.Node[]
     m = Match.MatchClosing(K"ParagraphSegment")
@@ -220,13 +221,13 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens, i)
     end
 end
 
-function parse_norg(::Escape, parents::Vector{Kind}, tokens, i)
+function parse_norg(::Escape, parents::Vector{Kind}, tokens::Vector{Token}, i)
     next_i = nextind(tokens, i)
     w = parse_norg(Word(), parents, tokens, next_i)
     AST.Node(K"Escape", AST.Node[w], i, next_i)
 end
 
-function parse_norg(::Word, parents::Vector{Kind}, tokens, i)
+function parse_norg(::Word, parents::Vector{Kind}, tokens::Vector{Token}, i)
     AST.Node(K"WordNode", AST.Node[], i, i)
 end
 

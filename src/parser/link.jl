@@ -1,4 +1,4 @@
-function parse_norg(::Link, parents, tokens, i)
+function parse_norg(::Link, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     token = tokens[i]
@@ -38,7 +38,7 @@ function parse_norg(::Link, parents, tokens, i)
     end
 end
 
-function parse_norg(::LinkLocation, parents, tokens, i)
+function parse_norg(::LinkLocation, parents::Vector{Kind}, tokens::Vector{Token}, i)
     location_match = match_norg(LinkLocation(), parents, tokens, i)
     location_kind = kind(matched(location_match))
     p = [K"LinkLocation"; parents...]
@@ -64,7 +64,7 @@ function parse_norg(::LinkLocation, parents, tokens, i)
     end
 end
 
-function parse_norg(::URLLocation, parents, tokens, i)
+function parse_norg(::URLLocation, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     token = tokens[i]
     m = match_norg(parents, tokens, i)
@@ -86,7 +86,7 @@ function parse_norg(::URLLocation, parents, tokens, i)
     end
 end
 
-function parse_norg(::LineNumberLocation, parents, tokens, i)
+function parse_norg(::LineNumberLocation, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     token = tokens[i]
     m = match_norg(parents, tokens, i)
@@ -109,7 +109,7 @@ function parse_norg(::LineNumberLocation, parents, tokens, i)
     end
 end
 
-function parse_norg(::DetachedModifierLocation, parents, tokens, i)
+function parse_norg(::DetachedModifierLocation, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     token = tokens[i]
     if kind(token) == K"*"
@@ -176,7 +176,7 @@ function parse_norg(::DetachedModifierLocation, parents, tokens, i)
     end
 end
 
-function parse_norg(::MagicLocation, parents, tokens, i)
+function parse_norg(::MagicLocation, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     token = tokens[i]
@@ -216,7 +216,7 @@ end
 
 filelocationkind(::FileLocation) = K"FileLocation"
 filelocationkind(::NorgFileLocation) = K"NorgFileLocation"
-function parse_norg(t::T, parents, tokens, i,) where { T <: Union{FileLocation, NorgFileLocation}}
+function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i,) where { T <: Union{FileLocation, NorgFileLocation}}
     start = i
     i = nextind(tokens, i)
     token = tokens[i]
@@ -278,7 +278,7 @@ function parse_norg(t::T, parents, tokens, i,) where { T <: Union{FileLocation, 
     AST.Node(filelocationkind(t), [file_target, subtarget], start, i)
 end
 
-function parse_norg(::WikiLocation, parents, tokens, i,)
+function parse_norg(::WikiLocation, parents::Vector{Kind}, tokens::Vector{Token}, i,)
     start = i
     i = nextind(tokens, i)
     token = tokens[i]
@@ -339,7 +339,7 @@ function parse_norg(::WikiLocation, parents, tokens, i,)
 end
 
 
-function parse_norg(::TimestampLocation, parents, tokens, i,)
+function parse_norg(::TimestampLocation, parents::Vector{Kind}, tokens::Vector{Token}, i,)
     start = i
     i = nextind(tokens, i)
     token = tokens[i]
@@ -367,7 +367,7 @@ function parse_norg(::TimestampLocation, parents, tokens, i,)
     end
 end
 
-function parse_norg(::LinkDescription, parents, tokens, i)
+function parse_norg(::LinkDescription, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     children = AST.Node[]
@@ -399,7 +399,7 @@ function parse_norg(::LinkDescription, parents, tokens, i)
     AST.Node(node_kind, children, start, i)
 end
 
-function parse_norg(::Anchor, parents, tokens, i)
+function parse_norg(::Anchor, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     description_node = parse_norg(LinkDescription(), [K"Anchor", parents...], tokens, i)
     if kind(description_node) == K"None"
@@ -427,7 +427,7 @@ function parse_norg(::Anchor, parents, tokens, i)
     end
 end
 
-function parse_norg(::InlineLinkTarget, parents, tokens, i)
+function parse_norg(::InlineLinkTarget, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     children = AST.Node[]

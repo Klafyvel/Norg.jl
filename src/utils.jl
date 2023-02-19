@@ -87,7 +87,7 @@ attribute of the AST first.
 """
 function findtargets!(ast)
     empty!(ast.targets)
-    for c in children(ast)
+    for c in children(ast.root)
         map(PreOrderDFS(x->kind(x) ∉ KSet"Link Anchor", c)) do n
             findtargets!(ast, n)
         end

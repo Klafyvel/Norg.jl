@@ -1,4 +1,4 @@
-function parse_tag_header(parents, tokens, i)
+function parse_tag_header(parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     token = tokens[i]
     if is_whitespace(token) # consume leading whitespace
@@ -51,7 +51,7 @@ function parse_tag_header(parents, tokens, i)
     end
     children, i
 end
-function parse_norg(::Verbatim, parents, tokens, i)
+function parse_norg(::Verbatim, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     children, i = parse_tag_header(parents, tokens, i)
     token = tokens[i]
@@ -82,7 +82,7 @@ function parse_norg(::Verbatim, parents, tokens, i)
     AST.Node(K"Verbatim", children, start, i)
 end
 
-function parse_norg(::WeakCarryoverTag, parents, tokens, i)
+function parse_norg(::WeakCarryoverTag, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     children, i = parse_tag_header(parents, tokens, i)
     @debug "Weak carryover tag here" tokens[i]
@@ -98,7 +98,7 @@ function parse_norg(::WeakCarryoverTag, parents, tokens, i)
     end
 end
 
-function parse_norg(::StrongCarryoverTag, parents, tokens, i)
+function parse_norg(::StrongCarryoverTag, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     children, i = parse_tag_header(parents, tokens, i)
     @debug "Strong carryover tag here" tokens[i]

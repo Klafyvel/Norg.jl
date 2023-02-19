@@ -2,12 +2,12 @@
 Pandoc AST code generation. The best reference of Pandoc's AST I could find is
 [here](https://hackage.haskell.org/package/pandoc-types-1.22.2.1/docs/Text-Pandoc-Definition.html)
 
-The code generated consists in `OrderedDict`s from [DataStructures.jl](https://juliacollections.github.io/DataStructures.jl/latest/) that
+The code generated consists in `OrderedDict`s from [OrderedCollections.jl](https://github.com/JuliaCollections/OrderedCollections.jl) that
 follow the Pandoc JSON AST API. You can then export using *e.g.* [JSON.jl](https://github.com/JuliaIO/JSON.jl).
 """
 module JSONCodegen
 using Base: CacheHeaderIncludes
-using DataStructures
+using OrderedCollections
 using AbstractTrees
 
 using ..AST
@@ -29,7 +29,7 @@ function codegen(t::JSONTarget, ast::AST.NorgDocument)
         "pandoc-api-version" => [1, 22, 2, 1]
         "meta" => OrderedDict{String, String}()
         "blocks" => [
-            codegen(t, ast, c) for c in children(ast)
+            codegen(t, ast, c) for c in children(ast.root)
         ]
     ])
 end

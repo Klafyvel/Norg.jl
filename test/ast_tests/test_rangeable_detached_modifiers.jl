@@ -14,7 +14,7 @@ rangeable = [
     outside
     """
     ast = norg(s)
-    rang,p = children(ast)
+    rang,p = children(ast.root)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
@@ -36,7 +36,7 @@ end
     outside
     """
     ast = norg(s)
-    rang,p = children(ast)
+    rang,p = children(ast.root)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
@@ -59,7 +59,7 @@ end
     outside
     """
     ast = norg(s)
-    t = first(children(ast))
+    t = first(children(ast.root))
     _,rang,p = children(t)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
@@ -83,7 +83,7 @@ end
     outside
     """
     ast = norg(s)
-    t = first(children(ast))
+    t = first(children(ast.root))
     _,rang,p = children(t)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
@@ -106,7 +106,7 @@ end
     outside
     """
     ast = norg(s)
-    rang,p = children(ast)
+    rang,p = children(ast.root)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
@@ -128,7 +128,7 @@ end
     outside
     """
     ast = norg(s)
-    rang,p = children(ast)
+    rang,p = children(ast.root)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
@@ -162,7 +162,7 @@ end
                 s_c = make_str(c, "c")
                 s = s_a*s_b*s_c
                 ast = norg(s)
-                rang = first(children(ast))
+                rang = first(children(ast.root))
                 @test kind(rang) == T
                 for (l,item) in zip(["a", "b", "c"], children(rang))
                     @test kind(item) === K"RangeableItem"

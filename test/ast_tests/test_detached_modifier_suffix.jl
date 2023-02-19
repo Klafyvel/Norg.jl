@@ -41,7 +41,7 @@ nestable = [('-', K"UnorderedList1")
         $(child_text)
         $m last line"""
         ast = norg(s)
-        nest = first(children(ast))
+        nest = first(children(ast.root))
         @test kind(nest) == nestable_T
         i1,i2,i3 = children(nest)
         @test kind(i1) == K"NestableItem"
@@ -61,7 +61,7 @@ end
 
         This is another paragraph inside of the same list item.
         """
-        ul = first(children(ast))
+        ul = first(children(ast.root))
         @test kind(ul) == K"UnorderedList1"
         li = first(children(ul))
         @test kind(li) == K"NestableItem"
@@ -81,7 +81,7 @@ end
         ---
         This should still be part of the heading.
         """
-        h1 = first(children(ast))
+        h1 = first(children(ast.root))
         @test kind(h1) == K"Heading1"
         title, ul, p = children(h1)
         @test textify(ast, title) == "Heading"
@@ -113,7 +113,7 @@ end
 
         This is not a part of any indent segment.
         """
-        ul,sd,p = children(ast)
+        ul,sd,p = children(ast.root)
         @test kind(ul) == K"UnorderedList1"
         @test kind(sd) == K"StrongDelimitingModifier"
         @test kind(p) == K"Paragraph"

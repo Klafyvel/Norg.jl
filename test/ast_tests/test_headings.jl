@@ -11,7 +11,7 @@ Node = Norg.AST.Node
 
     ast = norg(s)
 
-    h1,sd,p = children(ast)
+    h1,sd,p = children(ast.root)
 
     @test kind(h1) == K"Heading1"
     @test kind(p) == K"Paragraph"
@@ -45,9 +45,9 @@ And here is some more text that has broken out of the matrix.
 
     ast = norg(s)
 
-    hi = first(children(ast))
-    h1 = children(ast)[2]
-    p = last(children(ast))
+    hi = first(children(ast.root))
+    h1 = children(ast.root)[2]
+    p = last(children(ast.root))
 
     @test kind(hi) == AST.heading_level(i)
     @test kind(h1) == K"Heading1"
@@ -90,7 +90,7 @@ end
 
     ast = norg(s)
 
-    p1, h1, strong_delimiter, p2 = children(ast)
+    p1, h1, strong_delimiter, p2 = children(ast.root)
 
     @test kind(p1) == K"Paragraph"
     @test kind(h1) == K"Heading1"
@@ -127,7 +127,7 @@ end
 
     ast = norg(s)
 
-    h1, p = children(ast)
+    h1, p = children(ast.root)
     @test kind(h1) == K"Heading1"
     @test kind(p) == K"Paragraph"
 end
@@ -138,7 +138,7 @@ ___
 Separated by a horizontal line."""
 
     ast = norg(s)
-    p1, hr, p2 = children(ast)
+    p1, hr, p2 = children(ast.root)
     @test kind(p1) == K"Paragraph"
     @test kind(hr) == K"HorizontalRule"
     @test kind(p2) == K"Paragraph"
@@ -152,7 +152,7 @@ end
              This is a new paragraph separated from the previous one by a horizontal
              """
     ast = norg(s)
-    h1 = first(children(ast))
+    h1 = first(children(ast.root))
     h1_title, p1, hr, p2 = children(h1)
     @test kind(p1) == K"Paragraph"
     @test kind(hr) == K"HorizontalRule"
@@ -164,7 +164,7 @@ end
     $m$m$m
     There
     """)
-    p1,delim,p2 = children(ast)
+    p1,delim,p2 = children(ast.root)
     @test Norg.Codegen.textify(ast, p1) == "Hello"
     @test Norg.Codegen.textify(ast, p2) == "There"
 end

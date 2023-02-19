@@ -1,4 +1,4 @@
-function parse_norg(::Slide, parents, tokens, i)
+function parse_norg(::Slide, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = consume_until(K"LineEnding", tokens, i)    
     p = [K"Slide", parents...]
@@ -20,7 +20,7 @@ function parse_norg(::Slide, parents, tokens, i)
     AST.Node(K"Slide", [child], start, AST.stop(child))
 end
 
-function parse_norg(::IndentSegment, parents, tokens, i)
+function parse_norg(::IndentSegment, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = consume_until(K"LineEnding", tokens, i)    
     p = [K"IndentSegment", parents...]

@@ -1,4 +1,4 @@
-function parse_norg(::DetachedModifierExtension, parents, tokens, i)
+function parse_norg(::DetachedModifierExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)
     m = match_norg(DetachedModifierExtension(), parents, tokens, i)
     if !Match.isfound(m)
         return AST.Node(K"None")        
@@ -18,7 +18,7 @@ function parse_norg(::DetachedModifierExtension, parents, tokens, i)
         error("Unhandled detached modifier extension. Token $token.")
     end
 end
-function parse_norg(::TodoExtension, parents, tokens, i)
+function parse_norg(::TodoExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     token = tokens[i]
@@ -56,7 +56,7 @@ function parse_norg(::TodoExtension, parents, tokens, i)
     end
 end
 
-function parse_norg(::TimestampExtension, parents, tokens, i)
+function parse_norg(::TimestampExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     starttimestamp = i
@@ -79,7 +79,7 @@ function parse_norg(::TimestampExtension, parents, tokens, i)
     end
 end
 
-function parse_norg(::PriorityExtension, parents, tokens, i)
+function parse_norg(::PriorityExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     startpriority = i
@@ -102,7 +102,7 @@ function parse_norg(::PriorityExtension, parents, tokens, i)
     end
 end
 
-function parse_norg(::DueDateExtension, parents, tokens, i)
+function parse_norg(::DueDateExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     starttimestamp = i
@@ -125,7 +125,7 @@ function parse_norg(::DueDateExtension, parents, tokens, i)
     end
 end
 
-function parse_norg(::StartDateExtension, parents, tokens, i)
+function parse_norg(::StartDateExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     starttimestamp = i

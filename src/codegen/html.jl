@@ -41,7 +41,7 @@ end
 HTMLTarget() = HTMLTarget(RootFootnotes)
 
 function codegen(t::HTMLTarget, ast::AST.NorgDocument)
-    content = [codegen(t, ast, c) for c in children(ast)]
+    content = [codegen(t, ast, c) for c in children(ast.root)]
     if t.footnotes_level == RootFootnotes
         footnotes = getchildren(ast, K"Footnote")
         items = Iterators.flatten(children.(footnotes))
