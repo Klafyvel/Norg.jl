@@ -3,6 +3,7 @@
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://klafyvel.github.io/Norg.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://klafyvel.github.io/Norg.jl/dev/)
 [![Build Status](https://github.com/klafyvel/Norg.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/klafyvel/Norg.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Test Coverage](https://codecov.io/gh/Klafyvel/Norg.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/Klafyvel/Norg.jl)
 
 Norg.jl is a library to parse the [norg file format](https://github.com/nvim-neorg/norg-specs) 
 used in [NeoVim's neorg](https://github.com/nvim-neorg/neorg).
