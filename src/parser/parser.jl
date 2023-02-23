@@ -156,6 +156,12 @@ function parse_norg_dispatch(to_parse::Kind, parents::Vector{Kind}, tokens::Vect
         parse_norg(Subscript(), parents, tokens, i)            
     elseif to_parse == K"InlineCode"
         parse_norg(InlineCode(), parents, tokens, i)            
+    elseif to_parse == K"NullModifier"
+        parse_norg(NullModifier(), parents, tokens, i)
+    elseif to_parse == K"InlineMath"
+        parse_norg(InlineMath(), parents, tokens, i)
+    elseif to_parse == K"Variable"
+        parse_norg(Variable(), parents, tokens, i)
     elseif to_parse == K"Link"
         parse_norg(Link(), parents, tokens, i)            
     elseif to_parse == K"Anchor"

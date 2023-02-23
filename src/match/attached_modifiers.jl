@@ -1,13 +1,3 @@
-tokentype(::ParagraphSegment) = K"LineEnding"
-tokentype(::Bold) = K"*"
-tokentype(::Italic) = K"/"
-tokentype(::Underline) = K"_"
-tokentype(::Strikethrough) = K"-"
-tokentype(::Spoiler) = K"!"
-tokentype(::Superscript) = K"^"
-tokentype(::Subscript) = K","
-tokentype(::InlineCode) = K"`"
-
 attachedmodifier(::Bold) = K"Bold"
 attachedmodifier(::Italic) = K"Italic"
 attachedmodifier(::Underline) = K"Underline"
@@ -16,6 +6,9 @@ attachedmodifier(::Spoiler) = K"Spoiler"
 attachedmodifier(::Superscript) = K"Superscript"
 attachedmodifier(::Subscript) = K"Subscript"
 attachedmodifier(::InlineCode) = K"InlineCode"
+attachedmodifier(::NullModifier) = K"NullModifier"
+attachedmodifier(::InlineMath) = K"InlineMath"
+attachedmodifier(::Variable) = K"Variable"
 
 function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifierStrategy}
     if K"LinkLocation" ∈ parents
@@ -41,7 +34,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifierStrategy
     end
 end
 
-function match_norg(::InlineCode, parents, tokens, i)
+function match_norg(t::T, parents, tokens, i) where {T <: VerbatimAttachedModifierStrategy}
     if K"LinkLocation" ∈ parents
         return MatchNotFound()
     end
@@ -49,10 +42,10 @@ function match_norg(::InlineCode, parents, tokens, i)
     next_token = tokens[next_i]
     prev_i = prevind(tokens, i)
     last_token = tokens[prev_i]
-    if K"InlineCode" ∉ parents && (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
-            MatchFound(K"InlineCode")
-    elseif K"InlineCode" ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
-        MatchClosing(K"InlineCode", first(parents) == K"InlineCode")
+    if attachedmodifier(t) ∉ parents && (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
+        MatchFound(attachedmodifier(t))
+    elseif attachedmodifier(t) ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
+        MatchClosing(attachedmodifier(t), first(parents) == attachedmodifier(t))
     else
         MatchNotFound()
     end

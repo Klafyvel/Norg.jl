@@ -129,6 +129,22 @@ function codegen(t::HTMLTarget, s::T, ast::NorgDocument, node::Node) where {T<:A
     end
 end
 
+function codegen(t::HTMLTarget, ::NullModifier, ast::NorgDocument, node::Node)
+    @htl ""
+end
+
+function codegen(t::HTMLTarget, ::InlineMath, ast::NorgDocument, node::Node)
+    res = HTR[]
+    for c in children(node)
+        push!(res, codegen(t, ast, c))
+    end
+    @htl "\$$res\$"
+end
+
+function codegen(t::HTMLTarget, ::Variable, ast::NorgDocument, node::Node)
+    @htl ""
+end
+
 function codegen(t::HTMLTarget, ::Word, ast::NorgDocument, node::Node)
     if is_leaf(node)
         @htl "$(AST.litteral(ast, node))"

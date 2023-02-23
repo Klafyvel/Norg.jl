@@ -1,6 +1,7 @@
 module Strategies
 
 abstract type Strategy end
+
 abstract type FromToken <: Strategy end
 struct Whitespace <: FromToken end
 struct LineEnding <: FromToken end
@@ -12,6 +13,8 @@ struct ExclamationMark <: FromToken end
 struct Circumflex <: FromToken end
 struct Comma <: FromToken end
 struct BackApostrophe <: FromToken end
+struct Ampersand <: FromToken end
+struct PercentSign <: FromToken end
 struct BackSlash <: FromToken end
 struct EqualSign <: FromToken end
 struct LeftBrace <: FromToken end
@@ -40,6 +43,7 @@ struct UnorderedList <: Nestable end
 struct OrderedList <: Nestable end
 struct Quote <: Nestable end
 struct NestableItem <: FromNode end
+
 abstract type Tag <: FromNode end
 struct Verbatim <: Tag end
 struct WeakCarryoverTag <: FromNode end
@@ -52,7 +56,11 @@ struct Strikethrough <: AttachedModifierStrategy end
 struct Spoiler <: AttachedModifierStrategy end
 struct Superscript <: AttachedModifierStrategy end
 struct Subscript <: AttachedModifierStrategy end
-struct InlineCode <: AttachedModifierStrategy end
+struct NullModifier <: AttachedModifierStrategy end
+abstract type VerbatimAttachedModifierStrategy <: AttachedModifierStrategy end
+struct InlineCode <: VerbatimAttachedModifierStrategy end
+struct InlineMath <: VerbatimAttachedModifierStrategy end
+struct Variable <: VerbatimAttachedModifierStrategy end
 struct Anchor <: FromNode end
 struct Link <: FromNode end
 struct LinkLocation <: FromNode end
@@ -99,15 +107,16 @@ export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark
 export Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace
 export RightBrace, RightSquareBracket, LeftSquareBracket, Tilde
 export GreaterThanSign, LesserThanSign, CommercialAtSign, Plus, NumberSign
-export DollarSign
+export DollarSign, Ampersand, PercentSign
 
 export FromNode, Word
 export LeftParenthesis, RightParenthesis
 export Heading, HeadingTitle, DelimitingModifier, StrongDelimiter
 export WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList
 export Quote, NestableItem, Tag, Verbatim, WeakCarryoverTag, StrongCarryoverTag
-export AttachedModifierStrategy, Bold, Italic 
+export AttachedModifierStrategy, VerbatimAttachedModifierStrategy, Bold, Italic 
 export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode 
+export NullModifier, InlineMath, Variable
 export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation 
 export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation 
 export WikiLocation, TimestampLocation, LinkDescription, LinkSubTarget, InlineLinkTarget 

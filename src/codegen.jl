@@ -46,6 +46,12 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, Subscript(), ast, node)
     elseif kind(node) == K"InlineCode"
         codegen(t, InlineCode(), ast, node)
+    elseif kind(node) == K"NullModifier"
+        codegen(t, NullModifier(), ast, node)
+    elseif kind(node) == K"InlineMath"
+        codegen(t, InlineMath(), ast, node)
+    elseif kind(node) == K"Variable"
+        codegen(t, Variable(), ast, node)
     elseif kind(node) == K"WordNode"
         codegen(t, Word(), ast, node)
     elseif kind(node) == K"Escape"

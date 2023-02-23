@@ -67,7 +67,11 @@ include("detached_modifier_suffix.jl")
 function force_word_context(parents, tokens, i)
     k = kind(first(parents))
     if K"InlineCode" ∈ parents
-        kind(tokens[i]) ∉ [K"`", K"\\"]
+        kind(tokens[i]) ∉ KSet"` \\"
+    elseif K"InlineMath" ∈ parents
+        kind(tokens[i]) ≠ K"$"
+    elseif K"Variable" ∈ parents
+        kind(tokens[i]) ≠ K"&"
     elseif k == K"Verbatim"
         kind(tokens[i]) != K"@"
     elseif k == K"Escape"
@@ -80,6 +84,7 @@ function force_word_context(parents, tokens, i)
 end
 
 function match_norg(parents, tokens, i)
+    @debug "Matching..." tokens[i] parents
     token = tokens[i]
     m = if force_word_context(parents, tokens, i)
         match_norg(Word(), parents, tokens, i)
@@ -103,6 +108,10 @@ function match_norg(parents, tokens, i)
         match_norg(Comma(), parents, tokens, i)
     elseif kind(token) == K"`"
         match_norg(BackApostrophe(), parents, tokens, i)
+    elseif kind(token) == K"%"
+        match_norg(PercentSign(), parents, tokens, i)
+    elseif kind(token) == K"&"
+        match_norg(Ampersand(), parents, tokens, i)
     elseif kind(token) == K"\\"
         match_norg(BackSlash(), parents, tokens, i)        
     elseif kind(token) == K"="
@@ -301,6 +310,10 @@ match_norg(::Comma, parents, tokens, i) = match_norg(Subscript(), parents, token
 
 match_norg(::BackApostrophe, parents, tokens, i) = match_norg(InlineCode(), parents, tokens, i)
 
+match_norg(::PercentSign, parents, tokens, i) = match_norg(NullModifier(), parents, tokens, i)
+
+match_norg(::Ampersand, parents, tokens, i) = match_norg(Variable(), parents, tokens, i)
+
 match_norg(::BackSlash, parents, tokens, i) = MatchFound(K"Escape")
 
 function match_norg(::Colon, parents, tokens, i)
@@ -417,10 +430,15 @@ end
 function match_norg(::DollarSign, parents, tokens, i)
     @debug "bonjour c'est dollarsign"
     prev_token = tokens[prevind(tokens, i)]
-    if is_line_ending(prev_token) || is_sof(prev_token)
+    m = if is_line_ending(prev_token) || is_sof(prev_token)
         match_norg(Definition(), parents, tokens, i)    
     else
         MatchNotFound()
+    end
+    if !isfound(m)
+        match_norg(InlineMath(), parents, tokens, i)
+    else
+        m
     end
 end
 
