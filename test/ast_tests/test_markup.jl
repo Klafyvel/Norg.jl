@@ -163,13 +163,13 @@ end
     @test kind(last(children(ps))) == K"InlineCode"
 end
 
-# TODO: this is actually not in the spec, but useful while layer 4 is not implemented.
-@testset "Escaping is allowed in inline code" begin
+@testset "Escaping is NOT allowed in inline code" begin
     s = "`\\` still verbatim`"
     ast = norg(s)
     ps = first(children(first(children(ast.root))))
-    @test length(children(ps)) == 1
+    @test length(children(ps)) == 6
     @test kind(first(children(ps))) == K"InlineCode"
+    @test all(kind.(last(children(ps), 5)) .== Ref(K"WordNode"))
 end
 
 @testset "Line endings are allowed withing attached modifiers." begin

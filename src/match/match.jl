@@ -67,7 +67,7 @@ include("detached_modifier_suffix.jl")
 function force_word_context(parents, tokens, i)
     k = kind(first(parents))
     if K"InlineCode" ∈ parents
-        kind(tokens[i]) ∉ KSet"` \\"
+        kind(tokens[i]) ≠ K"`"
     elseif K"InlineMath" ∈ parents
         kind(tokens[i]) ≠ K"$"
     elseif K"Variable" ∈ parents
