@@ -95,6 +95,21 @@ function codegen(t::JSONTarget, s::T, ast::NorgDocument, node::Node) where {T<:A
     end
 end
 
+function codegen(::JSONTarget, ::InlineMath, ast::NorgDocument, node::Node) 
+    OrderedDict([
+        "t"=>"Math"
+        "c" => ["InlineMath" textify(ast, node)]
+    ])
+end
+
+function codegen(::JSONTarget, ::Variable, ::NorgDocument, ::Node) 
+    []
+end
+
+function codegen(::JSONTarget, ::NullModifier, ::NorgDocument, ::Node) 
+    []
+end
+
 function codegen(t::JSONTarget, s::InlineCode, ast::NorgDocument, node::Node)
     OrderedDict([
         "t"=>pandoc_t(s)

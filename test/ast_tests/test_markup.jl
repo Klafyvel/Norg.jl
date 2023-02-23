@@ -13,6 +13,9 @@ simple_markups = [
 ("^", K"Superscript"),
 (",", K"Subscript"),
 ("`", K"InlineCode"),
+("%", K"NullModifier"),
+("\$", K"InlineMath"),
+("&", K"Variable")
 ]
 
 @testset "Standalone markup for $m" for (m,k) in simple_markups
@@ -55,6 +58,7 @@ simple_nested_outer = [
     ('!', K"Spoiler"),
     ('^', K"Superscript"),
     (',', K"Subscript"),
+    ('%', K"NullModifier"),
 ]
 
 @testset "Nested markup $n inside $m" for (m, T) in simple_nested_outer,
@@ -77,18 +81,26 @@ simple_nested_outer = [
     @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
 end
 
-@testset "Nested markup $m inside `" for (m, T) in simple_markups
-    if m == "`"
-        continue
-    end
-    s = "`Nested $(m)inner$(m)`"
-    ast = norg(s)
-    outernode = first(children(first(children(first(children(ast.root))))))
-    @test kind(outernode) == K"InlineCode"
-    ps = first(children(outernode))
-    @test kind(ps) == K"ParagraphSegment"
-    for n in children(ps)
-        @test kind(n) == K"WordNode"
+verbatim_nested = [
+    ("`", K"InlineCode"),
+    ("\$", K"InlineMath"),
+    ("&", K"Variable")
+]
+
+@testset "Verbatim markup nesting test: $V" for (v,V) in verbatim_nested
+    @testset "Nested markup $T inside $V" for (m, T) in simple_markups
+        if occursin(m, "`\$&")
+            continue
+        end
+        s = "$(v)Nested $(m)inner$(m)$(v)"
+        ast = norg(s)
+        outernode = first(children(first(children(first(children(ast.root))))))
+        @test kind(outernode) == V
+        ps = first(children(outernode))
+        @test kind(ps) == K"ParagraphSegment"
+        for n in children(ps)
+            @test kind(n) == K"WordNode"
+        end
     end
 end
 
