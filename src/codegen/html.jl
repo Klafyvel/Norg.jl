@@ -460,7 +460,7 @@ function codegen(t::HTMLTarget, ::Definition, ast::NorgDocument, node::Node)
             def_node = @htl "<dd>$(codegen.(Ref(t), Ref(ast), def))</dd>"
             term_node,def_node
         end
-    )
+    ) |> collect
     @htl "<dl>$content</dl>"
 end
 
