@@ -1,12 +1,45 @@
+consumepre(::T) where {T<:AttachedModifierStrategy} = 1
+consumepre(::FreeFormBold) = 2
+consumepre(::FreeFormItalic) = 2
+consumepre(::FreeFormUnderline) = 2
+consumepre(::FreeFormStrikethrough) = 2
+consumepre(::FreeFormSpoiler) = 2
+consumepre(::FreeFormSuperscript) = 2
+consumepre(::FreeFormSubscript) = 2
+consumepre(::FreeFormNullModifier) = 2
+consumepre(::FreeFormInlineCode) = 2
+consumepre(::FreeFormInlineMath) = 2
+consumepre(::FreeFormVariable) = 2
+consumepost(::T) where {T<:AttachedModifierStrategy} = 1
+consumepost(::FreeFormBold) = 2
+consumepost(::FreeFormItalic) = 2
+consumepost(::FreeFormUnderline) = 2
+consumepost(::FreeFormStrikethrough) = 2
+consumepost(::FreeFormSpoiler) = 2
+consumepost(::FreeFormSuperscript) = 2
+consumepost(::FreeFormSubscript) = 2
+consumepost(::FreeFormNullModifier) = 2
+consumepost(::FreeFormInlineCode) = 2
+consumepost(::FreeFormInlineMath) = 2
+consumepost(::FreeFormVariable) = 2
+
 function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where {T<:AttachedModifierStrategy}
     start = i
     children = AST.Node[]
-    i = nextind(tokens, i)
+    for _ in 1:consumepre(t)
+        i = nextind(tokens, i)
+    end
     node_kind = Match.attachedmodifier(t)
     m = Match.MatchClosing(node_kind)
     while !is_eof(tokens[i])
         m = match_norg([node_kind, parents...], tokens, i)
+        @debug "attached modifier loop" m
         if isclosing(m)
+            if consume(m) && consumepost(t) >= 2
+                for _ in 1:(consumepost(t)-1)
+                    i = nextind(tokens, i)
+                end
+            end
             break
         end
         segment = parse_norg(ParagraphSegment(), [node_kind, parents...], tokens, i)

@@ -30,6 +30,8 @@ struct CommercialAtSign <: FromToken end
 struct Plus <: FromToken end
 struct NumberSign <: FromToken end
 struct DollarSign <: FromToken end
+struct VerticalBar <: FromToken end
+
 abstract type FromNode <: Strategy end
 struct Word <: FromNode end
 struct Heading <: FromNode end
@@ -57,10 +59,31 @@ struct Spoiler <: AttachedModifierStrategy end
 struct Superscript <: AttachedModifierStrategy end
 struct Subscript <: AttachedModifierStrategy end
 struct NullModifier <: AttachedModifierStrategy end
+struct FreeFormBold <: AttachedModifierStrategy end
+struct FreeFormItalic <: AttachedModifierStrategy end
+struct FreeFormUnderline <: AttachedModifierStrategy end
+struct FreeFormStrikethrough <: AttachedModifierStrategy end
+struct FreeFormSpoiler <: AttachedModifierStrategy end
+struct FreeFormSuperscript <: AttachedModifierStrategy end
+struct FreeFormSubscript <: AttachedModifierStrategy end
+struct FreeFormNullModifier <: AttachedModifierStrategy end
 abstract type VerbatimAttachedModifierStrategy <: AttachedModifierStrategy end
 struct InlineCode <: VerbatimAttachedModifierStrategy end
 struct InlineMath <: VerbatimAttachedModifierStrategy end
 struct Variable <: VerbatimAttachedModifierStrategy end
+struct FreeFormInlineCode <: VerbatimAttachedModifierStrategy end
+struct FreeFormInlineMath <: VerbatimAttachedModifierStrategy end
+struct FreeFormVariable <: VerbatimAttachedModifierStrategy end
+
+const FreeFormAttachedModifier = Union{
+    FreeFormBold, FreeFormItalic, 
+    FreeFormUnderline, FreeFormStrikethrough,
+    FreeFormSpoiler, FreeFormSuperscript, 
+    FreeFormSubscript, FreeFormNullModifier, 
+    FreeFormInlineCode, FreeFormInlineMath, 
+    FreeFormVariable
+}
+
 struct Anchor <: FromNode end
 struct Link <: FromNode end
 struct LinkLocation <: FromNode end
@@ -107,7 +130,7 @@ export Whitespace, LineEnding, Star, Slash, Underscore, Minus, ExclamationMark
 export Circumflex, Comma, BackApostrophe, BackSlash, EqualSign, LeftBrace
 export RightBrace, RightSquareBracket, LeftSquareBracket, Tilde
 export GreaterThanSign, LesserThanSign, CommercialAtSign, Plus, NumberSign
-export DollarSign, Ampersand, PercentSign
+export DollarSign, Ampersand, PercentSign, VerticalBar
 
 export FromNode, Word
 export LeftParenthesis, RightParenthesis
@@ -117,6 +140,10 @@ export Quote, NestableItem, Tag, Verbatim, WeakCarryoverTag, StrongCarryoverTag
 export AttachedModifierStrategy, VerbatimAttachedModifierStrategy, Bold, Italic 
 export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode 
 export NullModifier, InlineMath, Variable
+export FreeFormBold, FreeFormItalic, FreeFormUnderline, FreeFormStrikethrough
+export FreeFormSpoiler, FreeFormSuperscript, FreeFormSubscript, FreeFormInlineCode
+export FreeFormNullModifier, FreeFormInlineMath, FreeFormVariable, FreeFormAttachedModifier
+
 export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation 
 export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation 
 export WikiLocation, TimestampLocation, LinkDescription, LinkSubTarget, InlineLinkTarget 

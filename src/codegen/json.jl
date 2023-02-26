@@ -67,23 +67,23 @@ end
 
 codegen(t::JSONTarget, ::ParagraphSegment, ast::NorgDocument, node::Node) = codegen_children(t, ast, node)
 
-pandoc_t(::Bold) = "Strong"
-pandoc_t(::Italic) = "Emph"
-pandoc_t(::Underline) = "Underline"
-pandoc_t(::Strikethrough) = "Strikeout"
-pandoc_t(::Spoiler) = "Span"
-pandoc_t(::Superscript) = "Superscript"
-pandoc_t(::Subscript) = "Subscript"
-pandoc_t(::InlineCode) = "Code"
+pandoc_t(::Union{FreeFormBold, Bold}) = "Strong"
+pandoc_t(::Union{FreeFormItalic, Italic}) = "Emph"
+pandoc_t(::Union{FreeFormUnderline, Underline}) = "Underline"
+pandoc_t(::Union{FreeFormStrikethrough, Strikethrough}) = "Strikeout"
+pandoc_t(::Union{FreeFormSpoiler, Spoiler}) = "Span"
+pandoc_t(::Union{FreeFormSuperscript, Superscript}) = "Superscript"
+pandoc_t(::Union{FreeFormSubscript, Subscript}) = "Subscript"
+pandoc_t(::Union{FreeFormInlineCode, InlineCode}) = "Code"
 
-pandoc_attr(::Bold) = []
-pandoc_attr(::Italic) = []
-pandoc_attr(::Underline) = []
-pandoc_attr(::Strikethrough) = []
-pandoc_attr(::Spoiler) = ["", ["spoiler"], []]
-pandoc_attr(::Superscript) = []
-pandoc_attr(::Subscript) = []
-pandoc_attr(::InlineCode) = ["", [], []]
+pandoc_attr(::Union{FreeFormBold, Bold}) = []
+pandoc_attr(::Union{FreeFormItalic, Italic}) = []
+pandoc_attr(::Union{FreeFormUnderline, Underline}) = []
+pandoc_attr(::Union{FreeFormStrikethrough, Strikethrough}) = []
+pandoc_attr(::Union{FreeFormSpoiler, Spoiler}) = ["", ["spoiler"], []]
+pandoc_attr(::Union{FreeFormSuperscript, Superscript}) = []
+pandoc_attr(::Union{FreeFormSubscript, Subscript}) = []
+pandoc_attr(::Union{FreeFormInlineCode, InlineCode}) = ["", [], []]
 
 function codegen(t::JSONTarget, s::T, ast::NorgDocument, node::Node) where {T<:AttachedModifierStrategy}
     res = []
@@ -108,22 +108,22 @@ function codegen(t::JSONTarget, s::T, ast::NorgDocument, node::Node) where {T<:A
     end
 end
 
-function codegen(::JSONTarget, ::InlineMath, ast::NorgDocument, node::Node) 
+function codegen(::JSONTarget, ::Union{InlineMath, FreeFormInlineMath}, ast::NorgDocument, node::Node) 
     OrderedDict([
         "t"=>"Math"
         "c" => [OrderedDict(["t"=>"InlineMath"]), textify(ast, node)]
     ])
 end
 
-function codegen(::JSONTarget, ::Variable, ::NorgDocument, ::Node) 
+function codegen(::JSONTarget, ::Union{Variable, FreeFormVariable}, ::NorgDocument, ::Node) 
     []
 end
 
-function codegen(::JSONTarget, ::NullModifier, ::NorgDocument, ::Node) 
+function codegen(::JSONTarget, ::Union{NullModifier, FreeFormNullModifier}, ::NorgDocument, ::Node) 
     []
 end
 
-function codegen(t::JSONTarget, s::InlineCode, ast::NorgDocument, node::Node)
+function codegen(t::JSONTarget, s::Union{InlineCode, FreeFormInlineCode}, ast::NorgDocument, node::Node)
     OrderedDict([
         "t"=>pandoc_t(s)
         "c" => [pandoc_attr(s), textify(ast, node)]

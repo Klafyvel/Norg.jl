@@ -72,6 +72,12 @@ function force_word_context(parents, tokens, i)
         kind(tokens[i]) ≠ K"$"
     elseif K"Variable" ∈ parents
         kind(tokens[i]) ≠ K"&"
+    elseif K"FreeFormInlineCode" ∈ parents
+        kind(tokens[i]) ≠ K"|"
+    elseif K"FreeFormInlineMath" ∈ parents
+        kind(tokens[i]) ≠ K"|"
+    elseif K"FreeFormVariable" ∈ parents
+        kind(tokens[i]) ≠ K"|"
     elseif k == K"Verbatim"
         kind(tokens[i]) != K"@"
     elseif k == K"Escape"
@@ -144,6 +150,8 @@ function match_norg(parents, tokens, i)
         match_norg(DollarSign(), parents, tokens, i)
     elseif kind(token) == K":"
         match_norg(Colon(), parents, tokens, i)
+    elseif kind(token) == K"|"
+        match_norg(VerticalBar(), parents, tokens, i)
     elseif kind(token) == K"EndOfFile"
         MatchClosing(first(parents), false)
     else
@@ -439,6 +447,36 @@ function match_norg(::DollarSign, parents, tokens, i)
         match_norg(InlineMath(), parents, tokens, i)
     else
         m
+    end
+end
+
+function match_norg(::VerticalBar, parents, tokens, i)
+    next_token = tokens[nextind(tokens, i)]
+    @debug "vertical" tokens[i] next_token
+    if kind(next_token) == K"*"
+        match_norg(FreeFormBold(), parents, tokens, i)
+    elseif kind(next_token) == K"/" 
+        match_norg(FreeFormItalic(), parents, tokens, i)
+    elseif kind(next_token) == K"_"
+        match_norg(FreeFormUnderline(), parents, tokens, i)
+    elseif kind(next_token) == K"-"
+        match_norg(FreeFormStrikethrough(), parents, tokens, i)
+    elseif kind(next_token) == K"!"
+        match_norg(FreeFormSpoiler(), parents, tokens, i)
+    elseif kind(next_token) == K"^"
+        match_norg(FreeFormSuperscript(), parents, tokens, i)
+    elseif kind(next_token) == K","
+        match_norg(FreeFormSubscript(), parents, tokens, i)
+    elseif kind(next_token) == K"`"
+        match_norg(FreeFormInlineCode(), parents, tokens, i)
+    elseif kind(next_token) == K"%"
+        match_norg(FreeFormNullModifier(), parents, tokens, i)
+    elseif kind(next_token) == K"$"
+        match_norg(FreeFormInlineMath(), parents, tokens, i)
+    elseif kind(next_token) == K"&"
+        match_norg(FreeFormVariable(), parents, tokens, i)
+    else
+        MatchNotFound()
     end
 end
 

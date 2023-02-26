@@ -205,3 +205,79 @@ end
     @test textify(ast, mark) == "word"
     @test textify(ast, w2) == "markup"
 end
+
+
+simple_freeformmarkups = [
+("*",  K"FreeFormBold"),
+("/",  K"FreeFormItalic") ,
+("_",  K"FreeFormUnderline"),
+("-",  K"FreeFormStrikethrough"),
+("!",  K"FreeFormSpoiler"),
+("^",  K"FreeFormSuperscript"),
+(",",  K"FreeFormSubscript"),
+("`",  K"FreeFormInlineCode"),
+("%",  K"FreeFormNullModifier"),
+("\$", K"FreeFormInlineMath"),
+("&",  K"FreeFormVariable")
+]
+
+freeform_templates = [
+    "inner"
+    " inner"
+    "inner "
+    " inner "
+]
+
+@testset "Standalone markup for $k" for (m,k) in simple_freeformmarkups
+    for s in freeform_templates
+        ast = norg("$(m)|$s|$(m)")
+        @test ast isa Norg.AST.NorgDocument
+        p = first(children(ast.root))
+        @test kind(p) == K"Paragraph"
+        ps = first(children(p))
+        @test kind(ps) == K"ParagraphSegment"
+        marknode = first(children(ps))
+        @test kind(marknode) == k
+        ps = first(children(marknode))
+        @test kind(ps) == K"ParagraphSegment"
+        @test all(kind.(children(ps)) .== Ref(K"WordNode"))
+        @test textify(ast, ps) == s
+    end
+end
+
+verbatim_nested = [
+    ("`",  K"FreeFormInlineCode"),
+    ("\$", K"FreeFormInlineMath"),
+    ("&",  K"FreeFormVariable")
+]
+
+@testset "Verbatim markup nesting test: $V" for (v,V) in verbatim_nested
+    @testset "Nested markup $T inside $V" for (m, T) in simple_markups
+        if occursin(m, "`\$&")
+            continue
+        end
+        s = "$(v)|Nested $(m)inner$(m)|$(v)"
+        ast = norg(s)
+        outernode = first(children(first(children(first(children(ast.root))))))
+        @test kind(outernode) == V
+        ps = first(children(outernode))
+        @test kind(ps) == K"ParagraphSegment"
+        for n in children(ps)
+            @test kind(n) == K"WordNode"
+        end
+    end
+    @testset "Nested markup $T inside $V" for (m, T) in simple_freeformmarkups
+        if occursin(m, "`\$&")
+            continue
+        end
+        s = "$(v)|Nested $(m)|inner|$(m)|$(v)"
+        ast = norg(s)
+        outernode = first(children(first(children(first(children(ast.root))))))
+        @test kind(outernode) == V
+        ps = first(children(outernode))
+        @test kind(ps) == K"ParagraphSegment"
+        for n in children(ps)
+            @test kind(n) == K"WordNode"
+        end
+    end
+end

@@ -52,6 +52,28 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, InlineMath(), ast, node)
     elseif kind(node) == K"Variable"
         codegen(t, Variable(), ast, node)
+    elseif kind(node) == K"FreeFormBold"
+        codegen(t, FreeFormBold(), ast, node)
+    elseif kind(node) == K"FreeFormItalic"
+        codegen(t, FreeFormItalic(), ast, node)
+    elseif kind(node) == K"FreeFormUnderline"
+        codegen(t, FreeFormUnderline(), ast, node)
+    elseif kind(node) == K"FreeFormStrikethrough"
+        codegen(t, FreeFormStrikethrough(), ast, node)
+    elseif kind(node) == K"FreeFormSpoiler"
+        codegen(t, FreeFormSpoiler(), ast, node)
+    elseif kind(node) == K"FreeFormSuperscript"
+        codegen(t, FreeFormSuperscript(), ast, node)
+    elseif kind(node) == K"FreeFormSubscript"
+        codegen(t, FreeFormSubscript(), ast, node)
+    elseif kind(node) == K"FreeFormInlineCode"
+        codegen(t, FreeFormInlineCode(), ast, node)
+    elseif kind(node) == K"FreeFormNullModifier"
+        codegen(t, FreeFormNullModifier(), ast, node)
+    elseif kind(node) == K"FreeFormInlineMath"
+        codegen(t, FreeFormInlineMath(), ast, node)
+    elseif kind(node) == K"FreeFormVariable"
+        codegen(t, FreeFormVariable(), ast, node)
     elseif kind(node) == K"WordNode"
         codegen(t, Word(), ast, node)
     elseif kind(node) == K"Escape"
