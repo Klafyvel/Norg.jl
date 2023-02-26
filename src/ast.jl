@@ -47,8 +47,10 @@ Base.eltype(::Type{<:TreeIterator{Node}}) = Node
 
 Base.show(io::IO, t::Node) = print_tree(io, t)
 
+child_key(io, key) = print(io, key)
+
 function Base.show(io::IO, ::MIME"text/plain", t::NorgDocument)
-    print_tree(io, t.root) do io, node
+    print_tree(child_key, io, t.root) do io, node
         if is_leaf(node)
             print(io, join(value.(t.tokens[start(node):stop(node)])))
         else
