@@ -24,21 +24,37 @@ JSON target to feed [`codegen`](@ref).
 """
 struct JSONTarget <: CodegenTarget end
 
+function codegen_children(t::JSONTarget, ast::AST.NorgDocument, node::Node)
+    res = []
+    for c in children(node)
+        r = codegen(t, ast, c)
+        if !isempty(r)
+            push!(res, r)
+        end
+    end
+    res
+end
+
 function codegen(t::JSONTarget, ast::AST.NorgDocument)
     OrderedDict([
-        "pandoc-api-version" => [1, 22, 2, 1]
+        "pandoc-api-version" => [1, 23]
         "meta" => OrderedDict{String, String}()
-        "blocks" => [
-            codegen(t, ast, c) for c in children(ast.root)
-        ]
+        "blocks" => codegen_children(t, ast, ast.root)
     ])
 end
 
 function codegen(t::JSONTarget, ::Paragraph, ast::NorgDocument, node::Node)
     res = []
     for c in children(node)
-        append!(res, codegen(t, ast, c))
-        push!(res, OrderedDict{String, Any}("t" => "SoftBreak"))
+        r = codegen(t, ast, c)
+        if !isempty(r)
+            if r isa Vector
+                append!(res, r)
+            else
+                push!(res, r)
+            end
+            push!(res, OrderedDict{String, Any}("t" => "SoftBreak"))
+        end
     end
     if !isempty(res)
         pop!(res) # remove last softbreak
@@ -49,13 +65,7 @@ function codegen(t::JSONTarget, ::Paragraph, ast::NorgDocument, node::Node)
     ])
 end
 
-function codegen(t::JSONTarget, ::ParagraphSegment, ast::NorgDocument, node::Node)
-    res = []
-    for c in children(node)
-        push!(res, codegen(t, ast, c))
-    end
-    res
-end
+codegen(t::JSONTarget, ::ParagraphSegment, ast::NorgDocument, node::Node) = codegen_children(t, ast, node)
 
 pandoc_t(::Bold) = "Strong"
 pandoc_t(::Italic) = "Emph"
@@ -78,8 +88,11 @@ pandoc_attr(::InlineCode) = ["", [], []]
 function codegen(t::JSONTarget, s::T, ast::NorgDocument, node::Node) where {T<:AttachedModifierStrategy}
     res = []
     for c in children(node)
-        # each children is a paragraph segment
-        append!(res, codegen(t, ast, c))
+        r = codegen(t, ast, c)
+        if !isempty(r)
+            append!(res, r)
+            push!(res, OrderedDict{String, Any}("t" => "SoftBreak"))
+        end
     end
     attr = pandoc_attr(s)
     if isempty(attr)
@@ -98,7 +111,7 @@ end
 function codegen(::JSONTarget, ::InlineMath, ast::NorgDocument, node::Node) 
     OrderedDict([
         "t"=>"Math"
-        "c" => ["InlineMath" textify(ast, node)]
+        "c" => [OrderedDict(["t"=>"InlineMath"]), textify(ast, node)]
     ])
 end
 
@@ -264,7 +277,7 @@ end
 
 codegen(::JSONTarget, ::TimestampLocation, ast::NorgDocument, node::Node) = textify(ast, node)
 
-codegen(t::JSONTarget, ::LinkDescription, ast::NorgDocument, node::Node) = collect(Iterators.flatten([codegen(t, ast, c) for c in children(node)]))
+codegen(t::JSONTarget, ::LinkDescription, ast::NorgDocument, node::Node) = collect(Iterators.flatten(codegen_children(t, ast, node)))
 
 function codegen(t::JSONTarget, ::Anchor, ast::NorgDocument, node::Node)
     text = codegen(t, ast, first(node.children))
@@ -286,8 +299,11 @@ end
 function codegen(t::JSONTarget, ::InlineLinkTarget, ast::NorgDocument, node::Node)
     text = []
     for c in children(node)
-        append!(text, codegen(t, ast, c))
-        push!(text, " ")
+        r = codegen(t, ast, c)
+        if !isempty(r)
+            append!(text, r)
+            push!(text, " ")
+        end
     end
     if !isempty(text)
         pop!(text) # remove last space
@@ -305,14 +321,21 @@ end
 function codegen(t::JSONTarget, ::Heading, ast::NorgDocument, node::Node)
     level_num = AST.heading_level(node)
     level = "h" * string(level_num)
-    heading_title, content... = children(node)
-    title = textify(ast, heading_title)
+    c = children(node)
+    heading_title_node = first(c)
+    if AST.is_detached_modifier_extension(kind(heading_title_node))
+        c = c[2:end]
+        heading_title_node = first(c)
+        _, heading_title, heading_content... = codegen_children(t, ast, node)
+    else
+        heading_title, heading_content... = codegen_children(t, ast, node)
+    end
+    title = textify(ast, heading_title_node)
     id_title = idify(level * " " * title)
     heading = OrderedDict([
         "t"=>"Header"
-        "c"=>[level_num, [id_title, [], []], codegen(t, ast, heading_title)]
+        "c"=>[level_num, [id_title, [], []], heading_title]
         ])
-    heading_content = [codegen(t, ast, c) for c in content]
     id_section = idify("section " * id_title)
     OrderedDict([
         "t"=>"Div"
@@ -320,16 +343,29 @@ function codegen(t::JSONTarget, ::Heading, ast::NorgDocument, node::Node)
         ])
 end
 
-codegen(::JSONTarget, ::StrongDelimiter, ast::NorgDocument, node::Node) = OrderedDict(["t"=>"Null"])
-codegen(::JSONTarget, ::WeakDelimiter, ast::NorgDocument, node::Node) = OrderedDict(["t"=>"Null"])
+codegen(::JSONTarget, ::StrongDelimiter, ast::NorgDocument, node::Node) = OrderedDict()
+codegen(::JSONTarget, ::WeakDelimiter, ast::NorgDocument, node::Node) = OrderedDict()
 codegen(::JSONTarget, ::HorizontalRule, ast::NorgDocument, node::Node) = OrderedDict(["t"=>"HorizontalRule", "c"=>[]])
+
+function codegen_nestable_children(t::JSONTarget, ast::NorgDocument, node::Node)
+    res = []
+    for c in children(node)
+        r = codegen(t, ast, c)
+        if !isempty(r)
+            if kind(c) == K"NestableItem"
+                push!(res, r)
+            else
+                push!(res, [r])
+            end
+        end
+    end
+    res
+end
 
 function codegen(t::JSONTarget, ::UnorderedList, ast::NorgDocument, node::Node)
     OrderedDict([
         "t"=>"BulletList"
-        "c"=>[
-            codegen(t, ast, c) for c in children(node)
-        ]
+        "c"=>codegen_nestable_children(t, ast, node)
     ])
 end
 
@@ -338,13 +374,25 @@ function codegen(t::JSONTarget, ::OrderedList, ast::NorgDocument, node::Node)
         "t"=>"OrderedList"
         "c"=>[
             [1, OrderedDict(["t"=>"Decimal"]), OrderedDict(["t"=>"Period"])],
-            [codegen(t, ast, c) for c in children(node)]
+            codegen_nestable_children(t, ast, node)
         ]
     ])
 end
 
 function codegen(t::JSONTarget, ::NestableItem, ast::NorgDocument, node::Node)
-    [codegen(t, ast, c) for c in children(node)]
+    res = []
+    for c in children(node)
+        if kind(c) ∉ KSet"TimestampExtension PriorityExtension DueDateExtension StartDateExtension"
+            r = codegen(t, ast, c)
+
+            if r isa Vector
+                append!(res, r)
+            elseif !isempty(r)
+                push!(res, r)
+            end
+        end
+    end
+    res
 end
 
 function codegen(t::JSONTarget, ::Quote, ast::NorgDocument, node::Node)
@@ -352,7 +400,7 @@ function codegen(t::JSONTarget, ::Quote, ast::NorgDocument, node::Node)
     # that.
     res = []
     for c in children(node)
-        append!(res, codegen.(Ref(t), Ref(ast), children(c)))
+        append!(res, filter(!isempty, codegen.(Ref(t), Ref(ast), children(c)))|>collect)
     end
     OrderedDict([
         "t"=>"BlockQuote"
@@ -364,7 +412,7 @@ function codegen(::JSONTarget, ::Verbatim, ast::NorgDocument, node::Node)
     # cowardly ignore any verbatim that is not code
     tag, others... = children(node)
     if litteral(ast, tag) != "code"
-        return OrderedDict(["t"=>"Null"])
+        return OrderedDict()
     end
     if length(others) == 1
         OrderedDict([
@@ -393,12 +441,15 @@ function codegen(::JSONTarget, ::TodoExtension, ast::NorgDocument, node::Node)
         s = "☐"
     end
     OrderedDict([
-    "t"=>"Str"
-    "c"=>s
+    "t"=>"Plain"
+    "c"=>[OrderedDict([
+        "t"=>"Str"
+        "c"=>s
+        ])]
     ])
 end
 
-function codegen(t::JSONTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast::NorgDocument, node::Node)
+function codegen(t::JSONTarget, c::Union{WeakCarryoverTag, StrongCarryoverTag}, ast::NorgDocument, node::Node)
     content = codegen(t, ast, last(children(node)))
     label = textify(ast, first(children(node)))
     # TODO: there's most likely some room for improvement here, as some contents
@@ -411,8 +462,17 @@ function codegen(t::JSONTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, a
     else
         attr[2] = [join(textify.(Ref(ast), children(node)[1:end-1]), "-")]
     end
+
+    t = if kind(node) == K"WeakCarryoverTag" && kind(last(children(node)))==K"ParagraphSegment"
+        "Span"
+    else
+        "Div"
+    end
+    if !(content isa Vector)
+        content = [content]
+    end
     OrderedDict([
-        "t"=>"Div"
+        "t"=>t,
         "c"=>[attr, content]
     ])
 end
@@ -427,12 +487,12 @@ function codegen(t::JSONTarget, ::Definition, ast::NorgDocument, node::Node)
             term_node = OrderedDict([
                 "t"=>"Span"
                 "c"=>[
-                    (term_id, [], [])
+                    (term_id, [], []),
                     codegen(t, ast, term)
                 ]
             ])
             def_node = codegen.(Ref(t), Ref(ast), def)
-            (term_node, def_node)
+            ([term_node], [def_node])
         end
     ])
 end
@@ -447,7 +507,7 @@ function codegen(t::JSONTarget, ::Slide, ast::NorgDocument, node::Node)
 end
 
 function codegen(t::JSONTarget, ::IndentSegment, ast::NorgDocument, node::Node)
-    codegen.(Ref(t), Ref(ast), children(node))
+    codegen_children(t, ast, node)
 end
 
 export JSONTarget
