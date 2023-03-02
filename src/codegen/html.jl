@@ -98,23 +98,23 @@ function codegen(t::HTMLTarget, ::ParagraphSegment, ast::NorgDocument, node::Nod
     @htl "$res"
 end
 
-html_node(::Bold) = "b"
-html_node(::Italic) = "i"
-html_node(::Underline) = "ins"
-html_node(::Strikethrough) = "del"
-html_node(::Spoiler) = "span"
-html_node(::Superscript) = "sup"
-html_node(::Subscript) = "sub"
-html_node(::InlineCode) = "code"
+html_node(::Union{FreeFormBold, Bold}) = "b"
+html_node(::Union{FreeFormItalic, Italic}) = "i"
+html_node(::Union{FreeFormUnderline, Underline}) = "ins"
+html_node(::Union{FreeFormStrikethrough, Strikethrough}) = "del"
+html_node(::Union{FreeFormSpoiler, Spoiler}) = "span"
+html_node(::Union{FreeFormSuperscript, Superscript}) = "sup"
+html_node(::Union{FreeFormSubscript, Subscript}) = "sub"
+html_node(::Union{FreeFormInlineCode, InlineCode}) = "code"
 
-html_class(::Bold) = []
-html_class(::Italic) = []
-html_class(::Underline) = []
-html_class(::Strikethrough) = []
-html_class(::Spoiler) = ["spoiler"]
-html_class(::Superscript) = []
-html_class(::Subscript) = []
-html_class(::InlineCode) = []
+html_class(::Union{FreeFormBold, Bold}) = []
+html_class(::Union{FreeFormItalic, Italic}) = []
+html_class(::Union{FreeFormUnderline, Underline}) = []
+html_class(::Union{FreeFormStrikethrough, Strikethrough}) = []
+html_class(::Union{FreeFormSpoiler, Spoiler}) = ["spoiler"]
+html_class(::Union{FreeFormSuperscript, Superscript}) = []
+html_class(::Union{FreeFormSubscript, Subscript}) = []
+html_class(::Union{FreeFormInlineCode, InlineCode}) = []
 
 function codegen(t::HTMLTarget, s::T, ast::NorgDocument, node::Node) where {T<:AttachedModifierStrategy}
     res = HTR[]
@@ -129,11 +129,11 @@ function codegen(t::HTMLTarget, s::T, ast::NorgDocument, node::Node) where {T<:A
     end
 end
 
-function codegen(t::HTMLTarget, ::NullModifier, ast::NorgDocument, node::Node)
+function codegen(t::HTMLTarget, ::Union{NullModifier, FreeFormNullModifier}, ast::NorgDocument, node::Node)
     @htl ""
 end
 
-function codegen(t::HTMLTarget, ::InlineMath, ast::NorgDocument, node::Node)
+function codegen(t::HTMLTarget, ::Union{InlineMath, FreeFormInlineMath}, ast::NorgDocument, node::Node)
     res = HTR[]
     for c in children(node)
         push!(res, codegen(t, ast, c))
@@ -141,7 +141,7 @@ function codegen(t::HTMLTarget, ::InlineMath, ast::NorgDocument, node::Node)
     @htl "\$$res\$"
 end
 
-function codegen(t::HTMLTarget, ::Variable, ast::NorgDocument, node::Node)
+function codegen(t::HTMLTarget, ::Union{Variable, FreeFormVariable}, ast::NorgDocument, node::Node)
     @htl ""
 end
 

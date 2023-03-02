@@ -162,6 +162,28 @@ function parse_norg_dispatch(to_parse::Kind, parents::Vector{Kind}, tokens::Vect
         parse_norg(InlineMath(), parents, tokens, i)
     elseif to_parse == K"Variable"
         parse_norg(Variable(), parents, tokens, i)
+    elseif to_parse == K"FreeFormBold"
+        parse_norg(FreeFormBold(), parents, tokens, i)            
+    elseif to_parse == K"FreeFormItalic"
+        parse_norg(FreeFormItalic(), parents, tokens, i)            
+    elseif to_parse == K"FreeFormUnderline"
+        parse_norg(FreeFormUnderline(), parents, tokens, i)            
+    elseif to_parse == K"FreeFormStrikethrough"
+        parse_norg(FreeFormStrikethrough(), parents, tokens, i)            
+    elseif to_parse == K"FreeFormSpoiler"
+        parse_norg(FreeFormSpoiler(), parents, tokens, i)            
+    elseif to_parse == K"FreeFormSuperscript"
+        parse_norg(FreeFormSuperscript(), parents, tokens, i)            
+    elseif to_parse == K"FreeFormSubscript"
+        parse_norg(FreeFormSubscript(), parents, tokens, i)            
+    elseif to_parse == K"FreeFormInlineCode"
+        parse_norg(FreeFormInlineCode(), parents, tokens, i)            
+    elseif to_parse == K"FreeFormNullModifier"
+        parse_norg(FreeFormNullModifier(), parents, tokens, i)
+    elseif to_parse == K"FreeFormInlineMath"
+        parse_norg(FreeFormInlineMath(), parents, tokens, i)
+    elseif to_parse == K"FreeFormVariable"
+        parse_norg(FreeFormVariable(), parents, tokens, i)
     elseif to_parse == K"Link"
         parse_norg(Link(), parents, tokens, i)            
     elseif to_parse == K"Anchor"
@@ -183,6 +205,7 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens::Vector{To
     siblings = []
     while !is_eof(tokens[i])
         m = match_norg(parents, tokens, i)
+        @debug "ps loop" m
         if isclosing(m)
             break
         elseif iscontinue(m)
