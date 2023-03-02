@@ -1,5 +1,7 @@
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 Gumbo = "708ec375-b3d6-5a57-a7ce-8257bf98657a"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+pandoc_jll = "c5432543-76ad-5c9d-82bf-db097047a5e2"
