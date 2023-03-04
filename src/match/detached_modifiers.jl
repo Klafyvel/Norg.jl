@@ -3,7 +3,13 @@ function match_norg(::Heading, parents, tokens, i)
     if K"HeadingTitle" ∈ parents
         return MatchNotFound()
     end
-    nestable_parents = filter(is_nestable, parents)
+    relevant_parents = if K"StandardRangedTag" ∈ parents
+        k = findfirst(parents .== Ref(K"StandardRangedTag"))::Int
+        parents[1:k]
+    else
+        parents
+    end
+    nestable_parents = filter(is_nestable, relevant_parents)
     if length(nestable_parents) > 0
         return MatchClosing(first(nestable_parents), false)
     end
@@ -15,12 +21,15 @@ function match_norg(::Heading, parents, tokens, i)
     end
     next_token = tokens[new_i]
     if kind(next_token) == K"Whitespace"
-        ancestor_headings = filter(is_heading, parents)
+        # If we are in a standard ranged tag, the relevant parents are those
+        # within the tag.
+        ancestor_headings = filter(is_heading, relevant_parents)
         higher_level_ancestor_heading = findfirst(x -> heading_level(x) >= level, ancestor_headings)
+        @debug "Closing heading ?" relevant_parents higher_level_ancestor_heading
         if !isnothing(higher_level_ancestor_heading)
             MatchClosing(ancestor_headings[higher_level_ancestor_heading], false)
-        elseif first(parents) ∈ [K"ParagraphSegment", K"Paragraph"]
-            MatchClosing(first(parents), false)
+        elseif first(relevant_parents) ∈ [K"ParagraphSegment", K"Paragraph"]
+            MatchClosing(first(relevant_parents), false)
         else
             MatchFound(heading_level(level))
         end
@@ -55,7 +64,8 @@ function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
             new_token = tokens[new_i]
         end
         if is_delimiting
-            if first(parents) ∈ KSet"NorgDocument IndentSegment" || is_heading(first(parents))
+            @debug "Found a delimiter" delimitingmodifier(t) parents
+            if first(parents) ∈ KSet"NorgDocument IndentSegment StandardRangedTagBody" || is_heading(first(parents))
                 MatchFound(delimitingmodifier(t))
             else
                 MatchClosing(first(parents), false)

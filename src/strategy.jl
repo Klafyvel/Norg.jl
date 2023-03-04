@@ -48,8 +48,10 @@ struct NestableItem <: FromNode end
 
 abstract type Tag <: FromNode end
 struct Verbatim <: Tag end
-struct WeakCarryoverTag <: FromNode end
-struct StrongCarryoverTag <: FromNode end
+struct WeakCarryoverTag <: Tag end
+struct StrongCarryoverTag <: Tag end
+struct StandardRangedTag <: Tag end
+
 abstract type AttachedModifierStrategy <: FromNode end
 struct Bold <: AttachedModifierStrategy end
 struct Italic <: AttachedModifierStrategy end
@@ -136,7 +138,8 @@ export FromNode, Word
 export LeftParenthesis, RightParenthesis
 export Heading, HeadingTitle, DelimitingModifier, StrongDelimiter
 export WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList
-export Quote, NestableItem, Tag, Verbatim, WeakCarryoverTag, StrongCarryoverTag
+export Quote, NestableItem
+export Tag, Verbatim, WeakCarryoverTag, StrongCarryoverTag, StandardRangedTag
 export AttachedModifierStrategy, VerbatimAttachedModifierStrategy, Bold, Italic 
 export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode 
 export NullModifier, InlineMath, Variable

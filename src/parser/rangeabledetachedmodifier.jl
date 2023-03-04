@@ -91,6 +91,8 @@ function parse_norg_ranged_rangeable(parents, tokens, i)
         to_parse = matched(m)
         child = if to_parse == K"Verbatim"
             parse_norg(Verbatim(), parents, tokens, i)
+        elseif to_parse == K"StandardRangedTag"
+            parse_norg(StandardRangedTag(), parents, tokens, i)
         elseif to_parse == K"WeakCarryoverTag"
             parse_norg(WeakCarryoverTag(), parents, tokens, i)
         elseif to_parse == K"StrongCarryoverTag"

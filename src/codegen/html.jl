@@ -400,6 +400,40 @@ function codegen(t::HTMLTarget, ::Quote, ast::NorgDocument, node::Node)
     @htl "<blockquote>$res</blockquote>"
 end
 
+function codegen(t::HTMLTarget, ::StandardRangedTag, ast::NorgDocument, node::Node)
+    tag, others... = children(node)
+    tag_litteral = litteral(ast, tag)
+    if tag_litteral == "comment"
+        @htl ""
+    elseif tag_litteral == "example"
+        @htl """
+        <pre>
+            <code class="language-norg">
+                $(litteral(ast, last(others)))
+            </code>
+        </pre>
+        """
+    elseif tag_litteral == "details"
+        @htl """
+        <detail>
+            <summary>Details</summary>
+            $([codegen(t, ast, c) for c in children(last(others))])
+        </detail>
+        """
+    elseif tag_litteral == "group"
+        @htl """
+        <div>
+            $([codegen(t, ast, c) for c in children(last(others))])
+        </div>
+        """        
+    else
+        @warn "Unknown standard ranged tag." tag_litteral ast.tokens[AST.start(node)] ast.tokens[AST.stop(node)]
+        @htl """
+        $([codegen(t, ast, c) for c in children(last(others))])
+        """        
+    end
+end
+
 function codegen(::HTMLTarget, ::Verbatim, ast::NorgDocument, node::Node)
     # cowardly ignore any verbatim that is not code
     tag, others... = children(node)

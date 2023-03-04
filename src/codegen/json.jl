@@ -408,6 +408,33 @@ function codegen(t::JSONTarget, ::Quote, ast::NorgDocument, node::Node)
     ])
 end
 
+function codegen(t::JSONTarget, ::StandardRangedTag, ast::NorgDocument, node::Node)
+    tag, others... = children(node)
+    tag_litteral = litteral(ast, tag)
+    if tag_litteral == "comment"
+        OrderedDict()
+    elseif tag_litteral == "example"
+        OrderedDict([
+            "t"=>"CodeBlock"
+            "c"=>[["", ["norg"], []], textify(ast, last(others))]
+        ])
+    elseif tag_litteral == "details"
+        # TODO
+        OrderedDict()
+    elseif tag_litteral == "group"
+        OrderedDict([
+            "t"=>"Div",
+            "c"=>[["", [], []], codegen_children(t, ast, node)]
+        ])
+    else
+        @warn "Unknown standard ranged tag." tag_litteral ast.tokens[AST.start(node)] ast.tokens[AST.stop(node)]
+        OrderedDict([
+            "t"=>"Div",
+            "c"=>[["", [], []], codegen_children(t, ast, node)]
+        ])
+    end
+end
+
 function codegen(::JSONTarget, ::Verbatim, ast::NorgDocument, node::Node)
     # cowardly ignore any verbatim that is not code
     tag, others... = children(node)

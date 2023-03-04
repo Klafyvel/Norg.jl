@@ -51,35 +51,47 @@ function parse_tag_header(parents::Vector{Kind}, tokens::Vector{Token}, i)
     end
     children, i
 end
-function parse_norg(::Verbatim, parents::Vector{Kind}, tokens::Vector{Token}, i)
+
+tag(::Verbatim) = K"Verbatim"
+tag(::StandardRangedTag) = K"StandardRangedTag"
+body(::Verbatim) = K"VerbatimBody"
+body(::StandardRangedTag) = K"StandardRangedTagBody"
+
+function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where {T <: Tag}
     start = i
     children, i = parse_tag_header(parents, tokens, i)
     token = tokens[i]
     start_content = i
     stop_content = i
+    p = [body(t), tag(t), parents...]
+    body_children = AST.Node[]
+    @debug "tag parsing" start start_content tokens[i]
     while !is_eof(tokens[i])
-        if kind(token) == K"@" #maybe it's the end
-            prev_i = prevind(tokens, i)
-            prev_token = get(tokens, prev_i, nothing)
-            prev_prev_i = prevind(tokens, prev_i)
-            prev_prev_token = get(tokens, prev_prev_i, nothing)
-            if kind(prev_token) == K"LineEnding" || (kind(prev_token) == K"Whitespace" && kind(prev_prev_token) == K"LineEnding")
-                next_i = nextind(tokens, i)
-                next_token = get(tokens, next_i, nothing)
-                next_next_i = nextind(tokens, next_i)
-                next_next_token = get(tokens, next_next_i, nothing)
-                if kind(next_token) == K"Word" && kind(next_next_token) == K"LineEnding" && value(next_token) == "end"
-                    stop_content = prev_i
-                    i = next_next_i
-                    break
-                end
+        m = match_norg(p, tokens, i)
+        @debug "tag loop" m tokens[i]
+        if isclosing(m)
+            @debug "Closing tag" m tokens[i]
+            stop_content = prevind(tokens, i)
+            if kind(tokens[i]) == K"LineEnding"
+                i = nextind(tokens, i)
             end
+            @debug "after advancing" tokens[i]
+            i = consume_until(K"LineEnding", tokens, i)
+            if tokens[i] != K"EndOfFile"
+                i = prevind(tokens, i)
+            end
+            break
+        elseif iscontinue(m)
+            i = nextind(tokens, i)
+            continue
         end
-        i = nextind(tokens, i)
-        token = tokens[i]
+        c = parse_norg_toplevel_one_step(p, tokens, i)
+        push!(body_children, c)
+        i = nextind(tokens, AST.stop(c))
     end
-    push!(children, AST.Node(K"VerbatimBody", AST.Node[], start_content, stop_content))
-    AST.Node(K"Verbatim", children, start, i)
+    push!(children, AST.Node(body(t), body_children, start_content, stop_content))
+    @debug "Closed tag" i tokens[i] parents
+    AST.Node(tag(t), children, start, i)
 end
 
 function parse_norg(::WeakCarryoverTag, parents::Vector{Kind}, tokens::Vector{Token}, i)
@@ -102,7 +114,12 @@ function parse_norg(::StrongCarryoverTag, parents::Vector{Kind}, tokens::Vector{
     start = i
     children, i = parse_tag_header(parents, tokens, i)
     @debug "Strong carryover tag here" tokens[i]
-    content = parse_norg_toplevel_one_step([parents...], tokens, i)
-    @debug "hey there" content parents
-    AST.Node(K"StrongCarryoverTag", [children..., content], start, AST.stop(content))
+    m = match_norg(parents, tokens, i)
+    if isclosing(m)
+        AST.Node(K"StrongCarryoverTag", children, start, prevind(tokens, i))
+    else
+        content = parse_norg_toplevel_one_step([parents...], tokens, i)
+        @debug "hey there" content parents
+        AST.Node(K"StrongCarryoverTag", [children..., content], start, AST.stop(content))
+    end
 end
