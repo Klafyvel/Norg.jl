@@ -101,14 +101,21 @@
 </ul>
 </li><li><a href='#h1-tags'>Tags</a>
 <ul>
-    <li><a href='#h2-link-modifier'>Link Modifier</a>
+    <li><a href='#h2-ranged-tags'>Ranged Tags</a>
+<ul>
+    
+</ul>
+</li><li><a href='#h2-link-modifier'>Link Modifier</a>
+<ul>
+    
+</ul>
+</li><li><a href='#h2-attached-modifier-extensions'>Attached Modifier Extensions</a>
 <ul>
     
 </ul>
 </li>
 </ul>
-</li><li><a href='#h1-contextual-delimiter-the-pipe-character-is-a-really-nice-character-it-can-be-applied-to-many-problems'>Contextual ` Delimiter
-  The pipe (`) character is a really nice character - it can be applied to many problems</a>
+</li><li><a href='#h1-contextual-delimiter'>Contextual | Delimiter</a>
 <ul>
     
 </ul>
@@ -423,138 +430,36 @@ This heading has priority A (highest priority)<p>     |end     Note that Norg do
 </section>
 <section id='section-h2-detached-modifier-suffix'>
 <h2 id='h2-detached-modifier-suffix'>Detached Modifier Suffix</h2>
-<p>   Since <a href=''>nestable detached modifiers</a> can only contain a <a href=''>paragraph</a> this can   cause severe limitations because the insertion of e.g. code blocks is not possible. To alleviate   this deficiency, the <a href='#h2-detached-modifier-suffix'>detached modifier suffix</a> exists, which temporarily increases the   current indentation level to allow complex nested items within.</p><p>   There are two variations of the indent segment, the <a href=''>slide</a> and the <a href=''>indent segment</a>.   <b>NOTE</b> After a detached modifier suffix is matched (either <code>:</code> or <code>::<code>) a {*** line endings}[line ending] must
-   follow /instantly/.
+<p>   Since <a href=''>nestable detached modifiers</a> can only contain a <a href=''>paragraph</a> this can   cause severe limitations because the insertion of e.g. code blocks is not possible. To alleviate   this deficiency, the <a href='#h2-detached-modifier-suffix'>detached modifier suffix</a> exists, which temporarily increases the   current indentation level to allow complex nested items within.</p><p>   There are two variations of the indent segment, the <a href=''>slide</a> and the <a href=''>indent segment</a>.   <b>NOTE</b> After a detached modifier suffix is matched (either <code>:</code> or <code>::</code>) a <a href='#h3-line-endings'>line ending</a> must   follow <i>instantly</i>.</p><section id='section-h3-slide'>
+<h3 id='h3-slide'>Slide</h3>
+<p>    The slide, denoted with a single <code>:</code>, allows for a <b>single</b> <i>complex item</i> below:    |example</p><ul><li><dl><dt id='def_term'>Term</dt><dd><p>        This is the term&apos;s definition.    |end</p></dd></dl></li></ul><p>    This <span id='complex-item'>complex item</span> may be any <b>non-<a href='#h2-structural-detached-modifiers'>structural</a></b> detached    modifier, <a href='#h1-tags'>tag</a> or paragraph.</p><section id='section-h4-carryover-tags-in-slides'>
+<h4 id='h4-carryover-tags-in-slides'>Carryover Tags in Slides</h4>
+<p>     Due to greatly increased parser complexity in common LR/GLR parsers carryover tags beneath slides     are <i>disallowed</i>. Apply a carryover tag to the parent item to achieve the same behaviour     instead.</p><p>     Disallowed:     |example</p><ul><li><p>       #example-tag</p></li></ul><dl><dt id='def_term'>Term</dt><dd><p>         Definition     |end</p></dd></dl><p>     Preferred alternative:     |example</p><ul><div class='example-tag'><li><dl><dt id='def_term'>Term</dt><dd><p>         Definition     |end</p></dd></dl></li></div></ul>
+</section>
 
-*** Slide
-    The slide, denoted with a single `:<code>, allows for a *single* /complex item/ below:
-    |example
-    - :
-      $ Term
-        This is the term&apos;s definition.
-    |end
-
-    This &lt;complex item> may be any *non-{** structural detached modifiers}[structural]* detached
-    modifier, {* tags}[tag] or paragraph.
-
-**** Carryover Tags in Slides
-     Due to greatly increased parser complexity in common LR/GLR parsers carryover tags beneath slides
-     are /disallowed/. Apply a carryover tag to the parent item to achieve the same behaviour
-     instead.
-
-     Disallowed:
-     |example
-     - :
-       #example-tag
-       $ Term
-         Definition
-     |end
-
-     Preferred alternative:
-     |example
-     +example-tag
-     - :
-       $ Term
-         Definition
-     |end
-
-*** Indent Segment
-    The indent segment, denoted with two colons (</code>:<code>), creates a ranged version of the slide.
-    This indent segment must be closed with any of the {** delimiting modifiers}, or an element of
-    the same type with the same or lower nesting level. By &quot;lower&quot; nesting level we mean higher up
-    in the hierarchy of nodes, or in other words `unordered_list_level_1</code> is &quot;lower&quot; than an
-    `unordered_list_level_2</code> item, because it is nested less.
-
-    The indent segment may contain an arbitrary amount of {# complex item}[complex items].
-
-    Examples:
-    |example
-    - ::
-      This is some content.
-
-      $ Term
-        Definition.
-    - This is the second item of the list.
-      The indent segment did not need to be terminated.
-
-    - ::
-      This is another list.
-
-      |details
-      *hello* world!
-      |end
-
-      -- This is a nested item in the indent segment
-      -- And so is this.
-
-      But you can still continue your content here.
-      ---
-
-    Since there was no other item of the same type after the indent segment
-    it must be closed with `---</code> or <code>===</code>.    |end</p>
+</section>
+<section id='section-h3-indent-segment'>
+<h3 id='h3-indent-segment'>Indent Segment</h3>
+<p>    The indent segment, denoted with two colons (<code>::</code>), creates a ranged version of the slide.    This indent segment must be closed with any of the <a href='#h2-delimiting-modifiers'>delimiting modifiers</a>, or an element of    the same type with the same or lower nesting level. By &quot;lower&quot; nesting level we mean higher up    in the hierarchy of nodes, or in other words <code>unordered_list_level_1</code> is &quot;lower&quot; than an    <code>unordered_list_level_2</code> item, because it is nested less.</p><p>    The indent segment may contain an arbitrary amount of <a href=''>complex items</a>.</p><p>    Examples:    |example</p><ul><li><p>      This is some content.</p></li></ul><dl><dt id='def_term'>Term</dt><dd><p>        Definition.</p></dd></dl><ul><li><p>This is the second item of the list.      The indent segment did not need to be terminated.</p></li></ul><ul><li><p>      This is another list.</p><p>      |details</p></li></ul><p>      <b>hello</b> world!      |end</p><ul><li><p>This is a nested item in the indent segment</p></li><li><p>And so is this.</p></li></ul><p>      But you can still continue your content here.</p>
+</section>
+<p>    Since there was no other item of the same type after the indent segment    it must be closed with <code>---</code> or <code>===</code>.    |end</p>
 </section>
 
 </section>
 <section id='section-h1-tags'>
 <h1 id='h1-tags'>Tags</h1>
-<p>  The main differentiator from simple markup formats and more complex ones is the ability to define  data and extensions for the format. Norg allows for you to extend its syntax and define data  within clear boundaries - it does this using tags.</p><p>  <b>NOTE</b> Tags are the <i>only</i> way that extensions may be made to the format.</p><p>  There are 6 different tag types, each with their own way of changing the way text in Norg is  interpreted. Before we discuss those, however, we should discuss the syntax rules for tags:</p><ul><li><p>A tag is similar to a <a href=''>detached modifier</a> in the sense that it must begin    at the beginning of a line with optional <a href='#h3-whitespace'>whitespace</a> (but nothing else) preceding it.</p></li><li><p>After that you will encounter a special tag character (<code>=</code>, <code>`, `@`, `#`, `+` and `.`), /none/
-    of which are attached modifiers (see {^ disambiguating tags and attached modifiers}). The
-    special tag character is then /immediately/ followed by text, which becomes the /tag name/. Said
-    tag name can consist of any {# regular characters}[regular character] and/or `-` and `_`.
-  - Tags can have their names delimited by a `.` in order to create a &quot;hierarchy&quot;, e.g.
-    `document.meta`.
-  - ::
-    After a {*** whitespace} character any number of parameters on the same line may follow:
-    |example
-    #tag-name.subtag parameter1 parameter2
-    |end
-    By default parameters are space-separated. In order to create multi-word parameters, you may
-    escape the space character with a backslash (`\`).
-    |example
-    #tag-name.subtag parameter1\ with\ spaces parameter2
-    |end
-    Parameters may consist of any character (apart from a {*** line endings}[line ending], of course).
-    ---
-
-  ^ Disambiguating tags and attached modifiers
-    If tag characters were attached modifier openers there would be no way to know whether the
-    character is an attached modifier opener or a tag opener until the whole line has been parsed;
-    in other words, such a scenario would entail a difficult to resolve ambiguity.
-
-  Norg provides several inbuilt tag names that are reserved, but their details are not explained
-  in this specification - this document strictly covers syntax - see the [semantics document] for a
-  list of the built-in tags. There is no restriction in regard to the length of a tag name, nor are
-  there any disallowed names that a parser should omit (unless they don&apos;t adhere to the above rules
-  regarding tag names).
-
-** Ranged Tags
-   Ranged tags are a way to express custom information within a range.
-   They begin with the traditional tag declaration and are ended with an `end` statement.
-
-   The `end` statement has a simple rule set:
-   - Must be at the start of a line, may be preceded by any {*** whitespace} (but nothing else)
-   - Must use the same prefix as its parent (in the case of standard ranged tags: `</code>; in the case     of verbatim tags: <code>@</code>; for macro tags: <code>=</code>)</p></li><li><p>Must <b>immediately</b> be succeeded by a <a href='#h3-line-endings'>line ending</a>.</p></li></ul><section id='section-h3-macro-tags'>
+<p>  The main differentiator from simple markup formats and more complex ones is the ability to define  data and extensions for the format. Norg allows for you to extend its syntax and define data  within clear boundaries - it does this using tags.</p><p>  <b>NOTE</b> Tags are the <i>only</i> way that extensions may be made to the format.</p><p>  There are 6 different tag types, each with their own way of changing the way text in Norg is  interpreted. Before we discuss those, however, we should discuss the syntax rules for tags:</p><ul><li><p>A tag is similar to a <a href=''>detached modifier</a> in the sense that it must begin    at the beginning of a line with optional <a href='#h3-whitespace'>whitespace</a> (but nothing else) preceding it.</p></li><li><p>After that you will encounter a special tag character (<code>=</code>, <code>|</code>, <code>@</code>, <code>#</code>, <code>+</code> and <code>.</code>), <i>none</i>    of which are attached modifiers (see <a href='#fn_disambiguating-tags-and-attached-modifiers'><sup id='fnref_disambiguating-tags-and-attached-modifiers'>disambiguating tags and attached modifiers</sup></a>). The    special tag character is then <i>immediately</i> followed by text, which becomes the <i>tag name</i>. Said    tag name can consist of any <a href=''>regular character</a> and/or <code>-</code> and <code>_</code>.</p></li><li><p>Tags can have their names delimited by a <code>.</code> in order to create a &quot;hierarchy&quot;, e.g.    <code>document.meta</code>.</p></li><li><p>    After a <a href='#h3-whitespace'>whitespace</a> character any number of parameters on the same line may follow:    |example    #tag-name.subtag parameter1 parameter2    |end    By default parameters are space-separated. In order to create multi-word parameters, you may    escape the space character with a backslash (<code>\</code>).    |example    #tag-name.subtag parameter1 with spaces parameter2    |end    Parameters may consist of any character (apart from a <a href='#h3-line-endings'>line ending</a>, of course).</p></li></ul><p>  Norg provides several inbuilt tag names that are reserved, but their details are not explained  in this specification - this document strictly covers syntax - see the <a href='#'>semantics document</a> for a  list of the built-in tags. There is no restriction in regard to the length of a tag name, nor are  there any disallowed names that a parser should omit (unless they don&apos;t adhere to the above rules  regarding tag names).</p><section id='section-h2-ranged-tags'>
+<h2 id='h2-ranged-tags'>Ranged Tags</h2>
+<p>   Ranged tags are a way to express custom information within a range.   They begin with the traditional tag declaration and are ended with an <code>end</code> statement.</p><p>   The <code>end</code> statement has a simple rule set:</p><ul><li><p>Must be at the start of a line, may be preceded by any <a href='#h3-whitespace'>whitespace</a> (but nothing else)</p></li><li><p>Must use the same prefix as its parent (in the case of standard ranged tags: <code>|</code>; in the case     of verbatim tags: <code>@</code>; for macro tags: <code>=</code>)</p></li><li><p>Must <b>immediately</b> be succeeded by a <a href='#h3-line-endings'>line ending</a>.</p></li></ul><section id='section-h3-macro-tags'>
 <h3 id='h3-macro-tags'>Macro Tags</h3>
 <p>    Macro tags (also known as <i>macro definitions</i>) are a tag type designed to declare and define    macros. Macros are templates that can be executed with parameters in order to place some    structured text into the document.</p><p>    The content of the macro tag is <i>any</i> Norg markup - this includes <a href='#h2-structural-detached-modifiers'>structural detached
     modifiers</a> and nested <a href='#h1-tags'>tags</a>. The macro tag is closed with the <code>=end</code> statement.</p><p>    Under the hood, all other <a href='#h1-tags'>tag</a> types are implemented as macros with special parameters    and contents.</p><p>    The following is an example of a macro:    |example    =see url    (see <a href='&amp;url&amp;'>&amp;url&amp;</a>)    =end    |end</p><p>    It can then be invoked using any of the other tag types, for example the <a href='#h2-infirm-tag'>infirm tag</a>:    |example    This is a recipe for a cake    .see https//wikipedia.com/some-cool-cake-recipe    - let&apos;s begin cooking!    |end    After macro expansion, this is what the document would look like:    |example    This is a recipe for a cake    (see <a href='https://wikipedia.com/some-cool-cake-recipe'>https://wikipedia.com/some-cool-cake-recipe</a>)    - let&apos;s begin cooking!    |end</p><p>    Which, when reformatted, would look (and render) like so:    |example    This is a recipe for a cake (see <a href='https://wikipedia.com/some-cool-cake-recipe'>https://wikipedia.com/some-cool-cake-recipe</a>) - let&apos;s begin    cooking!    |end</p>
 </section>
 <section id='section-h3-standard-ranged-tags'>
 <h3 id='h3-standard-ranged-tags'>Standard Ranged Tags</h3>
-<p>    There are times when you may want to create an isolated block of Norg markup.    To do this you may use the standard ranged tag, which uses the <code>` character.
-
-    Currently, it is only used for four tags, `comment`, `example`, `details` and `group`:
-    - The `comment` ranged tag is used for long strings of comments (versus the `%` null attached
-      modifier, which is mostly used for short comments).
-    - The `example` tag is a simple way to show an example of some Norg markup without it being
-      rendered and treated as physical markup (most commonly used throughout this very document to
-      show unrendered examples of Norg syntax).
-    - The `details` tag is a way to hide away markup (just like
-      {https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details}[`&lt;details>`] in HTML).
-      - The `group` tag may be used to group together many elements and apply a global {*** strong
-        carryover tags}[strong carryover tag] to each one of them.
-
-**** Examples
-     `|example`:
+<p>    There are times when you may want to create an isolated block of Norg markup.    To do this you may use the standard ranged tag, which uses the <code>|</code> character.</p><p>    Currently, it is only used for four tags, <code>comment</code>, <code>example</code>, <code>details</code> and <code>group</code></p><ul><li><p>The <code>comment</code> ranged tag is used for long strings of comments (versus the <code>%</code> null attached      modifier, which is mostly used for short comments).</p></li><li><p>The <code>example</code> tag is a simple way to show an example of some Norg markup without it being      rendered and treated as physical markup (most commonly used throughout this very document to      show unrendered examples of Norg syntax).</p></li><li><p>The <code>details</code> tag is a way to hide away markup (just like      <a href='https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details'><code>&lt;details></code></a> in HTML).</p></li><li><p>The <code>group</code> tag may be used to group together many elements and apply a global <a href='#h3-strong-carryover-tags'>strong carryover tag</a> to each one of them.</p></li></ul><section id='section-h4-examples'>
+<h4 id='h4-examples'>Examples</h4>
+<p>     <code>example`:
      |example
      |example
      * This is an example heading.
@@ -894,39 +799,17 @@ This heading has priority A (highest priority)<p>     |end     Note that Norg do
      block.|</code>.</p><p>   Free-form modifiers fix this with a special syntax to specify the beginning and end of a ranged   block. For example:   |example   Here, I can write <code> leading and trailing whitespace (with a ` char)  </code> within a verbatim block   without accidentally terminating it.</p><p>   Here, I can use a literal <code>$</code> inside inline math: $ 10$ + 10$ = 20$ $.   |end</p><p>   The use of pipes is special because the position of the pipe (i.e. whether it&apos;s before or after the   attached modifier) can unambiguously tell us whether that symbol is an opening attached modifier   or a closing one. It&apos;s thanks to this that whitespace is freely allowed within its content.</p><p>   Aside from the details described above, free-form attached modifiers have the following properties:</p><ul><li><p>Backslashes (<code>\</code>) are treated as verbatim and do not mean an <a href='#h3-escaping'>escape sequence</a>     (see <a href='#h1-precedence'>precedence</a>).</p></li><li><p>Despite being called &quot;free-form&quot; they can still only span a single paragraph (see <a href=''>attached
      modifier range</a>).</p></li></ul>
 </section>
+
+</section>
+
+</section>
 <section id='section-h2-link-modifier'>
 <h2 id='h2-link-modifier'>Link Modifier</h2>
-<p>   The link modifier, <code>:<code>, is a special modifier type - it puts a twist on the original attached
-   modifier rules - in fact, it&apos;s the polar opposite.
-
-   As described in the {* attached modifiers} section, attached modifier types may not exist
-   in between words like so:
-   |example
-   abso/freaking/lutely!
-   |end
-
-   It&apos;s entirely plausible to want to do this however, which is why the {** link modifier}[link
-   modifier] was devised. With it, you can bridge attached modifiers and regular text together:
-   |example
-   abso:/freaking/:lutely!
-   |end
-
-   It is important to note that link modifiers do not need to occur in pairs. This:
-   |example
-   Ex:*ample* text
-   |end
-   Will also result in `ample</code> becoming *bold*. In fact, using a link modifier at the end will not
-   give the desired result (it will be rendered as a regular `:</code> char). To understand why keep   reading.</p><p>   Through the examples above it is evident that there are two link modifier types: one where the   link modifier is an <i>opening</i> link modifier (i.e. it appears before an opening attached modifier)   and one where it&apos;s a <i>closing</i> link modifier (i.e. it appears after a closing attached modifier).   This distinction is visible even when they don&apos;t occur in pairs.</p><p>   In the case that the link modifier is opening (the attached modifier appears on the right):</p><ul><li><p>The link modifier may only be preceded by a <a href=''>regular character</a>     (or, in other words, may <i>not</i> be preceded by a <a href='#h3-punctuation'>punctuation</a> character nor by a     <a href='#h3-whitespace'>whitespace</a> character).</p></li><li><p>The link modifier may only be succeeded by an opening attached modifier.</p></li></ul><p>   In the case that the link modifier is closing (the attached modifier appears on the left):</p><ul><li><p>The link modifier may only be preceded by a closing attached modifier.</p></li><li><p>The link modifier may only be succeeded by a <a href=''>regular character</a>.</p></li></ul><p>   If the above conditions are not met, then the character should be treated as a literal <code>:<code>.
-
-** Attached Modifier Extensions
-   Similarly to {** detached modifier extensions}, attached modifier extensions serve as a way
-   to attach metadata to {* attached modifiers}.
-   The metadata that you can attach, however, differs from {** detached modifier extensions}, as they
-   serve different use cases.
-
-   The content of attached modifier extensions consists of a set of references to many
-   {*** attributes}. These attributes are delimited by the {* contextual `|</code> delimiter}.
-   If the attribute is part of a hierarchy (see {*** attributes}), you may use the `:</code>   character to link them together. Some inbuilt attributes are the <code>lang</code> and <code>color</code> hierarchies   (a comprehensive list can be found in the <a href='#'>semantics document</a>).</p><section id='section-h3-examples'>
+<p>   The link modifier, <code>:</code>, is a special modifier type - it puts a twist on the original attached   modifier rules - in fact, it&apos;s the polar opposite.</p><p>   As described in the <a href='#h1-attached-modifiers'>attached modifiers</a> section, attached modifier types may not exist   in between words like so:   |example   abso/freaking/lutely!   |end</p><p>   It&apos;s entirely plausible to want to do this however, which is why the <a href='#h2-link-modifier'>link   modifier</a> was devised. With it, you can bridge attached modifiers and regular text together:   |example   abso<i>freaking</i>lutely!   |end</p><p>   It is important to note that link modifiers do not need to occur in pairs. This:   |example   Ex<b>ample</b> text   |end   Will also result in <code>ample</code> becoming <b>bold</b>. In fact, using a link modifier at the end will not   give the desired result (it will be rendered as a regular <code>:</code> char). To understand why keep   reading.</p><p>   Through the examples above it is evident that there are two link modifier types: one where the   link modifier is an <i>opening</i> link modifier (i.e. it appears before an opening attached modifier)   and one where it&apos;s a <i>closing</i> link modifier (i.e. it appears after a closing attached modifier).   This distinction is visible even when they don&apos;t occur in pairs.</p><p>   In the case that the link modifier is opening (the attached modifier appears on the right):</p><ul><li><p>The link modifier may only be preceded by a <a href=''>regular character</a>     (or, in other words, may <i>not</i> be preceded by a <a href='#h3-punctuation'>punctuation</a> character nor by a     <a href='#h3-whitespace'>whitespace</a> character).</p></li><li><p>The link modifier may only be succeeded by an opening attached modifier.</p></li></ul><p>   In the case that the link modifier is closing (the attached modifier appears on the left):</p><ul><li><p>The link modifier may only be preceded by a closing attached modifier.</p></li><li><p>The link modifier may only be succeeded by a <a href=''>regular character</a>.</p></li></ul><p>   If the above conditions are not met, then the character should be treated as a literal <code>:</code>.</p>
+</section>
+<section id='section-h2-attached-modifier-extensions'>
+<h2 id='h2-attached-modifier-extensions'>Attached Modifier Extensions</h2>
+<p>   Similarly to <a href='#h2-detached-modifier-extensions'>detached modifier extensions</a>, attached modifier extensions serve as a way   to attach metadata to <a href='#h1-attached-modifiers'>attached modifiers</a>.   The metadata that you can attach, however, differs from <a href='#h2-detached-modifier-extensions'>detached modifier extensions</a>, as they   serve different use cases.</p><p>   The content of attached modifier extensions consists of a set of references to many   <a href='#h3-attributes'>attributes</a>. These attributes are delimited by the <a href='#h1-contextual-delimiter'>contextual `|` delimiter</a>.   If the attribute is part of a hierarchy (see <a href='#h3-attributes'>attributes</a>), you may use the <code>:</code>   character to link them together. Some inbuilt attributes are the <code>lang</code> and <code>color</code> hierarchies   (a comprehensive list can be found in the <a href='#'>semantics document</a>).</p><section id='section-h3-examples'>
 <h3 id='h3-examples'>Examples</h3>
 <p>    |example    <code>print(&quot;This is some python&quot;)</code>(lang:python) &lt;- The lang:python attribute highlights the text as python    *some green and bold text!*(color:green)    &lt;- some green and bold text    <a href='#h1-link-location'>this is an important link</a>(important|color:red) &lt;- Highlights the link as big,                                                                         bold (important) and red.    |end</p>
 </section>
@@ -934,34 +817,13 @@ This heading has priority A (highest priority)<p>     |end     Note that Norg do
 </section>
 
 </section>
-<section id='section-h1-contextual-delimiter-the-pipe-character-is-a-really-nice-character-it-can-be-applied-to-many-problems'>
-<h1 id='h1-contextual-delimiter-the-pipe-character-is-a-really-nice-character-it-can-be-applied-to-many-problems'>Contextual <code>` Delimiter
-  The pipe (`</code>) character is a really nice character - it can be applied to many problems</h1>
-<p>  and expressively represent certain behaviors, specifically <i>delimiting</i>. While also used for  <a href='#h3-standard-ranged-tags'>standard ranged tags</a> and <a href='#h2-free-form-attached-modifiers'>free-form attached modifiers</a>, the pipe symbol is also used as  a delimiter for <a href='#h2-detached-modifier-extensions'>detached</a> and <a href='#h2-attached-modifier-extensions'>attached</a> modifier extensions. Even though it&apos;s used 3 times for different purposes,  the contexts in which they are used in allows for them to be unambiguous. It also keeps intent  consistent across the format.</p>
+<section id='section-h1-contextual-delimiter'>
+<h1 id='h1-contextual-delimiter'>Contextual <code>|</code> Delimiter</h1>
+<p>  The pipe (<code>|</code>) character is a really nice character - it can be applied to many problems  and expressively represent certain behaviors, specifically <i>delimiting</i>. While also used for  <a href='#h3-standard-ranged-tags'>standard ranged tags</a> and <a href='#h2-free-form-attached-modifiers'>free-form attached modifiers</a>, the pipe symbol is also used as  a delimiter for <a href='#h2-detached-modifier-extensions'>detached</a> and <a href='#h2-attached-modifier-extensions'>attached</a> modifier extensions. Even though it&apos;s used 3 times for different purposes,  the contexts in which they are used in allows for them to be unambiguous. It also keeps intent  consistent across the format.</p>
 </section>
 <section id='section-h1-intersecting-modifiers'>
 <h1 id='h1-intersecting-modifiers'>Intersecting Modifiers</h1>
-<p>  Norg is a syntax designed to be used by many - this includes many styles and preferences. Although  it&apos;s impossible to satisfy everyone, there are some variations of syntax that can be used to  &quot;beautify&quot; Norg markup.  The intersecting modifier does just that - it&apos;s a way to intersect two different paragraph  segments (and <b>only</b> paragraph segments) together on the same line.</p><p>  The syntax is as follows:</p><ul><li><p>First, a <a href='#h3-whitespace'>whitespace</a> character must be matched</p></li><li><p>Next, the actual modifier (currently only <code>:<code>) must be matched.
-  - The token ends with another {*** whitespace} character.
-
-  The use case for the intersecting modifier is best illustrated by example:
-  |example
-  $ Term
-    This is a definition of that term.
-  |end
-  This is perfectly normal syntax that you would write day to day in Norg. But what if you&apos;re more
-  of a fan of one-liners? The `| : |</code> intersecting modifier (currently the only modifier of this
-  type) can be used to do just this:
-  |example
-  $ Term : This is a definition of that term.
-  |end
-  This syntax is especially favored for {*** table cells}:
-  |example
-  : A1 : Content of the cell at A1
-  : A2 : Content of the cell at A2
-  |end
-
-  The `| : |</code> syntax expands to a newline, which means that after expansion you get:  |example  : A1  Content of the cell at A1  : A2  Content of the cell at A2  |end</p></li></ul>
+<p>  Norg is a syntax designed to be used by many - this includes many styles and preferences. Although  it&apos;s impossible to satisfy everyone, there are some variations of syntax that can be used to  &quot;beautify&quot; Norg markup.  The intersecting modifier does just that - it&apos;s a way to intersect two different paragraph  segments (and <b>only</b> paragraph segments) together on the same line.</p><p>  The syntax is as follows:</p><ul><li><p>First, a <a href='#h3-whitespace'>whitespace</a> character must be matched</p></li><li><p>Next, the actual modifier (currently only <code>:</code>) must be matched.</p></li><li><p>The token ends with another <a href='#h3-whitespace'>whitespace</a> character.</p></li></ul><p>  The use case for the intersecting modifier is best illustrated by example:  |example</p><dl><dt id='def_term'>Term</dt><dd><p>    This is a definition of that term.  |end  This is perfectly normal syntax that you would write day to day in Norg. But what if you&apos;re more  of a fan of one-liners? The <code> : </code> intersecting modifier (currently the only modifier of this  type) can be used to do just this:  |example</p></dd><dt id='def_term-this-is-a-definition-of-that-term'>Term : This is a definition of that term.</dt><dd><p>  |end  This syntax is especially favored for <a href='#h3-table-cells'>table cells</a>:  |example  : A1 : Content of the cell at A1  : A2 : Content of the cell at A2  |end</p></dd></dl><p>  The <code> : </code> syntax expands to a newline, which means that after expansion you get:  |example  : A1  Content of the cell at A1  : A2  Content of the cell at A2  |end</p>
 </section>
 <section id='section-h1-linkables'>
 <h1 id='h1-linkables'>Linkables</h1>
@@ -1003,14 +865,7 @@ This heading has priority A (highest priority)<p>     |end     Note that Norg do
 </section>
 <section id='section-h4-the-file-linkable'>
 <h4 id='h4-the-file-linkable'>The File Linkable (<code>/</code>)</h4>
-<p>     Sometimes you may want to link to an external file that is not a Norg file.     In that case you may use <code>{/ /path/to/my/file.txt}</code> (notice the mandatory space after the <code>/</code>     char, just like with the <a href=''>detached modifier</a>s). Paths are relative to the Norg file that     contains the link unless started with a <code>/</code> to denote your file system root.</p><p>     In addition to just providing a path, you may also specify a line number at the end via a colon <code>:<code>.
-     Example:
-     |example
-     {/ my-file.txt:123} &lt;- This is a link to `my-file.txt</code> at line 123
-     |end
-
-     As with the {*** file location : # path modifiers}[path modifier] syntax, the file linkable
-     also supports special characters like `~</code> for the user&apos;s home directory and the special <code>$</code>     character to denote the root of the current workspace.</p>
+<p>     Sometimes you may want to link to an external file that is not a Norg file.     In that case you may use <code>{/ /path/to/my/file.txt}</code> (notice the mandatory space after the <code>/</code>     char, just like with the <a href=''>detached modifier</a>s). Paths are relative to the Norg file that     contains the link unless started with a <code>/</code> to denote your file system root.</p><p>     In addition to just providing a path, you may also specify a line number at the end via a colon <code>:</code>.     Example:     |example     <a href='my-file.txt##l-123'>my-file.txt##l-123</a> &lt;- This is a link to <code>my-file.txt</code> at line 123     |end     As with the <a href='#h3-file-location-path-modifiers'>path modifier</a> syntax, the file linkable     also supports special characters like <code>~</code> for the user&apos;s home directory and the special <code>$</code>     character to denote the root of the current workspace.</p>
 </section>
 <section id='section-h4-timestamps'>
 <h4 id='h4-timestamps'>Timestamps (<code>@</code>)</h4>
@@ -1089,10 +944,7 @@ This heading has priority A (highest priority)<p>     |end     Note that Norg do
 </section>
 <section id='section-h1-precedence'>
 <h1 id='h1-precedence'>Precedence</h1>
-<p>  Precedence in Norg is rather simple and intuitive.</p><ul><li><p>All non-inline elements have direct precedence over all inline elements.</p></li><li><p>Inline elements with a deterministic start and end have greater priority than those that don&apos;t.</p></li><li><p>Verbatim elements have greater priority than non-verbatim elements.</p></li></ul><p>  Here&apos;s the full list ordered by decreasing precedence:</p><ol><li><p><a href='#h1-tags'>Tags</a> (<code>#infecting</code>, <code>+carryover</code>, <code>.infirm</code>, <code>\|standard</code>, <code>@verbatim</code> and <code>=macro</code>)</p></li><li><p><a href=''>Structural detached modifiers</a></p></li><li><p><a href=''>Nestable detached modifiers</a> and <a href=''>range-able detached modifiers</a> (there is no such case    where these could overlap)</p></li><li><p><a href=''>Detached modifier extensions</a></p></li><li><p><a href='#h1-linkables'>Linkables</a> (<code>{}</code>, <code>[]</code>, <code>&lt;></code>)</p></li><li><p>Verbatim <a href=''>free-form attached modifiers</a> (<code>\|</code><code>`, `\</code><code>`)
-  ~ {# Escaping}[The escape character] (`\`)
-  ~ Verbatim {# attached modifiers}
-  ~ Standard (non-verbatim) {# free-form attached modifiers} (`|**</code>, <code>//</code> etc.)</p></li><li><p>Standard (non-verbatim) <a href=''>attached modifiers</a></p></li></ol><p>  Should any extra precedence problems arise (let us know if you find any) they can be disambiguated  through a simple left-to-right precedence approach.</p><p>  Note that although e.g. linkables are above standard attached modifiers, this does not mean that  standard attached modifiers cannot <i>contain</i> linkables, but in case there is an overlap the  linkable will have higher precedence.</p><p>  For example, this is valid:  |example  <b><a href=''>i am a bold link!</a></b>  |end</p><p>  However, in this case:  |example  *am I <a href='#h1-bold'>bold?</a> - no!  |end  The link takes precedence, and no bold is rendered.</p>
+<p>  Precedence in Norg is rather simple and intuitive.</p><ul><li><p>All non-inline elements have direct precedence over all inline elements.</p></li><li><p>Inline elements with a deterministic start and end have greater priority than those that don&apos;t.</p></li><li><p>Verbatim elements have greater priority than non-verbatim elements.</p></li></ul><p>  Here&apos;s the full list ordered by decreasing precedence:</p><ol><li><p><a href='#h1-tags'>Tags</a> (<code>#infecting</code>, <code>+carryover</code>, <code>.infirm</code>, <code>\|standard</code>, <code>@verbatim</code> and <code>=macro</code>)</p></li><li><p><a href=''>Structural detached modifiers</a></p></li><li><p><a href=''>Nestable detached modifiers</a> and <a href=''>range-able detached modifiers</a> (there is no such case    where these could overlap)</p></li><li><p><a href=''>Detached modifier extensions</a></p></li><li><p><a href='#h1-linkables'>Linkables</a> (<code>{}</code>, <code>[]</code>, <code>&lt;></code>)</p></li><li><p>Verbatim <a href=''>free-form attached modifiers</a> (<code>\|</code><code>|</code>, <code>\|</code><code>|</code>)</p></li><li><p><a href='#h3-escaping'>The escape character</a> (<code>\</code>)</p></li><li><p>Verbatim <a href=''>attached modifiers</a></p></li><li><p>Standard (non-verbatim) <a href=''>free-form attached modifiers</a> (<code>**</code>, <code>//</code> etc.)</p></li><li><p>Standard (non-verbatim) <a href=''>attached modifiers</a></p></li></ol><p>  Should any extra precedence problems arise (let us know if you find any) they can be disambiguated  through a simple left-to-right precedence approach.</p><p>  Note that although e.g. linkables are above standard attached modifiers, this does not mean that  standard attached modifiers cannot <i>contain</i> linkables, but in case there is an overlap the  linkable will have higher precedence.</p><p>  For example, this is valid:  |example  <b><a href=''>i am a bold link!</a></b>  |end</p><p>  However, in this case:  |example  *am I <a href='#h1-bold'>bold?</a> - no!  |end  The link takes precedence, and no bold is rendered.</p>
 </section>
 <section id='section-h1-layers'>
 <h1 id='h1-layers'>Layers</h1>
@@ -1133,9 +985,13 @@ This heading has priority A (highest priority)<p>     |end     Note that Norg do
         <p>     It should be mentioned that a parser of the Norg format is not required to perform any     timestamp analysis further than detecting what set of characters contain a timestamp.     The actual interpretation of its internal fields and the interpretation of a <a href=''>range</a> are the     responsibility of the <b>semantic analyzer</b> (see also the <a href='1.0-semantics'>semantics document</a>).</p>
         <a role="doc-backlink" href='#fnref_note-to-parser-developers'>↩︎</a>
     </li>
+    <li id='fn_disambiguating-tags-and-attached-modifiers'>
+        <p>    If tag characters were attached modifier openers there would be no way to know whether the    character is an attached modifier opener or a tag opener until the whole line has been parsed;    in other words, such a scenario would entail a difficult to resolve ambiguity.</p>
+        <a role="doc-backlink" href='#fnref_disambiguating-tags-and-attached-modifiers'>↩︎</a>
+    </li>
 
     </ol>
 </section>
 
 </div>
-</article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../internals/">How parsing works »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Thursday 2 March 2023 23:20">Thursday 2 March 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../internals/">How parsing works »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Saturday 4 March 2023 22:30">Saturday 4 March 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
