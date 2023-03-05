@@ -78,7 +78,7 @@ function force_word_context(parents, tokens, i)
         kind(tokens[i]) ≠ K"|"
     elseif K"FreeFormVariable" ∈ parents
         kind(tokens[i]) ≠ K"|"
-    elseif k == K"Verbatim"
+    elseif k == K"VerbatimBody"
         kind(tokens[i]) != K"@"
     elseif k == K"Escape"
         true
@@ -194,6 +194,8 @@ function match_norg(::Whitespace, parents, tokens, i)
             match_norg(Verbatim(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"+"
             match_norg(WeakCarryoverTag(), parents, tokens, nextind(tokens, i))
+        elseif kind(next_token) == K"|"
+            match_norg(StandardRangedTag(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"_"
             match_norg(HorizontalRule(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"$"
@@ -214,9 +216,10 @@ function match_norg(::LineEnding, parents, tokens, i)
     if first(parents) == K"NorgDocument" 
         MatchContinue()
     elseif is_line_ending(prev_token)
+        @debug "lineEnding" tokens[i] prev_token parents
         nestable_parents = filter(is_nestable, parents[2:end])
         attached_parents = filter(is_attached_modifier, parents)
-        if first(parents) == K"IndentSegment"
+        if first(parents) ∈ KSet"IndentSegment StandardRangedTagBody"
             MatchContinue()
         elseif length(nestable_parents) > 0
             MatchClosing(first(parents), false)
@@ -243,8 +246,20 @@ function match_norg(::LineEnding, parents, tokens, i)
         else
             MatchContinue()
         end
+    elseif K"ParagraphSegment" ∈ parents
+        MatchClosing(K"ParagraphSegment", first(parents)==K"ParagraphSegment")
+    elseif K"StandardRangedTagBody" ∈ parents
+        i = nextind(tokens, i)
+        m = match_norg(StandardRangedTag(), parents, tokens, nextind(tokens, i))
+        if isclosing(m) && matched(m) == K"StandardRangedTagBody"
+            m
+        elseif first(parents) == K"StandardRangedTagBody"
+            MatchContinue()
+        else
+            MatchNotFound()
+        end
     else
-        MatchClosing(K"ParagraphSegment")
+        MatchNotFound()
     end
 end
 
@@ -426,10 +441,18 @@ tag_to_strategy(::NumberSign) = StrongCarryoverTag()
 
 function match_norg(t::Union{CommercialAtSign, Plus, NumberSign}, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
-    @debug "Matching" t
+    @debug "Matching" t prev_token
     if is_sof(prev_token) || is_line_ending(prev_token)
         @debug "Prev token is ok" tokens[i] prev_token
         match_norg(tag_to_strategy(t), parents, tokens, i)
+    elseif is_whitespace(prev_token)
+        prev_i = prevind(tokens, i)
+        prev_token = tokens[prevind(tokens, prev_i)]
+        if is_line_ending(prev_token)
+            match_norg(tag_to_strategy(t), parents, tokens, i)
+        else
+            MatchNotFound()
+        end
     else
         MatchNotFound()
     end
@@ -452,8 +475,11 @@ end
 
 function match_norg(::VerticalBar, parents, tokens, i)
     next_token = tokens[nextind(tokens, i)]
-    @debug "vertical" tokens[i] next_token
-    if kind(next_token) == K"*"
+    prev_token = tokens[prevind(tokens, i)]
+    @debug "vertical" tokens[i] prev_token next_token
+    if is_sof(prev_token) || is_line_ending(prev_token)
+        match_norg(StandardRangedTag(), parents, tokens, i)
+    elseif kind(next_token) == K"*"
         match_norg(FreeFormBold(), parents, tokens, i)
     elseif kind(next_token) == K"/" 
         match_norg(FreeFormItalic(), parents, tokens, i)

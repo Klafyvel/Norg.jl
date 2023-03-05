@@ -30,7 +30,7 @@ function parse_norg(::Heading, parents::Vector{Kind}, tokens::Vector{Token}, i)
         i = nextind(tokens, AST.stop(title_segment))
         while !is_eof(tokens[i])
             m = match_norg([heading_kind, parents...], tokens, i)
-            @debug "heading loop" 
+            @debug "heading loop" m tokens[i]
             if isclosing(m)
                 break
             end
@@ -57,6 +57,8 @@ function parse_norg(::Heading, parents::Vector{Kind}, tokens::Vector{Token}, i)
                 child = parse_norg(OrderedList(), [heading_kind, parents...], tokens, i)
             elseif kind(to_parse) == K"Verbatim"
                 child = parse_norg(Verbatim(), [heading_kind, parents...], tokens, i)
+            elseif kind(to_parse) == K"StandardRangedTag"
+                child = parse_norg(StandardRangedTag(), [heading_kind, parents...], tokens, i)
             elseif to_parse == K"WeakCarryoverTag"
                 child = parse_norg(WeakCarryoverTag(), parents, tokens, i)
             elseif to_parse == K"Definition"

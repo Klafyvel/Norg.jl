@@ -50,6 +50,7 @@ function parse_norg(::NestableItem, parents::Vector{Kind}, tokens::Vector{Token}
     end
     while !is_eof(tokens[i])
         m = match_norg([K"NestableItem", parents...], tokens, i)
+        @debug "nestable item loop" m tokens[i]
         if isclosing(m)
             if !consume(m)
                 i = prevind(tokens, i)
@@ -59,6 +60,8 @@ function parse_norg(::NestableItem, parents::Vector{Kind}, tokens::Vector{Token}
         to_parse = matched(m)
         if to_parse == K"Verbatim"
             child = parse_norg(Verbatim(), [K"NestableItem", parents...], tokens, i)
+        elseif to_parse == K"StandardRangedTag"
+            child = parse_norg(StandardRangedTag(), [K"NestableItem", parents...], tokens, i)
         elseif is_quote(to_parse)
             child = parse_norg(Quote(), [K"NestableItem", parents...], tokens, i) 
         elseif is_unordered_list(to_parse)

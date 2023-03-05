@@ -1,13 +1,31 @@
-function match_norg(::Verbatim, parents, tokens, i)
-    token = tokens[nextind(tokens, i)]
-    @debug "verbatim match" parents tokens[i]
+tag(::Verbatim) = K"Verbatim"
+tag(::StandardRangedTag) = K"StandardRangedTag"
+token_tag(::Verbatim) = K"@"
+token_tag(::StandardRangedTag) = K"|"
+body(::Verbatim) = K"VerbatimBody"
+body(::StandardRangedTag) = K"StandardRangedTagBody"
+function match_norg(t::T, parents, tokens, i) where {T <: Tag}
+    i = nextind(tokens, i)
+    token = tokens[i]
+    @debug "tag match" parents tokens[i]
     if kind(token) == K"Word"
-        if kind(first(parents)) ∈ KSet"Slide IndentSegment"
-            MatchFound(K"Verbatim")
-        elseif !(is_nestable(first(parents)) || is_heading(first(parents)) || kind(first(parents)) == K"NorgDocument") 
+        val = Tokens.value(token)
+        if tag(t) ∈ parents && val == "end"
+            next_token = tokens[nextind(tokens, i)]
+            @debug "encountered end" token next_token
+            if kind(next_token) ∈ KSet"LineEnding EndOfFile"
+                MatchClosing(tag(t), first(parents) ∈ (tag(t), body(t)))
+            else
+                MatchNotFound()
+            end
+        elseif K"Verbatim" ∈ parents
+            MatchNotFound()
+        elseif kind(first(parents)) ∈ KSet"Slide IndentSegment"
+            MatchFound(tag(t))
+        elseif !(is_nestable(first(parents)) || is_heading(first(parents)) || kind(first(parents)) ∈ KSet"NorgDocument StandardRangedTagBody") 
             MatchClosing(first(parents), false)
         else
-            MatchFound(K"Verbatim")
+            MatchFound(tag(t))
         end
     else
         MatchNotFound()
@@ -16,6 +34,7 @@ end
 
 function match_norg(::WeakCarryoverTag, parents, tokens, i)
     token = tokens[nextind(tokens, i)]
+    @debug "Matching weak carryover tag"
     if kind(token) == K"Word"
         nextline = consume_until(K"LineEnding", tokens, i)
         m = match_norg(parents, tokens, nextline)
@@ -31,13 +50,16 @@ end
 
 function match_norg(::StrongCarryoverTag, parents, tokens, i)
     token = tokens[nextind(tokens, i)]
+    @debug "Matching strong carryover tag"
+    relevant_parents = if K"StandardRangedTag" ∈ parents
+        k = findfirst(parents .== Ref(K"StandardRangedTag"))::Int
+        parents[1:k]
+    else
+        parents
+    end
     if kind(token) == K"Word"
-        nextline = consume_until(K"LineEnding", tokens, i)
-        m = match_norg(parents, tokens, nextline)
-        if isclosing(m)
-            m
-        elseif is_nestable(first(parents)) || K"Paragraph" ∈ parents
-            MatchClosing(first(parents), false)
+        if is_nestable(first(relevant_parents)) || K"Paragraph" ∈ relevant_parents || K"NestableItem" ∈ relevant_parents
+            MatchClosing(first(relevant_parents), false)
         else
             MatchFound(K"StrongCarryoverTag")
         end

@@ -75,6 +75,15 @@ function getchildren(node::Node, k::Kind, exclude::Kind)
         ))
     )
 end
+function getchildren(node::Node, k::Kind, exclude)
+    filter(
+        x->kind(x)==k,
+        collect(PreOrderDFS(
+            x->kind(x)!=k && kind(x)∉exclude,
+            node
+        ))
+    )
+end
 
 """
     findtargets!(ast[, node])

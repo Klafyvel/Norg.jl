@@ -11,6 +11,8 @@ function parse_norg(::Slide, parents::Vector{Kind}, tokens::Vector{Token}, i)
             parse_norg(Footnote(), p, tokens, i)
         elseif matched(m) == K"Verbatim"
             parse_norg(Verbatim(), p, tokens, i)
+        elseif matched(m) == K"StandardRangedTag"
+            parse_norg(StandardRangedTag(), p, tokens, i)
         else
             parse_norg(Paragraph(), p, tokens, i)
         end
@@ -58,6 +60,8 @@ function parse_norg(::IndentSegment, parents::Vector{Kind}, tokens::Vector{Token
             child = parse_norg(OrderedList(), p, tokens, i)
         elseif kind(to_parse) == K"Verbatim"
             child = parse_norg(Verbatim(), p, tokens, i)
+        elseif kind(to_parse) == K"StandardRangedTag"
+            child = parse_norg(StandardRangedTag(), p, tokens, i)
         elseif to_parse == K"WeakCarryoverTag"
             child = parse_norg(WeakCarryoverTag(), parents, tokens, i)
         elseif to_parse == K"StrongCarryoverTag"

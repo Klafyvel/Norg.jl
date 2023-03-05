@@ -311,3 +311,25 @@ various = [
     @test kind(child) == k
 end
 end
+
+standard_children = [
+    (K"Heading1", "* content")
+    (K"UnorderedList1", "- content")
+    (K"OrderedList1", "~ content")
+    (K"Quote1", "> content")
+    (K"Paragraph", "content")
+]
+@testset "Standard Ranged-tag children: $T" for (T, content) in standard_children
+    s = """|example
+    $content
+    |end
+    """
+    ast = norg(s)
+    @test length(children(ast.root)) == 1
+    tag = first(children(ast.root))
+    @test kind(tag) == K"StandardRangedTag"
+    @test length(children(tag)) == 2
+    body = last(children(tag))
+    @test length(children(body)) == 1
+    @test kind(last(children(body))) == T
+end

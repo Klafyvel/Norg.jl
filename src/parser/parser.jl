@@ -47,6 +47,8 @@ function parse_norg_toplevel_one_step(parents::Vector{Kind}, tokens::Vector{Toke
         parse_norg(OrderedList(), parents, tokens, i) 
     elseif kind(to_parse) == K"Verbatim"
         parse_norg(Verbatim(), parents, tokens, i)
+    elseif kind(to_parse) == K"StandardRangedTag"
+        parse_norg(StandardRangedTag(), parents, tokens, i)
     elseif is_heading(to_parse)
         parse_norg(Heading(), parents, tokens, i)
     elseif to_parse == K"WeakCarryoverTag"
@@ -61,6 +63,8 @@ function parse_norg_toplevel_one_step(parents::Vector{Kind}, tokens::Vector{Toke
         parse_norg(Definition(), parents, tokens, i)
     elseif to_parse == K"Footnote"
         parse_norg(Footnote(), parents, tokens, i)
+    elseif to_parse == K"Word" && first(parents) == K"VerbatimBody"
+        parse_norg(Word(), parents, tokens, i)
     else
         parse_norg(Paragraph(), parents, tokens, i)
     end
@@ -98,6 +102,7 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens::Vector{Token}, i
     start = i
     while !is_eof(tokens[i])
         m = match_norg([K"Paragraph", parents...], tokens, i)
+        @debug "paragraph loop" m tokens[i]
         if isclosing(m)
             break
         elseif iscontinue(m)
