@@ -109,13 +109,13 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   - (x) Layer 1 support
   - (x) Layer 2 support
   - (x) Layer 3 Support
-  - ( ) Layer 4 support
-  -- ( ) Standard Ranged Tags
+  - (-) Layer 4 support
+  -- (x) Standard Ranged Tags
   -- ( ) Table cells
-  -- ( ) Free-form attached modifiers
+  -- (x) Free-form attached modifiers
   -- ( ) Intersection modifiers
   -- ( ) Attached modifier extensions
-  -- ( ) Inline mathematics and variable attached modifiers
+  -- (x) Inline mathematics and variable attached modifiers
   #waiting.for Layer 4 support
   - ( ) Layer 5 support
   -- ( ) Interpretation/Execution of macro tags
@@ -128,7 +128,7 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   --- (x) Layer 1 support
   --- (x) Layer 2 support
   --- (x) Layer 3 support
-  --- ( ) Layer 4 support
+  --- (-) Layer 4 support
   --- ( ) Layer 5 support
   -- ( ) Markdown
   --- ( ) Layer 1 support
@@ -140,7 +140,7 @@ pandoc -f json -t markdown 1.0-specification.json -o 1.0-specification.md
   --- (x) Layer 1 support
   --- (x) Layer 2 support
   --- (x) Layer 3 support
-  --- ( ) Layer 4 support
+  --- (-) Layer 4 support
   --- ( ) Layer 5 support
   -- ( ) Julia Terminal display using julia's nice features such as `printstyled` and others.
   --- ( ) Layer 1 support
