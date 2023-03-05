@@ -424,13 +424,13 @@ function codegen(t::JSONTarget, ::StandardRangedTag, ast::NorgDocument, node::No
     elseif tag_litteral == "group"
         OrderedDict([
             "t"=>"Div",
-            "c"=>[["", [], []], codegen_children(t, ast, node)]
+            "c"=>[["", [], []], codegen_children(t, ast, last(others))]
         ])
     else
         @warn "Unknown standard ranged tag." tag_litteral ast.tokens[AST.start(node)] ast.tokens[AST.stop(node)]
         OrderedDict([
             "t"=>"Div",
-            "c"=>[["", [], []], codegen_children(t, ast, node)]
+            "c"=>[["", [], []], codegen_children(t, ast, last(others))]
         ])
     end
 end
