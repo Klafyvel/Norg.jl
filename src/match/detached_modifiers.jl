@@ -49,10 +49,9 @@ function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
     if is_eof(next_token)
         return MatchNotFound()
     end
-    next_next_token = tokens[next_next_i]
     token = tokens[i]
-    if kind(next_token) == kind(token) && kind(next_next_token) == kind(token)
-        new_i = nextind(tokens, next_next_i)
+    if kind(next_token) == kind(token) 
+        new_i = nextind(tokens, next_i)
         new_token = tokens[new_i]
         is_delimiting = true
         while new_i < lastindex(tokens) && !is_line_ending(new_token)

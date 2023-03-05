@@ -90,6 +90,8 @@ norg(t::T, s) where {T <: Codegen.CodegenTarget} = codegen(t, norg(s))
 Easily parse Norg string to an AST. This can be used in *e.g.* Pluto notebooks,
 because `Base.show` has a method for "text/html" type mime for ASTs.
 
+# Examples
+```julia-repl
 julia> norg"* Norg Header 1 Example"
 NorgDocument
 └─ (K"Heading1", 2, 11)
@@ -101,6 +103,7 @@ NorgDocument
       ├─ 1
       ├─
       └─ Example
+```
 """
 macro norg_str(s, t ...)
 	norg(s)
@@ -168,6 +171,18 @@ using SnoopPrecompile
 
     +color red
     test
+
+    |example
+    hi there
+    |end
+
+    |details
+    test
+    |end
+
+    |group
+    test
+    |end
     """
 
     full_spec = open(NORG_SPEC_PATH, "r") do f

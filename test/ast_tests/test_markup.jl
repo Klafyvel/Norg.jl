@@ -163,13 +163,15 @@ end
     @test kind(last(children(ps))) == K"InlineCode"
 end
 
-@testset "Escaping is NOT allowed in inline code" begin
+@testset "Escaping is allowed in inline code" begin
     s = "`\\` still verbatim`"
     ast = norg(s)
     ps = first(children(first(children(ast.root))))
-    @test length(children(ps)) == 6
-    @test kind(first(children(ps))) == K"InlineCode"
-    @test all(kind.(last(children(ps), 5)) .== Ref(K"WordNode"))
+    @test length(children(ps)) == 1
+    ic = first(children(ps))
+    @test kind(ic) == K"InlineCode"
+    e = first(children(first(children(ic))))
+    @test kind(e) == K"Escape"
 end
 
 @testset "Line endings are allowed withing attached modifiers." begin
@@ -280,4 +282,15 @@ verbatim_nested = [
             @test kind(n) == K"WordNode"
         end
     end
+end
+
+@testset "Escaping is NOT allowed in Free-form inline code" begin
+    s = "`|\\` still verbatim|`"
+    ast = norg(s)
+    ps = first(children(first(children(ast.root))))
+    @test length(children(ps)) == 1
+    ic = first(children(ps))
+    @test kind(ic) == K"FreeFormInlineCode"
+    e = first(children(first(children(ic))))
+    @test kind(e) == K"WordNode"
 end
