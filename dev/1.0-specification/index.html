@@ -67,23 +67,11 @@
 <ul>
     
 </ul>
-</li><li><a href='#h3-indent-segment'>Indent Segment</a>
-<ul>
-    
-</ul>
 </li><li><a href='#h1-tags'>Tags</a>
 <ul>
-    <li><a href='#h2-ranged-tags'>Ranged Tags</a>
-<ul>
     
-</ul>
-</li>
 </ul>
 </li><li><a href='#h3-standard-ranged-tags'>Standard Ranged Tags</a>
-<ul>
-    
-</ul>
-</li><li><a href='#h2-link-modifier'>Link Modifier</a>
 <ul>
     
 </ul>
@@ -255,7 +243,7 @@
 </section>
 <section id='section-h2-paragraphs'>
 <h2 id='h2-paragraphs'>Paragraphs</h2>
-<p>   Paragraphs are then formed of consecutive <a href='#h2-paragraph-segments'>paragraph segments</a>. A paragraph is terminated by:</p><ul><li><p>A <span id='paragraph-break'>paragraph break</span> (two consecutive <a href='#h3-line-endings'>line endings</a>)</p></li><li><p>Any of the <a href='#h1-detached-modifiers'>detached modifiers</a></p></li><li><p>Any of the <a href='#h2-delimiting-modifiers'>delimiting modifiers</a></p></li><li><p>Any of the <a href='#h2-ranged-tags'>ranged tags</a></p></li><li><p>Any of the <a href='#h3-strong-carryover-tags'>strong carryover tags</a></p></li></ul>
+<p>   Paragraphs are then formed of consecutive <a href='#h2-paragraph-segments'>paragraph segments</a>. A paragraph is terminated by:</p><ul><li><p>A <a href='#def_paragraph-break'>paragraph break</a></p></li><li><p>Any of the <a href='#h1-detached-modifiers'>detached modifiers</a></p></li><li><p>Any of the <a href='#h2-delimiting-modifiers'>delimiting modifiers</a></p></li><li><p>Any of the <a href='#h2-ranged-tags'>ranged tags</a></p></li><li><p>Any of the <a href='#h3-strong-carryover-tags'>strong carryover tags</a></p></li></ul><dl><dt id='def_paragaph-break'>Paragaph Break</dt><dd><p>   A paragraph break is defined as an <ins>empty line</ins>. In the simplest case that means two consecutive   <a href='#h3-line-endings'>line endings</a> but since Neorg is a <i>free-form</i> markup language, a line which only contains   whitespace is also considered empty.</p></dd></dl>
 </section>
 <section id='section-h1-detached-modifiers'>
 <h1 id='h1-detached-modifiers'>Detached Modifiers</h1>
@@ -281,7 +269,7 @@
 </section>
 <section id='section-h2-nestable-detached-modifiers'>
 <h2 id='h2-nestable-detached-modifiers'>Nestable Detached Modifiers</h2>
-<p>   Nestable detached modifiers are a kind which may be repeated multiple times in order to produce a   <ins>nested</ins> object of the given type. The nesting levels are capped at 6 in the <a href='#'>tree-sitter</a> parser   but longer repetitions of the same modifier are allowed, falling back to the sixth nesting level.   Other parsers may choose to support higher (or infinite) nesting levels.</p><p>   Furthermore, in contrast to most other (standard) <a href='#h1-detached-modifiers'>detached modifiers</a>, this detached modifier   type has <i>no</i> title, and affects the following <code>paragraph</code> instead of only the next   <a href=''>paragraph segment</a>. Said paragraph then becomes the modifier&apos;s <i>content</i>.   This means that in order to terminate the detached modifier contents, you need two consecutive   <a href='#h3-line-endings'>line endings</a> (see <a href=''>paragraph break</a>).</p><p>   Below you will find some examples of nestable detached modifiers.</p><section id='section-h3-unordered-lists'>
+<p>   Nestable detached modifiers are a kind which may be repeated multiple times in order to produce a   <ins>nested</ins> object of the given type. The nesting levels are capped at 6 in the <a href='#'>tree-sitter</a> parser   but longer repetitions of the same modifier are allowed, falling back to the sixth nesting level.   Other parsers may choose to support higher (or infinite) nesting levels.</p><p>   Furthermore, in contrast to most other (standard) <a href='#h1-detached-modifiers'>detached modifiers</a>, this detached modifier   type has <i>no</i> title, and affects the following <code>paragraph</code> instead of only the next   <a href=''>paragraph segment</a>. Said paragraph then becomes the modifier&apos;s <i>content</i>.   This means that in order to terminate the detached modifier contents, you need an empty line (see   <a href='#def_paragraph-break'>paragraph break</a>).</p><p>   Below you will find some examples of nestable detached modifiers.</p><section id='section-h3-unordered-lists'>
 <h3 id='h3-unordered-lists'>Unordered Lists</h3>
 <pre>
     <code class="language-norg">
@@ -498,7 +486,7 @@
 </section>
 <section id='section-h2-grouping'>
 <h2 id='h2-grouping'>Grouping</h2>
-<p>   Both nestable and range-able detached modifiers have a unique quality - when several consecutive   modifiers <i>of the same type</i> are encountered (by consecutive we mean <ins>NOT</ins> separated via a   <a href=''>paragraph break</a>), they are treated as one whole <span id='object'>object</span>. This is crucial to understand as   it is required for the many types of <a href='#h2-carryover-tags'>carryover tags</a> to function.</p><section id='section-h3-examples'>
+<p>   Both nestable and range-able detached modifiers have a unique quality - when several consecutive   modifiers <i>of the same type</i> are encountered (by consecutive we mean <ins>NOT</ins> separated via a   <a href='#def_paragraph-break'>paragraph break</a>), they are treated as one whole <span id='object'>object</span>. This is crucial to understand as   it is required for the many types of <a href='#h2-carryover-tags'>carryover tags</a> to function.</p><section id='section-h3-examples'>
 <h3 id='h3-examples'>Examples</h3>
 <pre>
     <code class="language-norg">
@@ -527,7 +515,7 @@
     <code class="language-norg">
             - List item in one list
 
-    - This item is in another list, because we used a {# paragraph break} to split these items
+    - This item is in another list, because we used a {$ paragraph break} to split these items
 
     </code>
 </pre>
@@ -585,7 +573,7 @@
 </section>
 <section id='section-h2-detached-modifier-extensions'>
 <h2 id='h2-detached-modifier-extensions'>Detached Modifier Extensions</h2>
-<p>   <a href='#h1-detached-modifiers'>Detached modifiers</a> support extensions which must immediately follow the detached modifier   (or another extension). Note that <a href='#h1-detached-modifiers'>detached modifiers</a> must be succeeded with <a href=''>whitespace</a>,   therefore by &quot;immediately followed&quot; we mean <i>after</i> the whitespace character in the detached   modifier, e.g. <code>- (x) List item</code>(lang:norg).</p><p>   The syntax is as follows:</p><ul><li><p>An extension starts with a <code>(</code> char</p></li><li><p>Immediately a special character must follow. This character determines the type of extension.</p></li><li><p>Some extensions can support parameters - if this is the case, the special character must be     followed with <a href=''>whitespace</a> after which the parameters (a sequence of <a href='#h2-words'>words</a> and/or     newlines) ensue.     Not all extensions support parameters and for good reason. There is no need to attach extra     metadata to a done or undone state for instance. Several extensions should be delimited with     the <a href='#h1-contextual-delimiter'>contextual `|` delimiter</a>.</p></li><li><p>A <code>\|</code> character may be matched, which allows the user to chain many extensions together, e.g.     <code>(x|# A)</code>(lang:norg) (done with a priority of A).</p></li><li><p>Finally a <code>)</code> char closes the extension.</p></li></ul><p>   NOTE: The whole detached modifier extension <i>must</i> be followed by whitespace.</p><section id='section-h3-todo-status-extension'>
+<p>   <a href='#h1-detached-modifiers'>Detached modifiers</a> support extensions which must immediately follow the detached modifier   (or another extension). Note that <a href='#h1-detached-modifiers'>detached modifiers</a> must be succeeded with <a href=''>whitespace</a>,   therefore by &quot;immediately followed&quot; we mean <i>after</i> the whitespace character in the detached   modifier, e.g. <code>- (x) List item</code>(lang:norg).</p><p>   The syntax is as follows:</p><ul><li><p>An extension starts with a <code>(</code> char</p></li><li><p>Immediately a special character must follow. This character determines the type of extension.</p></li><li><p>Some extensions can support parameters - if this is the case, the special character must be     followed with <a href=''>whitespace</a> after which the parameters (a sequence of <a href='#h2-words'>words</a> and/or     newlines) ensue.     Not all extensions support parameters and for good reason. There is no need to attach extra     metadata to a done or undone state for instance. Several extensions should be delimited with     the <a href='#h1-contextual-delimiter'>contextual `|` delimiter</a>.</p></li><li><p>A <code>|</code> character may be matched, which allows the user to chain many extensions together, e.g.     <code>(x|# A)</code>(lang:norg) (done with a priority of A).</p></li><li><p>Finally a <code>)</code> char closes the extension.</p></li></ul><p>   NOTE: The whole detached modifier extension <i>must</i> be followed by whitespace.</p><section id='section-h3-todo-status-extension'>
 <h3 id='h3-todo-status-extension'>TODO Status Extension</h3>
 <p>    The TODO item extension assigns a task status to a certain modifier. You probably know this    concept from Org where unordered lists can become tasks. In Norg we take this concept to    the next level because any detached modifier can be assigned a task status. This can for    example be useful for the author of a document to keep track of the status of certain sections.</p><p>    The following characters are reserved for the TODO status extension:</p><ul><li><p><code> </code> undone (a literal space)</p></li><li><p><code>x</code> done</p></li><li><p><code>?</code> needs further input/clarification</p></li><li><p><code>!</code> urgent</p></li><li><p><code>+</code> recurring (with an optional <a href='#h4-timestamp-extension'>timestamp</a>)</p></li><li><p><code>-</code> in-progress/pending</p></li><li><p><code>=</code> on hold</p></li><li><p><code>_</code> put down/cancelled</p></li></ul><p>    Some examples include:</p><pre>
     <code class="language-norg">
@@ -657,38 +645,54 @@
 <h2 id='h2-detached-modifier-suffix'>Detached Modifier Suffix</h2>
 <p>   Since <a href=''>nestable detached modifiers</a> can only contain a <a href=''>paragraph</a> this can   cause severe limitations because the insertion of e.g. code blocks is not possible. To alleviate   this deficiency, the <a href='#h2-detached-modifier-suffix'>detached modifier suffix</a> exists, which temporarily increases the   current indentation level to allow complex nested items within.</p><p>   There are two variations of the indent segment, the <a href=''>slide</a> and the <a href=''>indent segment</a>.   <b>NOTE</b> After a detached modifier suffix is matched (either <code>:</code> or <code>::</code>) a <a href='#h3-line-endings'>line ending</a> must   follow <i>instantly</i>.</p><section id='section-h3-slide'>
 <h3 id='h3-slide'>Slide</h3>
-<p>    The slide, denoted with a single <code>:</code>, allows for a <b>single</b> <i>complex item</i> below:</p><pre>
+<p>    The slide, denoted with a single <code>:</code>, allows for a set of contiguous <i>complex items</i> below:</p><pre>
     <code class="language-norg">
             - :
+      This is some text.
       $ Term
-        This is the term&apos;s definition.
+        And this is the term&apos;s definition.
 
     </code>
 </pre>
 
 </section>
-<p>    This <span id='complex-item'>complex item</span> may be any <b>non-<a href='#h2-structural-detached-modifiers'>structural</a></b> detached    modifier, <a href='#h1-tags'>tag</a> or paragraph.</p><section id='section-h4-carryover-tags-in-slides'>
-<h4 id='h4-carryover-tags-in-slides'>Carryover Tags in Slides</h4>
-<p>     Due to greatly increased parser complexity in common LR/GLR parsers carryover tags beneath slides     are <i>disallowed</i>. Apply a carryover tag to the parent item to achieve the same behaviour     instead.</p><p>     Disallowed:</p><pre>
+<p>    These <span id='complex-item'>complex item</span>s may be any <b>non-<a href='#h2-structural-detached-modifiers'>structural</a></b> detached    modifier, <a href='#h1-tags'>tag</a> or paragraph.</p><p>    To terminate a slide, one of two conditions must be met:</p><ul><li><p>A <a href='#def_paragraph-break'>paragraph break</a> is encountered.</p></li><li><p>If the slide is part of a <a href='#h2-nestable-detached-modifiers'>nestable detached modifier</a>, when      an item of the same or lower level is encountered below.</p></li></ul><section id='section-h4-examples'>
+<h4 id='h4-examples'>Examples</h4>
+<section id='section-h5-terminating-via-a-paragraph-break'>
+<h5 id='h5-terminating-via-a-paragraph-break'>Terminating via a <a href='#def_paragraph-break'>Paragraph Break</a></h5>
+<pre>
     <code class="language-norg">
-             - :
-       #example-tag
-       $ Term
-         Definition
+              - :
+        This is part of the list item.
+        @code lua
+        print(&quot;This is also a part of the list item&quot;)
+
+        -- Despite the fact that there is a double newline dividing the `print` statement and this
+        -- comment, it is not a paragraph break, therefore it does not terminate the slide.
+        @end
+        $ Term
+        Here is a definition!
+
+      Now that there is a {$ paragraph break} between this paragraph and the previous item
+      this paragraph no longer belongs to the slide.
 
     </code>
 </pre>
 
 </section>
-<p>     Preferred alternative:</p><pre>
+<section id='section-h5-terminating-as-part-of-a-nestable-detached-modifier'>
+<h5 id='h5-terminating-as-part-of-a-nestable-detached-modifier'>Terminating as Part of a Nestable Detached Modifier</h5>
+<pre>
     <code class="language-norg">
-             +example-tag
-     - :
-       $ Term
-         Definition
+              -- :
+         Content of the slide.
+      - Because this item is a level lower than the item containing the slide above
+        the slide is terminated.
 
     </code>
 </pre>
+
+</section>
 
 </section>
 <section id='section-h3-indent-segment'>
@@ -723,6 +727,8 @@
 </pre>
 
 </section>
+
+</section>
 <section id='section-h1-tags'>
 <h1 id='h1-tags'>Tags</h1>
 <p>  The main differentiator from simple markup formats and more complex ones is the ability to define  data and extensions for the format. Norg allows for you to extend its syntax and define data  within clear boundaries - it does this using tags.</p><p>  <b>NOTE</b> Tags are the <i>only</i> way that extensions may be made to the format.</p><p>  There are 6 different tag types, each with their own way of changing the way text in Norg is  interpreted. Before we discuss those, however, we should discuss the syntax rules for tags:</p><ul><li><p>A tag is similar to a <a href=''>detached modifier</a> in the sense that it must begin    at the beginning of a line with optional <a href='#h3-whitespace'>whitespace</a> (but nothing else) preceding it.</p></li><li><p>After that you will encounter a special tag character (<code>=</code>, <code>|</code>, <code>@</code>, <code>#</code>, <code>+</code> and <code>.</code>), <i>none</i>    of which are attached modifiers (see <a href='#fn_disambiguating-tags-and-attached-modifiers'><sup id='fnref_disambiguating-tags-and-attached-modifiers'>disambiguating tags and attached modifiers</sup></a>). The    special tag character is then <i>immediately</i> followed by text, which becomes the <i>tag name</i>. Said    tag name can consist of any <a href=''>regular character</a> and/or <code>-</code> and <code>_</code>.</p></li><li><p>Tags can have their names delimited by a <code>.</code> in order to create a &quot;hierarchy&quot;, e.g.    <code>document.meta</code>.</p></li><li><p>    After a <a href='#h3-whitespace'>whitespace</a> character any number of parameters on the same line may follow:</p><pre>
@@ -731,15 +737,27 @@
 
     </code>
 </pre>
-<p>    By default parameters are space-separated. In order to create multi-word parameters, you may    escape the space character with a backslash (<code>\</code>).</p><pre>
-    <code class="language-norg">
-            #tag-name.subtag parameter1\ with\ spaces parameter2
+<p>    By default parameters are space-separated. In order to create multi-word parameters, you may    escape the space character with a backslash (<code>`).
+    |example
+    #tag-name.subtag parameter1 with spaces parameter2
+    |end
+    Parameters may consist of any character (apart from a {*** line endings}[line ending], of course).
+    ---
 
-    </code>
-</pre>
-<p>    Parameters may consist of any character (apart from a <a href='#h3-line-endings'>line ending</a>, of course).</p></li></ul><p>  Norg provides several inbuilt tag names that are reserved, but their details are not explained  in this specification - this document strictly covers syntax - see the <a href='#'>semantics document</a> for a  list of the built-in tags. There is no restriction in regard to the length of a tag name, nor are  there any disallowed names that a parser should omit (unless they don&apos;t adhere to the above rules  regarding tag names).</p><section id='section-h2-ranged-tags'>
-<h2 id='h2-ranged-tags'>Ranged Tags</h2>
-<p>   Ranged tags are a way to express custom information within a range.   They begin with the traditional tag declaration and are ended with an <code>end</code> statement.</p><p>   The <code>end</code> statement has a simple rule set:</p><ul><li><p>Must be at the start of a line, may be preceded by any <a href='#h3-whitespace'>whitespace</a> (but nothing else)</p></li><li><p>Must use the same prefix as its parent (in the case of standard ranged tags: <code>|</code>; in the case     of verbatim tags: <code>@</code>; for macro tags: <code>=</code>)</p></li><li><p>Must <b>immediately</b> be succeeded by a <a href='#h3-line-endings'>line ending</a>.</p></li></ul><section id='section-h3-macro-tags'>
+  ^ Disambiguating tags and attached modifiers
+    If tag characters were attached modifier openers there would be no way to know whether the
+    character is an attached modifier opener or a tag opener until the whole line has been parsed;
+    in other words, such a scenario would entail a difficult to resolve ambiguity.
+
+  Norg provides several inbuilt tag names that are reserved, but their details are not explained
+  in this specification - this document strictly covers syntax - see the [semantics document] for a
+  list of the built-in tags. There is no restriction in regard to the length of a tag name, nor are
+  there any disallowed names that a parser should omit (unless they don&apos;t adhere to the above rules
+  regarding tag names).
+
+** Ranged Tags
+   Ranged tags are a way to express custom information within a range.
+   They begin with the traditional tag declaration and are ended with an `end</code> statement.</p><p>   The <code>end</code> statement has a simple rule set:</p></li><li><p>Must be at the start of a line, may be preceded by any <a href='#h3-whitespace'>whitespace</a> (but nothing else)</p></li><li><p>Must use the same prefix as its parent (in the case of standard ranged tags: <code>|</code>; in the case     of verbatim tags: <code>@</code>; for macro tags: <code>=</code>)</p></li><li><p>Must <b>immediately</b> be succeeded by a <a href='#h3-line-endings'>line ending</a>.</p></li></ul><section id='section-h3-macro-tags'>
 <h3 id='h3-macro-tags'>Macro Tags</h3>
 <p>    Macro tags (also known as <i>macro definitions</i>) are a tag type designed to declare and define    macros. Macros are templates that can be executed with parameters in order to place some    structured text into the document.</p><p>    The content of the macro tag is <i>any</i> Norg markup - this includes <a href='#h2-structural-detached-modifiers'>structural detached
     modifiers</a> and nested <a href='#h1-tags'>tags</a>. The macro tag is closed with the <code>=end</code> statement.</p><p>    Under the hood, all other <a href='#h1-tags'>tag</a> types are implemented as macros with special parameters    and contents.</p><p>    The following is an example of a macro:</p><pre>
@@ -770,8 +788,6 @@
 
     </code>
 </pre>
-
-</section>
 <p>    Which, when reformatted, would look (and render) like so:</p><pre>
     <code class="language-norg">
             This is a recipe for a cake (see {https://wikipedia.com/some-cool-cake-recipe}) - let&apos;s begin
@@ -1010,7 +1026,7 @@
   +name attached modifier range
   - ::
     {* Attached modifiers} can only span at maximum a single {# paragraphs}[paragraph], i.e. they get
-    terminated as soon as they encounter a {# paragraph break}.
+    terminated as soon as they encounter a {$ paragraph break}.
 
     This means that this:
     |example
@@ -1018,7 +1034,7 @@
 
     text*
     |end
-    will *not* result in any bold text, as it&apos;s divided by a {# paragraph break}.
+    will *not* result in any bold text, as it&apos;s divided by a {$ paragraph break}.
     However, this:
     |example
     *this
@@ -1131,12 +1147,13 @@
 </pre>
 
 </section>
-<p>   The use of pipes is special because the position of the pipe (i.e. whether it&apos;s before or after the   attached modifier) can unambiguously tell us whether that symbol is an opening attached modifier   or a closing one. It&apos;s thanks to this that whitespace is freely allowed within its content.</p><p>   Aside from the details described above, free-form attached modifiers have the following properties:</p><ul><li><p>Backslashes (<code>\</code>) are treated as verbatim and do not mean an <a href='#h3-escaping'>escape sequence</a>     (see <a href='#h1-precedence'>precedence</a>).</p></li><li><p>Despite being called &quot;free-form&quot; they can still only span a single paragraph (see <a href=''>attached
-     modifier range</a>).</p></li></ul>
-</section>
-<section id='section-h2-link-modifier'>
-<h2 id='h2-link-modifier'>Link Modifier</h2>
-<p>   The link modifier, <code>:</code>, is a special modifier type - it puts a twist on the original attached   modifier rules - in fact, it&apos;s the polar opposite.</p><p>   As described in the <a href='#h1-attached-modifiers'>attached modifiers</a> section, attached modifier types may not exist   in between words like so:</p><pre>
+<p>   The use of pipes is special because the position of the pipe (i.e. whether it&apos;s before or after the   attached modifier) can unambiguously tell us whether that symbol is an opening attached modifier   or a closing one. It&apos;s thanks to this that whitespace is freely allowed within its content.</p><p>   Aside from the details described above, free-form attached modifiers have the following properties:</p><ul><li><p>Backslashes (<code>`) are treated as verbatim and do not mean an {*** escaping}[escape sequence]
+     (see {* precedence}).
+   - Despite being called &quot;free-form&quot; they can still only span a single paragraph (see {# attached
+     modifier range}).
+
+** Link Modifier
+   The link modifier, `:</code>, is a special modifier type - it puts a twist on the original attached   modifier rules - in fact, it&apos;s the polar opposite.</p></li></ul><p>   As described in the <a href='#h1-attached-modifiers'>attached modifiers</a> section, attached modifier types may not exist   in between words like so:</p><pre>
     <code class="language-norg">
            abso/freaking/lutely!
 
@@ -1502,7 +1519,9 @@
 </section>
 <section id='section-h1-precedence'>
 <h1 id='h1-precedence'>Precedence</h1>
-<p>  Precedence in Norg is rather simple and intuitive.</p><ul><li><p>All non-inline elements have direct precedence over all inline elements.</p></li><li><p>Inline elements with a deterministic start and end have greater priority than those that don&apos;t.</p></li><li><p>Verbatim elements have greater priority than non-verbatim elements.</p></li></ul><p>  Here&apos;s the full list ordered by decreasing precedence:</p><ol><li><p><a href='#h1-tags'>Tags</a> (<code>#infecting</code>, <code>+carryover</code>, <code>.infirm</code>, <code>\|standard</code>, <code>@verbatim</code> and <code>=macro</code>)</p></li><li><p><a href=''>Structural detached modifiers</a></p></li><li><p><a href=''>Nestable detached modifiers</a> and <a href=''>range-able detached modifiers</a> (there is no such case    where these could overlap)</p></li><li><p><a href=''>Detached modifier extensions</a></p></li><li><p><a href='#h1-linkables'>Linkables</a> (<code>{}</code>, <code>[]</code>, <code>&lt;></code>)</p></li><li><p>Verbatim <a href=''>free-form attached modifiers</a> (<code>\|</code><code>|</code>, <code>\|</code><code>|</code>)</p></li><li><p><a href='#h3-escaping'>The escape character</a> (<code>\</code>)</p></li><li><p>Verbatim <a href=''>attached modifiers</a></p></li><li><p>Standard (non-verbatim) <a href=''>free-form attached modifiers</a> (<code>**</code>, <code>//</code> etc.)</p></li><li><p>Standard (non-verbatim) <a href=''>attached modifiers</a></p></li></ol><p>  Should any extra precedence problems arise (let us know if you find any) they can be disambiguated  through a simple left-to-right precedence approach.</p><p>  Note that although e.g. linkables are above standard attached modifiers, this does not mean that  standard attached modifiers cannot <i>contain</i> linkables, but in case there is an overlap the  linkable will have higher precedence.</p><p>  For example, this is valid:</p><pre>
+<p>  Precedence in Norg is rather simple and intuitive.</p><ul><li><p>All non-inline elements have direct precedence over all inline elements.</p></li><li><p>Inline elements with a deterministic start and end have greater priority than those that don&apos;t.</p></li><li><p>Verbatim elements have greater priority than non-verbatim elements.</p></li></ul><p>  Here&apos;s the full list ordered by decreasing precedence:</p><ol><li><p><a href='#h1-tags'>Tags</a> (<code>#infecting</code>, <code>+carryover</code>, <code>.infirm</code>, <code>|standard</code>, <code>@verbatim</code> and <code>=macro</code>)</p></li><li><p><a href=''>Structural detached modifiers</a></p></li><li><p><a href=''>Nestable detached modifiers</a> and <a href=''>range-able detached modifiers</a> (there is no such case    where these could overlap)</p></li><li><p><a href=''>Detached modifier extensions</a></p></li><li><p><a href='#h1-linkables'>Linkables</a> (<code>{}</code>, <code>[]</code>, <code>&lt;></code>)</p></li><li><p>Verbatim <a href=''>free-form attached modifiers</a> (<code>|</code><code>|</code>, <code>|</code><code>|</code>)</p></li><li><p><a href='#h3-escaping'>The escape character</a> (<code>`)
+  ~ Verbatim {# attached modifiers}
+  ~ Standard (non-verbatim) {# free-form attached modifiers} (</code>|<b><b><code>, `|//|</code> etc.)</b></b></p></li><li><p>Standard (non-verbatim) <a href=''>attached modifiers</a></p></li></ol><p>  Should any extra precedence problems arise (let us know if you find any) they can be disambiguated  through a simple left-to-right precedence approach.</p><p>  Note that although e.g. linkables are above standard attached modifiers, this does not mean that  standard attached modifiers cannot <i>contain</i> linkables, but in case there is an overlap the  linkable will have higher precedence.</p><p>  For example, this is valid:</p><pre>
     <code class="language-norg">
           *{# i am a bold link!}*
 
@@ -1520,7 +1539,7 @@
 <h1 id='h1-layers'>Layers</h1>
 <p>  Norg is built up of layers, or in other words a set of features that a parser/tool can support  depending on how much of the specification they&apos;d like to deal with.</p><p>  It&apos;s recommended to stick to these layers when implementing Norg in your own application (as it&apos;s  easy to tell end users that an application supports e.g. &quot;layer 2&quot; of the Norg specification), but  of course these can&apos;t apply to every possible use case. In such case you can use a <i>custom layer</i>  and pick and choose what you want to support. Just make sure to let your users know which features  you&apos;ve implemented, so they don&apos;t get confused!</p><section id='section-h2-layer-1'>
 <h2 id='h2-layer-1'>Layer 1</h2>
-<p>   The first layers contains a very low level implementation of Norg&apos;s markup for use in e.g. a   messaging application. This includes:</p><ul><li><p><a href='#h1-attached-modifiers'>Attached Modifiers</a> (excluding variables, inline mathematics and the null detached modifier)</p></li><li><p><a href='#h2-links'>Links</a> (only the <a href='#h3-url'>URL</a> type)</p></li><li><p>The <a href='#h3-escaping'>escape sequence char (<code>\\</code>)</a></p></li></ul>
+<p>   The first layers contains a very low level implementation of Norg&apos;s markup for use in e.g. a   messaging application. This includes:</p><ul><li><p><a href='#h1-attached-modifiers'>Attached Modifiers</a> (excluding variables, inline mathematics and the null detached modifier)</p></li><li><p><a href='#h2-links'>Links</a> (only the <a href='#h3-url'>URL</a> type)</p></li><li><p>The <a href='#h3-escaping'>escape sequence char (<code>\</code>)</a></p></li></ul>
 </section>
 <section id='section-h2-layer-2'>
 <h2 id='h2-layer-2'>Layer 2</h2>
@@ -1532,7 +1551,7 @@
 </section>
 <section id='section-h2-layer-4'>
 <h2 id='h2-layer-4'>Layer 4</h2>
-<p>   The fourth layer supports 80% of the most commonly used features for writing high level and   typeset Norg documents.</p><ul><li><p>Support for <a href='#h4-extendable-links'>extendable links (`=`)</a> and <a href='#h3-scoping'>scoping</a></p></li><li><p><a href='#h3-standard-ranged-tags'>Standard Ranged Tags</a> (<code>\|comment</code>, etc.)</p></li><li><p><a href='#h3-table-cells'>Table cells</a></p></li><li><p><a href='#h2-free-form-attached-modifiers'>Free-form Attached Modifiers</a></p></li><li><p><a href='#h1-intersecting-modifiers'>Intersecting modifiers</a></p></li><li><p><a href='#h2-attached-modifier-extensions'>Attached Modifier Extensions</a></p></li><li><p>The inline mathematics (<code>$$</code>) and variable (<code>&amp;&amp;</code>) <a href='#h1-attached-modifiers'>attached modifiers</a></p></li></ul>
+<p>   The fourth layer supports 80% of the most commonly used features for writing high level and   typeset Norg documents.</p><ul><li><p>Support for <a href='#h4-extendable-links'>extendable links (`=`)</a> and <a href='#h3-scoping'>scoping</a></p></li><li><p><a href='#h3-standard-ranged-tags'>Standard Ranged Tags</a> (<code>|comment</code>, etc.)</p></li><li><p><a href='#h3-table-cells'>Table cells</a></p></li><li><p><a href='#h2-free-form-attached-modifiers'>Free-form Attached Modifiers</a></p></li><li><p><a href='#h1-intersecting-modifiers'>Intersecting modifiers</a></p></li><li><p><a href='#h2-attached-modifier-extensions'>Attached Modifier Extensions</a></p></li><li><p>The inline mathematics (<code>$$</code>) and variable (<code>&amp;&amp;</code>) <a href='#h1-attached-modifiers'>attached modifiers</a></p></li></ul>
 </section>
 <section id='section-h2-layer-5'>
 <h2 id='h2-layer-5'>Layer 5</h2>
@@ -1555,13 +1574,9 @@
         <p>     It should be mentioned that a parser of the Norg format is not required to perform any     timestamp analysis further than detecting what set of characters contain a timestamp.     The actual interpretation of its internal fields and the interpretation of a <a href=''>range</a> are the     responsibility of the <b>semantic analyzer</b> (see also the <a href='1.0-semantics'>semantics document</a>).</p>
         <a role="doc-backlink" href='#fnref_note-to-parser-developers'>↩︎</a>
     </li>
-    <li id='fn_disambiguating-tags-and-attached-modifiers'>
-        <p>    If tag characters were attached modifier openers there would be no way to know whether the    character is an attached modifier opener or a tag opener until the whole line has been parsed;    in other words, such a scenario would entail a difficult to resolve ambiguity.</p>
-        <a role="doc-backlink" href='#fnref_disambiguating-tags-and-attached-modifiers'>↩︎</a>
-    </li>
 
     </ol>
 </section>
 
 </div>
-</article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../internals/">How parsing works »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Sunday 5 March 2023 10:55">Sunday 5 March 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../internals/">How parsing works »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Sunday 5 March 2023 13:56">Sunday 5 March 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
