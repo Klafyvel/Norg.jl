@@ -38,7 +38,7 @@ heading_levels = 2:6
      """
         s *= s_j
     end
-    s *= """===
+    s *= """==
 
 And here is some more text that has broken out of the matrix.
 """
@@ -81,7 +81,7 @@ end
       it should be part of the first-level
       heading now
       *** This is now a third-level heading
-          ---
+          --
       And it has reversed too
       *** Another third-level heading
       ===
@@ -134,7 +134,7 @@ end
 
 @testset "Horizontal line" begin
     s = """This is some text.
-___
+__
 Separated by a horizontal line."""
 
     ast = norg(s)
