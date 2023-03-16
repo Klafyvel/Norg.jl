@@ -5,18 +5,21 @@ version = "0.2.0"
 
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+MallocDeques = "7320cb1d-dff1-46c7-b20b-20d123a174f7"
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 SnoopPrecompile = "66db9d55-30c0-4569-8b51-7e840670fc0c"
+StaticTools = "86c06d3c-3f03-46de-9781-57580aa96d0a"
 TimeZones = "f269a46b-ccf7-5d73-abea-4c690281aa53"
 
 [compat]
 AbstractTrees = "0.4"
+HypertextLiteral = "0.9"
 OrderedCollections = "1"
 SnoopPrecompile = "1"
-HypertextLiteral = "0.9"
 TimeZones = "1"
 julia = "1"
 

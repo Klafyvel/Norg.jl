@@ -284,25 +284,36 @@ kind(::Nothing) = K"None"
 # Ensemble predicates #
 #######################
 
-# AST
-is_leaf(k::Kind) = K"BEGIN_AST_LEAF" < k < K"END_AST_LEAF"
-is_matched_inline(k::Kind) = K"BEGIN_MATCHED_INLINE" < k < K"END_MATCHED_INLINE"
-is_attached_modifier(k::Kind) = K"BEGIN_ATTACHED_MODIFIER" < k < K"END_ATTACHED_MODIFIER"
-is_free_form_attached_modifier(k::Kind) = K"BEGIN_FREE_FORM_ATTACHED_MODIFIER" < k < K"END_FREE_FORM_ATTACHED_MODIFIER"
-is_link_location(k::Kind) = K"BEGIN_LINK_LOCATION" < k < K"END_LINK_LOCATION"
-is_detached_modifier(k::Kind) = K"BEGIN_DETACHED_MODIFIER" < k < K"END_DETACHED_MODIFIER"
-is_detached_modifier_extension(k::Kind) = K"BEGIN_DETACHED_MODIFIER_EXTENSIONS" < k < K"END_DETACHED_MODIFIER_EXTENSIONS"
-is_delimiting_modifier(k::Kind) = K"BEGIN_DELIMITING_MODIFIER" < k < K"END_DELIMITING_MODIFIER"
-is_nestable(k::Kind) = K"BEGIN_NESTABLE" < k < K"END_NESTABLE"
-is_heading(k::Kind) = K"BEGIN_HEADING" < k < K"END_HEADING"
-is_unordered_list(k::Kind) = K"BEGIN_UNORDERED_LIST" < k < K"END_UNORDERED_LIST"
-is_ordered_list(k::Kind) = K"BEGIN_ORDERED_LIST" < k < K"END_ORDERED_LIST"
-is_quote(k::Kind) = K"BEGIN_QUOTE" < k < K"END_QUOTE"
-is_tag(k::Kind) = K"BEGIN_TAG" < k < K"END_TAG"
-is_ranged_tag(k::Kind) = K"BEGIN_RANGED_TAG" < k < K"END_RANGED_TAG"
-is_carryover_tag(k::Kind) = K"BEGIN_CARRYOVER_TAG" < k < K"END_CARRYOVER_TAG"
+# Tokens
 
-export @K_str, @KSet_str, Kind, kind, is_leaf, is_matched_inline
+is_whitespace(t) = K"BEGIN_WHITESPACE" < kind(t) < K"END_WHITESPACE"
+is_punctuation(t) = K"BEGIN_PUNCTUATION" < kind(t) < K"END_PUNCTUATION"
+is_word(t) = kind(t) == K"Word"
+is_line_ending(t) = kind(t) == K"LineEnding"
+is_sof(t) = kind(t) == K"StartOfFile"
+is_eof(t) = kind(t) == K"EndOfFile"
+
+# AST
+is_leaf(k) = K"BEGIN_AST_LEAF" < kind(k) < K"END_AST_LEAF"
+is_matched_inline(k) = K"BEGIN_MATCHED_INLINE" < kind(k) < K"END_MATCHED_INLINE"
+is_attached_modifier(k) = K"BEGIN_ATTACHED_MODIFIER" < kind(k) < K"END_ATTACHED_MODIFIER"
+is_free_form_attached_modifier(k) = K"BEGIN_FREE_FORM_ATTACHED_MODIFIER" < kind(k) < K"END_FREE_FORM_ATTACHED_MODIFIER"
+is_link_location(k) = K"BEGIN_LINK_LOCATION" < kind(k) < K"END_LINK_LOCATION"
+is_detached_modifier(k) = K"BEGIN_DETACHED_MODIFIER" < kind(k) < K"END_DETACHED_MODIFIER"
+is_detached_modifier_extension(k) = K"BEGIN_DETACHED_MODIFIER_EXTENSIONS" < kind(k) < K"END_DETACHED_MODIFIER_EXTENSIONS"
+is_delimiting_modifier(k) = K"BEGIN_DELIMITING_MODIFIER" < kind(k) < K"END_DELIMITING_MODIFIER"
+is_nestable(k) = K"BEGIN_NESTABLE" < kind(k) < K"END_NESTABLE"
+is_heading(k) = K"BEGIN_HEADING" < kind(k) < K"END_HEADING"
+is_unordered_list(k) = K"BEGIN_UNORDERED_LIST" < kind(k) < K"END_UNORDERED_LIST"
+is_ordered_list(k) = K"BEGIN_ORDERED_LIST" < kind(k) < K"END_ORDERED_LIST"
+is_quote(k) = K"BEGIN_QUOTE" < kind(k) < K"END_QUOTE"
+is_tag(k) = K"BEGIN_TAG" < kind(k) < K"END_TAG"
+is_ranged_tag(k) = K"BEGIN_RANGED_TAG" < kind(k) < K"END_RANGED_TAG"
+is_carryover_tag(k) = K"BEGIN_CARRYOVER_TAG" < kind(k) < K"END_CARRYOVER_TAG"
+
+export @K_str, @KSet_str, Kind, kind
+export is_whitespace, is_punctuation, is_word, is_line_ending, is_sof, is_eof
+export is_leaf, is_matched_inline
 export is_attached_modifier, is_link_location, is_detached_modifier
 export is_delimiting_modifier, is_nestable, is_heading, is_unordered_list
 export is_ordered_list, is_quote, is_detached_modifier_extension

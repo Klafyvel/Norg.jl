@@ -112,7 +112,7 @@ end
 
 using SnoopPrecompile
 
-@precompile_setup begin
+#= @precompile_setup begin
     # Putting some things in `setup` can reduce the size of the
     # precompile file and potentially make loading faster.
     # The following string should call all method specializations.
@@ -183,7 +183,7 @@ using SnoopPrecompile
         json_spec = norg(JSONTarget(), s)
     end
 end
-
+=#
 export HTMLTarget, JSONTarget
 export @norg_str, norg
 

@@ -64,7 +64,8 @@ function scan(list::AbstractArray, input)
 end
 
 function scan(set::Set{Char}, input)
-    if first(input) ∈ set
+    c,_ = iterate(input)
+    if c ∈ set
         ScanResult(true)
     else
         ScanResult(false)
@@ -75,7 +76,7 @@ include("assets/norg_whitespace.jl")
 function scan(::Whitespace, input)
     trial_stop = 0
     for i in eachindex(input)
-        if input[i] ∈ NORG_WHITESPACES
+        if iterate(input, i)[1] ∈ NORG_WHITESPACES
             trial_stop = i
         else
             break
@@ -87,10 +88,9 @@ end
 function scan(::Word, input)
     trial_stop = 0
     for i in eachindex(input)
-        teststr = SubString(input, i)
-        test_whitespace = scan(Whitespace(), teststr)
-        test_endline = scan(LineEnding(), teststr)
-        test_punctuation = scan(Punctuation(), teststr)
+        test_whitespace = scan(Whitespace(), input)
+        test_endline = scan(LineEnding(), input)
+        test_punctuation = scan(Punctuation(), input)
         if !success(test_whitespace) && !success(test_endline) && !success(test_punctuation)
             trial_stop = i
         else
@@ -148,7 +148,7 @@ function scan(input; line=0, charnum=0)
     if !success(res)
         error("No suitable token found for input at line $line, char $charnum")
     end
-    Token(tokentype, line, charnum, input[1:res.length])
+    Token(tokentype, line, charnum, view(input, 1:res.length))
 end
 
 export scan

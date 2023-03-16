@@ -33,26 +33,34 @@ a `value`.
 
 See also: [`Tokens.TokenPosition`](@ref)
 """
-struct Token
+struct Token{T}
     kind::Kind
     position::TokenPosition
-    value::SubString{String}
+    value::T
+    Token{T}(kind, line, char, value) where {T} = new(kind, TokenPosition(line, char), value)
 end
+
+"""
+    viewtype(s)
+
+Returns the type returned by `Base.view` for the given string. Overload this
+to make `Token`s based on your custom string type type-stable.
+"""
+viewtype(::T) where {T<:AbstractString} = SubString{T}
 
 """
      Token(kind, line, char, value)
 
 Create a `Token` of kind `kind` with value `value` at `line` and char number `char`.
 """
-function Token(kind, line, char, value)
-    Token(kind, TokenPosition(line, char), value)
-end
+Token(kind, line, char, value::T) where {T} = Token{T}(kind, line, char, value)
+
 function Base.show(io::IO, token::Token)
     print(io,
     "$(kind(token)): $(repr(value(token))), line $(line(token)) col. $(char(token))")
 end
-SOFToken() = Token(K"StartOfFile", 0, 0, SubString(""))
-EOFToken() = Token(K"EndOfFile", 0, 0, SubString(""))
+SOFToken(input) = Token(K"StartOfFile", 0, 0, view(input, firstindex(input):lastindex(input)))
+EOFToken(input) = Token(K"EndOfFile", 0, 0, view(input, firstindex(input):lastindex(input)))
 line(t::Token) = line(t.position)
 char(t::Token) = char(t.position)
 value(t::Token) = t.value
@@ -61,13 +69,7 @@ Base.length(t::Token) = length(value(t))::Int
 # Kind interface
 const ATTACHED_DELIMITERS = KSet"* / _ - ! ^ , ` $ & %"
 Kinds.kind(t::Token) = t.kind
-is_whitespace(t::Token) = K"BEGIN_WHITESPACE" < kind(t) < K"END_WHITESPACE"
-is_punctuation(t::Token) = K"BEGIN_PUNCTUATION" < kind(t) < K"END_PUNCTUATION"
-is_word(t::Token) = kind(t) == K"Word"
-is_line_ending(t::Token) = kind(t) == K"LineEnding"
-is_sof(t::Token) = kind(t) == K"StartOfFile"
-is_eof(t::Token) = kind(t) == K"EndOfFile"
 
-export line, char, value, is_whitespace, is_punctuation, is_word
-export is_line_ending, Token, is_sof, is_eof, SOFToken, EOFToken, ATTACHED_DELIMITERS
+export line, char, value
+export Token, SOFToken, EOFToken, ATTACHED_DELIMITERS
 end
