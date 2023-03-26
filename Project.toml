@@ -1,7 +1,7 @@
 name = "Norg"
 uuid = "64228516-68de-4e23-8112-6940bc1970d1"
 authors = ["Hugo Levy-Falk <hugo@klafyvel.me> and contributors"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
