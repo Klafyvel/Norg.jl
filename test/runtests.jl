@@ -23,4 +23,7 @@ import Norg: @K_str, kind, value
         include("codegen_tests/html.jl") 
         include("codegen_tests/json.jl")
     end
+    @testset "code analysis" begin
+        include("code_analysis_tests/test_jet.jl")
+    end
 end
