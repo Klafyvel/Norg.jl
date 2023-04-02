@@ -81,7 +81,6 @@ function parse_norg(tokens::Vector{Token})
     children = AST.Node[]
     while !is_eof(tokens[i])
         child = parse_norg_toplevel_one_step([K"NorgDocument"], tokens, i)
-        @debug "toplevel" i child tokens[i]
         i = AST.stop(child)
         if !is_eof(tokens[i])
             i = nextind(tokens, i)
@@ -102,7 +101,6 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens::Vector{Token}, i
     start = i
     while !is_eof(tokens[i])
         m = match_norg([K"Paragraph", parents...], tokens, i)
-        @debug "paragraph loop" m tokens[i]
         if isclosing(m)
             break
         elseif iscontinue(m)
@@ -207,10 +205,9 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens::Vector{To
     children = AST.Node[]
     m = Match.MatchClosing(K"ParagraphSegment")
     parents = [K"ParagraphSegment", parents...]
-    siblings = []
+    siblings = AST.Node[]
     while !is_eof(tokens[i])
         m = match_norg(parents, tokens, i)
-        @debug "ps loop" m
         if isclosing(m)
             break
         elseif iscontinue(m)

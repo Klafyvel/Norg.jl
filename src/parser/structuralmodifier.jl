@@ -12,7 +12,7 @@ function parse_norg(::Heading, parents::Vector{Kind}, tokens::Vector{Token}, i)
         token = tokens[i]
         heading_level += 1
     end
-    heading_kind = AST.heading_level(heading_level)
+    heading_kind = AST.heading_kind(heading_level)
     if is_whitespace(token)
         i = nextind(tokens, i)
         m = match_norg([heading_kind, parents...], tokens, i)
@@ -30,7 +30,6 @@ function parse_norg(::Heading, parents::Vector{Kind}, tokens::Vector{Token}, i)
         i = nextind(tokens, AST.stop(title_segment))
         while !is_eof(tokens[i])
             m = match_norg([heading_kind, parents...], tokens, i)
-            @debug "heading loop" m tokens[i]
             if isclosing(m)
                 break
             end

@@ -15,7 +15,7 @@ function parse_norg(::DetachedModifierExtension, parents::Vector{Kind}, tokens::
     elseif extension == K"StartDateExtension"
         parse_norg(StartDateExtension(), parents, tokens, i)
     else
-        error("Unhandled detached modifier extension. Token $token.")
+        error("Unhandled detached modifier extension. Token $(tokens[i]).")
     end
 end
 function parse_norg(::TodoExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)

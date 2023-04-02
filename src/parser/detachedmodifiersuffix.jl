@@ -3,23 +3,22 @@ function parse_norg(::Slide, parents::Vector{Kind}, tokens::Vector{Token}, i)
     i = consume_until(K"LineEnding", tokens, i)    
     p = [K"Slide", parents...]
     m = match_norg(p, tokens, i)
-    @debug "ok fréro j'ai ça." tokens[i] m
-    child = if isfound(m)
+    children = if isfound(m)
         if matched(m) == K"Definition"
-            parse_norg(Definition(), p, tokens, i)
+            [parse_norg(Definition(), p, tokens, i)]
         elseif matched(m) == K"Footnote"
-            parse_norg(Footnote(), p, tokens, i)
+            [parse_norg(Footnote(), p, tokens, i)]
         elseif matched(m) == K"Verbatim"
-            parse_norg(Verbatim(), p, tokens, i)
+            [parse_norg(Verbatim(), p, tokens, i)]
         elseif matched(m) == K"StandardRangedTag"
-            parse_norg(StandardRangedTag(), p, tokens, i)
+            [parse_norg(StandardRangedTag(), p, tokens, i)]
         else
-            parse_norg(Paragraph(), p, tokens, i)
+            [parse_norg(Paragraph(), p, tokens, i)]
         end
     else
-        parse_norg(parents, tokens, i)
+        AST.Node[]
     end
-    AST.Node(K"Slide", [child], start, AST.stop(child))
+    AST.Node(K"Slide", children, start, AST.stop(last(children)))
 end
 
 function parse_norg(::IndentSegment, parents::Vector{Kind}, tokens::Vector{Token}, i)
@@ -31,7 +30,6 @@ function parse_norg(::IndentSegment, parents::Vector{Kind}, tokens::Vector{Token
 
     while !is_eof(tokens[i])
         m = match_norg(p, tokens, i)
-        @debug "indent segment loop" m tokens[i]
         if isclosing(m)
             break
         elseif iscontinue(m)

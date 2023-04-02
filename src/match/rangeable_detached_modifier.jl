@@ -5,7 +5,6 @@ rangeable_from_strategy(::Footnote) = K"Footnote"
 
 function match_norg(t::T, parents, tokens, i) where {T<:RangeableDetachedModifier}
     token = tokens[i]
-    @debug "okay, matching rangeable" token
     if kind(token) != rangeable_from_token(t)
         return MatchNotFound()
     end
@@ -14,7 +13,6 @@ function match_norg(t::T, parents, tokens, i) where {T<:RangeableDetachedModifie
     next_i = nextind(tokens, i)
     next_token = tokens[next_i]
     if kind(token) == K"Whitespace"
-        @debug "haha, whitespace" parents
         if first(parents) == K"Slide"
             MatchFound(rangeable_from_strategy(t))
         elseif (K"NestableItem" ∈ parents || AST.is_nestable(first(parents))) && K"Slide" ∉ parents
@@ -41,7 +39,6 @@ function match_norg(t::T, parents, tokens, i) where {T<:RangeableDetachedModifie
             end
         end
     elseif kind(token) == rangeable_from_token(t) && kind(next_token) == K"LineEnding" && rangeable_from_strategy(t) ∈ parents
-        @debug "match ending ranged"
         nextline_i = consume_until(K"LineEnding", tokens, i)
         token = tokens[nextline_i]
         nextline_start_i = if kind(token) == K"Whitespace"
@@ -50,20 +47,14 @@ function match_norg(t::T, parents, tokens, i) where {T<:RangeableDetachedModifie
             nextline_i
         end
         token = tokens[nextline_start_i]
-        @debug "next line starts with" token
         if kind(token) == rangeable_from_token(t)
-            @debug "start matching the next line"
             m = match_norg(t, parents, tokens, nextline_start_i)
-            @debug "stop matching the next line"
-            @debug "it matches a" m first(parents) rangeable_from_strategy(t)
             if isfound(m) && matched(m)==rangeable_from_strategy(t) 
-                @debug "Let's close the current RangeableItem"
                 MatchClosing(first(parents), true)
             else
                 MatchClosing(first(parents), rangeable_from_strategy(t)==first(parents))
             end
         else
-            @debug "so we close first parent" first(parents) rangeable_from_strategy(t)
             MatchClosing(first(parents), rangeable_from_strategy(t)==first(parents))
         end
     else

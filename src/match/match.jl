@@ -90,7 +90,6 @@ function force_word_context(parents, tokens, i)
 end
 
 function match_norg(parents, tokens, i)
-    @debug "Matching..." tokens[i] parents
     token = tokens[i]
     m = if force_word_context(parents, tokens, i)
         match_norg(Word(), parents, tokens, i)
@@ -201,7 +200,6 @@ function match_norg(::Whitespace, parents, tokens, i)
         elseif kind(next_token) == K"$"
             match_norg(Definition(), parents, tokens, nextind(tokens, i))
         elseif kind(next_token) == K"^"
-            @debug "haha footnote"
             match_norg(Footnote(), parents, tokens, nextind(tokens, i))
         else
             MatchNotFound()
@@ -216,7 +214,6 @@ function match_norg(::LineEnding, parents, tokens, i)
     if first(parents) == K"NorgDocument" 
         MatchContinue()
     elseif is_line_ending(prev_token)
-        @debug "lineEnding" tokens[i] prev_token parents
         nestable_parents = filter(is_nestable, parents[2:end])
         attached_parents = filter(is_attached_modifier, parents)
         if first(parents) ∈ KSet"IndentSegment StandardRangedTagBody"
@@ -294,19 +291,15 @@ end
 function match_norg(::Minus, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
-        possible_node = [
-        WeakDelimiter(),
-        UnorderedList(),
-        Strikethrough(),
-        ]
-        m = MatchNotFound()
-        for node in possible_node
-            m = match_norg(node, parents, tokens, i)
-            if !isnotfound(m)
-                break
-            end
+        m = match_norg(WeakDelimiter(), parents, tokens, i)
+        if isfound(m)
+            return m
         end
-        m
+        m = match_norg(UnorderedList(), parents, tokens, i)
+        if isfound(m)
+            return m
+        end
+        match_norg(Strikethrough(), parents, tokens, i)
     else
         match_norg(Strikethrough(), parents, tokens, i)
     end
@@ -315,7 +308,6 @@ end
 match_norg(::ExclamationMark, parents, tokens, i) = match_norg(Spoiler(), parents, tokens, i)
 
 function match_norg(::Circumflex, parents, tokens, i)
-    @debug "bonjour c'est circumflex" tokens[i]
     prev_token = tokens[prevind(tokens, i)]
     m = if is_line_ending(prev_token) || is_sof(prev_token)
         match_norg(Footnote(), parents, tokens, i)    
@@ -346,7 +338,6 @@ function match_norg(::Colon, parents, tokens, i)
         next_token = tokens[next_i]
         prev_i = prevind(tokens, i)
         prev_token = tokens[prev_i]
-        @debug "hey there" kind(prev_token)∈ATTACHED_DELIMITERS prev_token
         if kind(next_token) ∈ ATTACHED_DELIMITERS 
             m = match_norg(parents, tokens, next_i)
             if isfound(m) && AST.is_attached_modifier(kind(matched(m)))
@@ -441,9 +432,7 @@ tag_to_strategy(::NumberSign) = StrongCarryoverTag()
 
 function match_norg(t::Union{CommercialAtSign, Plus, NumberSign}, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
-    @debug "Matching" t prev_token
     if is_sof(prev_token) || is_line_ending(prev_token)
-        @debug "Prev token is ok" tokens[i] prev_token
         match_norg(tag_to_strategy(t), parents, tokens, i)
     elseif is_whitespace(prev_token)
         prev_i = prevind(tokens, i)
@@ -459,7 +448,6 @@ function match_norg(t::Union{CommercialAtSign, Plus, NumberSign}, parents, token
 end
 
 function match_norg(::DollarSign, parents, tokens, i)
-    @debug "bonjour c'est dollarsign"
     prev_token = tokens[prevind(tokens, i)]
     m = if is_line_ending(prev_token) || is_sof(prev_token)
         match_norg(Definition(), parents, tokens, i)    
@@ -476,7 +464,6 @@ end
 function match_norg(::VerticalBar, parents, tokens, i)
     next_token = tokens[nextind(tokens, i)]
     prev_token = tokens[prevind(tokens, i)]
-    @debug "vertical" tokens[i] prev_token next_token
     if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(StandardRangedTag(), parents, tokens, i)
     elseif kind(next_token) == K"*"

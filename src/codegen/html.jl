@@ -64,7 +64,7 @@ function codegen(t::HTMLTarget, ast::NorgDocument)
         footnotes = getchildren(ast.root, K"Footnote")
         items = Iterators.flatten(children.(footnotes))
     else # collect all orphan footnotes
-        footnotes = getchildren(ast.root, K"Footnote", AST.heading_level(t.footnotes_level))
+        footnotes = getchildren(ast.root, K"Footnote", AST.heading_kind(Int(t.footnotes_level)))
         items = Iterators.flatten(children.(footnotes))
     end
     footnotes_node = @htl """

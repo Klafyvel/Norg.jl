@@ -96,7 +96,7 @@ function heading_level(k::Kind)
         error("No matching Heading kind found.")
     end
 end
-function heading_level(level::Int)
+function heading_kind(level::Int)
     if level <= 1
         K"Heading1"
     elseif level == 2
@@ -245,6 +245,6 @@ function nestable_level(k::Kind)
     end
 end
 
-export is_first_class_node, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level, litteral, NorgDocument, Node
+export is_first_class_node, heading_kind, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level, litteral, NorgDocument, Node
 
 end

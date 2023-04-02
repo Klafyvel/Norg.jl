@@ -33,7 +33,6 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where
     m = Match.MatchClosing(node_kind)
     while !is_eof(tokens[i])
         m = match_norg([node_kind, parents...], tokens, i)
-        @debug "attached modifier loop" m
         if isclosing(m)
             if consume(m) && consumepost(t) >= 2
                 for _ in 1:(consumepost(t)-1)
@@ -50,7 +49,6 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where
             push!(children, segment)
         end
     end
-    @debug "hey it's me" m tokens[i]
     if is_eof(tokens[i]) ||
         (isclosing(m) && matched(m) == K"None") || # Special case for inline code precedence.
         (isclosing(m) && matched(m) != node_kind && matched(m) ∈ parents) # we've been tricked in thincking we were in a modifier.

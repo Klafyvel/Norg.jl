@@ -24,6 +24,11 @@ JSON target to feed [`codegen`](@ref).
 """
 struct JSONTarget <: CodegenTarget end
 
+"""
+A special target for link location, this ensure type-stability.
+"""
+struct JSONLocationTarget <: CodegenTarget end
+
 function codegen_children(t::JSONTarget, ast::AST.NorgDocument, node::Node)
     res = []
     for c in children(node)
@@ -166,7 +171,7 @@ function codegen(t::JSONTarget, ::Link, ast::NorgDocument, node::Node)
     elseif kind(first(node.children)) == K"TimestampLocation"
         text = textify(ast, first(node.children))
     else
-        text = [OrderedDict(["t"=>"Str", "c"=>codegen(t, ast, first(node.children))])]
+        text = [OrderedDict(["t"=>"Str", "c"=>codegen(JSONLocationTarget(), ast, first(node.children))])]
     end
     if kind(first(node.children)) == K"TimestampLocation"
         OrderedDict([
@@ -174,7 +179,7 @@ function codegen(t::JSONTarget, ::Link, ast::NorgDocument, node::Node)
             "c"=>text
             ])
     else
-        target = codegen(t, ast, first(node.children))
+        target = codegen(JSONLocationTarget(), ast, first(node.children))
         OrderedDict([
             "t"=>"Link"
             "c"=>[
@@ -186,14 +191,14 @@ function codegen(t::JSONTarget, ::Link, ast::NorgDocument, node::Node)
     end
 end
 
-codegen(::JSONTarget, ::URLLocation, ast, node) = textify(ast, node)
+codegen(::JSONLocationTarget, ::URLLocation, ast, node) = textify(ast, node)
 
-function codegen(::JSONTarget, ::LineNumberLocation, ast::NorgDocument, node::Node)
+function codegen(::JSONLocationTarget, ::LineNumberLocation, ast::NorgDocument, node::Node)
     # Who are you, people who link to line location ?
     "#l-$(textify(ast, node))"
 end
 
-function codegen(t::JSONTarget, ::DetachedModifierLocation, ast::NorgDocument, node::Node)
+function codegen(t::JSONLocationTarget, ::DetachedModifierLocation, ast::NorgDocument, node::Node)
     kindoftarget = kind(first(children(node)))
     title = textify(ast, last(children(node)))
     if AST.is_heading(kindoftarget)
@@ -209,10 +214,10 @@ function codegen(t::JSONTarget, ::DetachedModifierLocation, ast::NorgDocument, n
     end
 end
 
-function codegen(::JSONTarget, ::MagicLocation, ast::NorgDocument, node::Node)
+function codegen(::JSONLocationTarget, ::MagicLocation, ast::NorgDocument, node::Node)
     key = textify(ast, node)
     if haskey(ast.targets, key)
-        kindoftarget, targetnoderef = ast.targets[key]
+        kindoftarget, targetnoderef = ast.targets[key]::Tuple{Kind, Ref{Node}}
         title = textify(ast, first(children(targetnoderef[])))
         if AST.is_heading(kindoftarget)
             level_num = AST.heading_level(kindoftarget)
@@ -230,7 +235,7 @@ function codegen(::JSONTarget, ::MagicLocation, ast::NorgDocument, node::Node)
     end
 end
 
-function codegen(t::JSONTarget, ::FileLocation, ast::NorgDocument, node::Node)
+function codegen(t::JSONLocationTarget, ::FileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
         start = "/" 
@@ -247,7 +252,7 @@ function codegen(t::JSONTarget, ::FileLocation, ast::NorgDocument, node::Node)
     start * target_loc * subtarget_loc
 end
 
-function codegen(t::JSONTarget, ::NorgFileLocation, ast::NorgDocument, node::Node)
+function codegen(t::JSONLocationTarget, ::NorgFileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
         start = "/" 
@@ -264,7 +269,7 @@ function codegen(t::JSONTarget, ::NorgFileLocation, ast::NorgDocument, node::Nod
     start * target_loc * subtarget_loc
 end
 
-function codegen(t::JSONTarget, ::WikiLocation, ast::NorgDocument, node::Node)
+function codegen(t::JSONLocationTarget, ::WikiLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     target_loc = textify(ast, target)
     if kind(subtarget) == K"None"
@@ -275,7 +280,7 @@ function codegen(t::JSONTarget, ::WikiLocation, ast::NorgDocument, node::Node)
     "/" * target_loc * subtarget_loc
 end
 
-codegen(::JSONTarget, ::TimestampLocation, ast::NorgDocument, node::Node) = textify(ast, node)
+codegen(::JSONLocationTarget, ::TimestampLocation, ast::NorgDocument, node::Node) = textify(ast, node)
 
 codegen(t::JSONTarget, ::LinkDescription, ast::NorgDocument, node::Node) = collect(Iterators.flatten(codegen_children(t, ast, node)))
 
@@ -284,7 +289,7 @@ function codegen(t::JSONTarget, ::Anchor, ast::NorgDocument, node::Node)
     if length(children(node)) == 1
         target = "#"
     else
-        target = codegen(t, ast, last(children(node)))
+        target = codegen(JSONLocationTarget(), ast, last(children(node)))
     end
     OrderedDict([
         "t"=>"Link"

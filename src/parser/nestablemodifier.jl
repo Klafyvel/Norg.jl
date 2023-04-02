@@ -14,7 +14,6 @@ function parse_norg(::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where 
             end
             break
         end
-        @debug "nestable loop" m tokens[i]
         child = if kind(matched(m)) == K"WeakCarryoverTag"
             parse_norg(WeakCarryoverTag(), [nestable_kind, parents...], tokens, i)
         else
@@ -50,7 +49,6 @@ function parse_norg(::NestableItem, parents::Vector{Kind}, tokens::Vector{Token}
     end
     while !is_eof(tokens[i])
         m = match_norg([K"NestableItem", parents...], tokens, i)
-        @debug "nestable item loop" m tokens[i]
         if isclosing(m)
             if !consume(m)
                 i = prevind(tokens, i)

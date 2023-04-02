@@ -7,12 +7,10 @@ body(::StandardRangedTag) = K"StandardRangedTagBody"
 function match_norg(t::T, parents, tokens, i) where {T <: Tag}
     i = nextind(tokens, i)
     token = tokens[i]
-    @debug "tag match" parents tokens[i]
     if kind(token) == K"Word"
         val = Tokens.value(token)
         if tag(t) ∈ parents && val == "end"
             next_token = tokens[nextind(tokens, i)]
-            @debug "encountered end" token next_token
             if kind(next_token) ∈ KSet"LineEnding EndOfFile"
                 MatchClosing(tag(t), first(parents) ∈ (tag(t), body(t)))
             else
@@ -34,7 +32,6 @@ end
 
 function match_norg(::WeakCarryoverTag, parents, tokens, i)
     token = tokens[nextind(tokens, i)]
-    @debug "Matching weak carryover tag"
     if kind(token) == K"Word"
         nextline = consume_until(K"LineEnding", tokens, i)
         m = match_norg(parents, tokens, nextline)
@@ -50,7 +47,6 @@ end
 
 function match_norg(::StrongCarryoverTag, parents, tokens, i)
     token = tokens[nextind(tokens, i)]
-    @debug "Matching strong carryover tag"
     relevant_parents = if K"StandardRangedTag" ∈ parents
         k = findfirst(parents .== Ref(K"StandardRangedTag"))::Int
         parents[1:k]

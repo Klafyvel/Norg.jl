@@ -96,9 +96,12 @@ attribute of the AST first.
 """
 function findtargets!(ast::NorgDocument)
     empty!(ast.targets)
-    for c in children(ast.root)
-        map(PreOrderDFS(x->kind(x) ∉ KSet"Link Anchor", c)) do n
-            findtargets!(ast, n)
+    stack = copy(children(ast.root))
+    while !isempty(stack)
+        c = pop!(stack)
+        findtargets!(ast, c)
+        if kind(c) ∉ KSet"Link Anchor"
+            append!(stack, children(c))
         end
     end
 end
