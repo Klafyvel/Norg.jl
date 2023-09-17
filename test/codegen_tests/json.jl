@@ -1,6 +1,5 @@
 @testset "JSON target" begin
-using OrderedCollections
-import JSON
+using JSON
 # generated JSON correctness is checked directly with pandoc
 using pandoc_jll
 
@@ -9,7 +8,7 @@ function pandoc_approval(json)
     try
         pandoc() do pandoc_bin
             io = PipeBuffer()
-            JSON.print(io, json)
+            write(io, json)
             run(pipeline(`$(pandoc_bin) -f json -t json`, stdin=io, stdout=devnull, stderr=io_err))
         end        
     catch e
@@ -22,8 +21,9 @@ end
 
 @testset "Test paragraphs" begin
     s = "Hi I am first paragraph.\n\nOh, hello there, I am second paragraph !"
-    json = Norg.codegen(Norg.JSONTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     pars = json["blocks"]
     @test pars[1]["t"] == "Para"
     @test pars[2]["t"] == "Para"
@@ -53,16 +53,18 @@ simple_markups_class = [
 
 @testset "Test correct markup for $m" for (m, node) in simple_markups_nodes
     s = "$(m)inner$(m)"
-    json = Norg.codegen(Norg.JSONTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     b = json["blocks"][1]["c"][1]
     @test b["t"] == node
 end
 
 @testset "Test correct class for $m" for (m, class) in simple_markups_class
     s = "$(m)inner$(m)"
-    json = Norg.codegen(Norg.JSONTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     b = json["blocks"][1]["c"][1]
     if !isnothing(class)
         @test first(b["c"])[2][1] == class
@@ -88,8 +90,9 @@ simple_link_tests = [
 
 @testset "Test links: $link" for (link, target, text) in simple_link_tests
     s = "{$link}"
-    json = Norg.codegen(Norg.JSONTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     link = json["blocks"][1]["c"][1]
     @test link["t"] == "Link"
     @test link["c"][2][1]["t"] == "Str"
@@ -99,8 +102,9 @@ end
 
 @testset "Test links with description: $link" for (link, target) in simple_link_tests
     s = "{$link}[website]"
-    json = Norg.codegen(Norg.JSONTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     link = json["blocks"][1]["c"][1]
     @test link["t"] == "Link"
     @test link["c"][2][1]["t"] == "Str"
@@ -110,8 +114,9 @@ end
 
 @testset "Anchors with embedded definition: $link" for (link, target) in simple_link_tests
     s = "[website]{$link}"
-    json = Norg.codegen(Norg.JSONTarget(), Norg.parse_norg(Norg.tokenize(s)))
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     link = json["blocks"][1]["c"][1]
     @test link["t"] == "Link"
     @test link["c"][2][1]["t"] == "Str"
@@ -126,8 +131,9 @@ end
     json = norg(Norg.JSONTarget(), s)
     @end
     """
-    json = norg(JSONTarget(), s)
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     cb = json["blocks"][1]
     @test cb["t"] == "CodeBlock"
     attr, content = cb["c"]
@@ -141,8 +147,9 @@ heading_levels = 1:6
     s = """$(repeat("*", i)) heading
     text
     """
-    json = norg(JSONTarget(), s)
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     container = json["blocks"][1]
     @test container["t"] == "Div"
     attr, content = container["c"]
@@ -161,16 +168,18 @@ nestable_lists = ['~'=>"OrderedList", '-'=>"BulletList", ">"=>"BlockQuote"]
     $m Shintero yuo been na
     $m Na sinchere fedicheda
     """
-    json = norg(JSONTarget(), s)
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     list = json["blocks"][1]
     @test list["t"] == target
 end
 
 @testset "inline link" begin
     s = """<inline link target>"""
-    json = norg(JSONTarget(), s)
-    @test pandoc_approval(json)
+    json_str = norg(JSONTarget(), s)
+    @test pandoc_approval(json_str)
+    json = JSON.parse(json_str)
     p = json["blocks"][1]
     @test length(p["c"]) == 1
     span = first(p["c"])
@@ -186,7 +195,6 @@ end
     end
     json = norg(JSONTarget(), s)
     @test pandoc_approval(json)
-    @test json isa OrderedDict
 end
 
 end

@@ -38,15 +38,15 @@ function idify(text)
 end
 
 """
-    textify(ast, node)
+    textify(ast, node, escape=identity)
 
-Return the raw text associated with a node.
+Return the raw text associated with a node. You can specify an escape function.
 """
-function textify(ast::NorgDocument, node::Node)
+function textify(ast::NorgDocument, node::Node, escape=identity)
     if is_leaf(node)
-        AST.litteral(ast, node)
+        escape(AST.litteral(ast, node))
     else
-        join(textify(ast, c) for c in children(node))
+        join(textify(ast, c, escape) for c in children(node))
     end
 end
 

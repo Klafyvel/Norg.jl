@@ -7,7 +7,6 @@ follow the Pandoc JSON AST API. You can then export using *e.g.* [JSON.jl](https
 """
 module JSONCodegen
 using Base: CacheHeaderIncludes
-using OrderedCollections
 using AbstractTrees
 
 using ..AST
@@ -19,18 +18,34 @@ import ..codegen
 import ..textify
 import ..idify
 
+jsonify(p::Pair{Symbol, Symbol}) = "$(jsonify(first(p))):$(jsonify(last(p)))"
+jsonify(p::Pair{Symbol, Int}) = "$(jsonify(first(p))):$(jsonify(last(p)))"
+jsonify(p::Pair{Symbol, String}) = "$(jsonify(first(p))):$(jsonify(last(p)))"
+jsonify(a::Vector{Pair{Symbol, String}}) = "{"*join(jsonify.(a)::Vector{String}, ",")*"}"
+jsonify(a::Vector) = "["*join(jsonify.(a), ",")*"]"
+jsonify(x::String) = x
+jsonify(x::Int) = string(x)
+jsonify(x::Symbol) = "\"$(x)\""
+
 """
 JSON target to feed [`codegen`](@ref).
+
+You can specify a pandoc api version, but this only changes the version number
+announced in the generated output.
 """
-struct JSONTarget <: CodegenTarget end
+struct JSONTarget <: CodegenTarget 
+    pandocapiversion::Vector{Int}
+end
+JSONTarget() = JSONTarget([1, 23])
 
 """
 A special target for link location, this ensure type-stability.
 """
 struct JSONLocationTarget <: CodegenTarget end
+codegen(::JSONLocationTarget, _, _, _) = error("Trying to generate a non location node with target `JSONLocationTarget`. You found a bug in JSON code generation.")
 
 function codegen_children(t::JSONTarget, ast::AST.NorgDocument, node::Node)
-    res = []
+    res = String[]
     for c in children(node)
         r = codegen(t, ast, c)
         if !isempty(r)
@@ -41,120 +56,116 @@ function codegen_children(t::JSONTarget, ast::AST.NorgDocument, node::Node)
 end
 
 function codegen(t::JSONTarget, ast::AST.NorgDocument)
-    OrderedDict([
-        "pandoc-api-version" => [1, 23]
-        "meta" => OrderedDict{String, String}()
-        "blocks" => codegen_children(t, ast, ast.root)
+    jsonify([
+        Symbol("pandoc-api-version") => jsonify(t.pandocapiversion)
+        :meta => "{}"
+        :blocks => jsonify(codegen_children(t, ast, ast.root))
     ])
 end
 
 function codegen(t::JSONTarget, ::Paragraph, ast::NorgDocument, node::Node)
-    res = []
+    res = String[]
     for c in children(node)
         r = codegen(t, ast, c)
         if !isempty(r)
-            if r isa Vector
-                append!(res, r)
-            else
-                push!(res, r)
-            end
-            push!(res, OrderedDict{String, Any}("t" => "SoftBreak"))
+            push!(res, r)
+            push!(res, jsonify([:t => jsonify(:SoftBreak)]))
         end
     end
     if !isempty(res)
         pop!(res) # remove last softbreak
     end
-    OrderedDict([
-        "t" => "Para"
-        "c" => res
+    jsonify([
+        :t => jsonify(:Para)
+        :c => jsonify(res)
     ])
 end
 
-codegen(t::JSONTarget, ::ParagraphSegment, ast::NorgDocument, node::Node) = codegen_children(t, ast, node)
+codegen(t::JSONTarget, ::ParagraphSegment, ast::NorgDocument, node::Node) = join(codegen_children(t, ast, node), ",")
 
-pandoc_t(::Union{FreeFormBold, Bold}) = "Strong"
-pandoc_t(::Union{FreeFormItalic, Italic}) = "Emph"
-pandoc_t(::Union{FreeFormUnderline, Underline}) = "Underline"
-pandoc_t(::Union{FreeFormStrikethrough, Strikethrough}) = "Strikeout"
-pandoc_t(::Union{FreeFormSpoiler, Spoiler}) = "Span"
-pandoc_t(::Union{FreeFormSuperscript, Superscript}) = "Superscript"
-pandoc_t(::Union{FreeFormSubscript, Subscript}) = "Subscript"
-pandoc_t(::Union{FreeFormInlineCode, InlineCode}) = "Code"
+pandoc_t(::Union{FreeFormBold, Bold}) = :Strong
+pandoc_t(::Union{FreeFormItalic, Italic}) = :Emph
+pandoc_t(::Union{FreeFormUnderline, Underline}) = :Underline
+pandoc_t(::Union{FreeFormStrikethrough, Strikethrough}) = :Strikeout
+pandoc_t(::Union{FreeFormSpoiler, Spoiler}) = :Span
+pandoc_t(::Union{FreeFormSuperscript, Superscript}) = :Superscript
+pandoc_t(::Union{FreeFormSubscript, Subscript}) = :Subscript
+pandoc_t(::Union{FreeFormInlineCode, InlineCode}) = :Code
 
 pandoc_attr(::Union{FreeFormBold, Bold}) = []
 pandoc_attr(::Union{FreeFormItalic, Italic}) = []
 pandoc_attr(::Union{FreeFormUnderline, Underline}) = []
 pandoc_attr(::Union{FreeFormStrikethrough, Strikethrough}) = []
-pandoc_attr(::Union{FreeFormSpoiler, Spoiler}) = ["", ["spoiler"], []]
+pandoc_attr(::Union{FreeFormSpoiler, Spoiler}) = ["\"\"", jsonify(["\"spoiler\""]), jsonify([])]
 pandoc_attr(::Union{FreeFormSuperscript, Superscript}) = []
 pandoc_attr(::Union{FreeFormSubscript, Subscript}) = []
-pandoc_attr(::Union{FreeFormInlineCode, InlineCode}) = ["", [], []]
+pandoc_attr(::Union{FreeFormInlineCode, InlineCode}) = ["\"\"", jsonify([]), jsonify([])]
 
 function codegen(t::JSONTarget, s::T, ast::NorgDocument, node::Node) where {T<:AttachedModifierStrategy}
-    res = []
+    res = String[]
     for c in children(node)
         r = codegen(t, ast, c)
         if !isempty(r)
-            append!(res, r)
-            push!(res, OrderedDict{String, Any}("t" => "SoftBreak"))
+            push!(res, r)
+            push!(res, jsonify([:t => jsonify(:SoftBreak)]))
         end
     end
     attr = pandoc_attr(s)
     if isempty(attr)
-        OrderedDict([
-            "t"=>pandoc_t(s)
-            "c" => res
+        jsonify([
+            :t => jsonify(pandoc_t(s))
+            :c => jsonify(res)
         ])
     else
-        OrderedDict([
-            "t"=>pandoc_t(s)
-            "c" => [attr, res]
+        jsonify([
+        :t => jsonify(pandoc_t(s))
+            :c => jsonify([jsonify(attr), jsonify(res)])
         ])
     end
 end
 
 function codegen(::JSONTarget, ::Union{InlineMath, FreeFormInlineMath}, ast::NorgDocument, node::Node) 
-    OrderedDict([
-        "t"=>"Math"
-        "c" => [OrderedDict(["t"=>"InlineMath"]), textify(ast, node)]
+    jsonify([
+        :t=>jsonify(:Math)
+        :c => jsonify([jsonify([:t=>jsonify(:InlineMath)]), "\""*textify(ast, node, escape_string)*"\""])
     ])
 end
 
 function codegen(::JSONTarget, ::Union{Variable, FreeFormVariable}, ::NorgDocument, ::Node) 
-    []
+    ""
 end
 
 function codegen(::JSONTarget, ::Union{NullModifier, FreeFormNullModifier}, ::NorgDocument, ::Node) 
-    []
+    ""
 end
 
-function codegen(t::JSONTarget, s::Union{InlineCode, FreeFormInlineCode}, ast::NorgDocument, node::Node)
-    OrderedDict([
-        "t"=>pandoc_t(s)
-        "c" => [pandoc_attr(s), textify(ast, node)]
+function codegen(::JSONTarget, s::Union{InlineCode, FreeFormInlineCode}, ast::NorgDocument, node::Node)
+    jsonify([
+    :t=> jsonify(pandoc_t(s))
+        :c => jsonify([jsonify(pandoc_attr(s)), "\""*textify(ast, node, escape_string)*"\""])
     ])
 end
 
 function codegen(t::JSONTarget, ::Word, ast::NorgDocument, node::Node)
     if is_leaf(node) && (AST.stop(node) - AST.start(node) > 0)
-        OrderedDict([
-            "t"=>"Str"
-            "c"=>AST.litteral(ast, node)
+        jsonify([
+            :t=>jsonify(:Str)
+            :c=>"\"$(textify(ast, node, escape_string))\""
         ])
     elseif is_leaf(node)
         token = first(ast.tokens[AST.start(node):AST.stop(node)])
         if Tokens.is_whitespace(token)
-            OrderedDict([
-                "t"=>"Space"
+            jsonify([
+                :t=>jsonify(:Space)
             ])
         else
-            OrderedDict([
-                "t"=>"Str"
-                "c"=>AST.litteral(ast, node)
+            jsonify([
+                :t=>jsonify(:Str)
+                :c=>"\"$(textify(ast, node, escape_string))\""
             ])
         end
     else
-        [codegen(t, Word(), ast, c) for c in children(node)]
+        jsonify([codegen(t, Word(), ast, c) for c in children(node)])
     end
 end
 codegen(t::JSONTarget, ::Escape, ast, node) = codegen(t, ast, first(children(node)))
@@ -163,44 +174,50 @@ function codegen(t::JSONTarget, ::Link, ast::NorgDocument, node::Node)
     if length(node.children) > 1
         text = codegen(t, ast, last(node.children))
     elseif kind(first(node.children)) == K"DetachedModifierLocation"
-        text = codegen(t, ast, children(first(children(node)))[2])
+        text = jsonify([codegen(t, ast, children(first(children(node)))[2])])
     elseif kind(first(node.children)) == K"MagicLocation"
-        text = codegen(t, ast, children(first(children(node)))[1])
+        text = jsonify([codegen(t, ast, children(first(children(node)))[1])])
     elseif kind(first(node.children)) == K"WikiLocation"
-        text = codegen(t, ast, children(first(children(node)))[1])
+        text = jsonify([codegen(t, ast, children(first(children(node)))[1])])
     elseif kind(first(node.children)) == K"TimestampLocation"
-        text = textify(ast, first(node.children))
+        text = "\""*textify(ast, first(node.children), escape_string)*"\""
     else
-        text = [OrderedDict(["t"=>"Str", "c"=>codegen(JSONLocationTarget(), ast, first(node.children))])]
+        text = jsonify([jsonify([:t=>jsonify(:Str), :c=>"\""*codegen(JSONLocationTarget(), ast, first(node.children))*"\""])])
     end
     if kind(first(node.children)) == K"TimestampLocation"
-        OrderedDict([
-            "t"=>"Str"
-            "c"=>text
+        jsonify([
+            :t=>jsonify(:Str)
+            :c=>text
             ])
     else
         target = codegen(JSONLocationTarget(), ast, first(node.children))
-        OrderedDict([
-            "t"=>"Link"
-            "c"=>[
-                ["", Any[], Any[]],
+        jsonify([
+            :t=>jsonify(:Link)
+            :c=>jsonify([
+                jsonify([Symbol(""), jsonify(String[]), jsonify(String[])]),
                 text,
-                [target, ""]
-            ]
+                jsonify(["\""*target*"\"", Symbol("")])
+                ])
         ])
     end
 end
 
-codegen(::JSONLocationTarget, ::URLLocation, ast, node) = textify(ast, node)
+# fallback
+codegen(::JSONTarget, ::URLLocation, ast, node) = error("You found a bug in URL location JSON code generation.")
+codegen(::JSONLocationTarget, ::URLLocation, ast, node) = textify(ast, node, escape_string)
 
+# fallback
+codegen(::JSONTarget, ::LineNumberLocation, ast, node) = error("You found a bug in line number location JSON code generation.")
 function codegen(::JSONLocationTarget, ::LineNumberLocation, ast::NorgDocument, node::Node)
     # Who are you, people who link to line location ?
-    "#l-$(textify(ast, node))"
+    "#l-$(textify(ast, node, escape_string))"
 end
 
-function codegen(t::JSONLocationTarget, ::DetachedModifierLocation, ast::NorgDocument, node::Node)
+# fallback
+codegen(::JSONTarget, ::DetachedModifierLocation, ast, node) = error("You found a bug in detached modifier location JSON code generation.")
+function codegen(::JSONLocationTarget, ::DetachedModifierLocation, ast::NorgDocument, node::Node)
     kindoftarget = kind(first(children(node)))
-    title = textify(ast, last(children(node)))
+    title = textify(ast, last(children(node)), escape_string)
     if AST.is_heading(kindoftarget)
         level_num = AST.heading_level(first(children(node)))
         level = "h" * string(level_num)
@@ -214,11 +231,13 @@ function codegen(t::JSONLocationTarget, ::DetachedModifierLocation, ast::NorgDoc
     end
 end
 
+# fallback
+codegen(::JSONTarget, ::MagicLocation, ast, node) = error("You found a bug in magic location JSON code generation.")
 function codegen(::JSONLocationTarget, ::MagicLocation, ast::NorgDocument, node::Node)
-    key = textify(ast, node)
+    key = textify(ast, node, escape_string)
     if haskey(ast.targets, key)
         kindoftarget, targetnoderef = ast.targets[key]::Tuple{Kind, Ref{Node}}
-        title = textify(ast, first(children(targetnoderef[])))
+        title = textify(ast, first(children(targetnoderef[]::Node)::Vector{Node}), escape_string)
         if AST.is_heading(kindoftarget)
             level_num = AST.heading_level(kindoftarget)
             level = "h" * string(level_num)
@@ -235,6 +254,8 @@ function codegen(::JSONLocationTarget, ::MagicLocation, ast::NorgDocument, node:
     end
 end
 
+# fallback
+codegen(::JSONTarget, ::FileLocation, ast, node) = error("You found a bug in file location JSON code generation.")
 function codegen(t::JSONLocationTarget, ::FileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
@@ -242,7 +263,7 @@ function codegen(t::JSONLocationTarget, ::FileLocation, ast::NorgDocument, node:
     else
         start = "" 
     end
-    target_loc = textify(ast, target)
+    target_loc = textify(ast, target, escape_string)
     if kind(subtarget) == K"None"
         subtarget_loc = "" 
     else
@@ -252,6 +273,8 @@ function codegen(t::JSONLocationTarget, ::FileLocation, ast::NorgDocument, node:
     start * target_loc * subtarget_loc
 end
 
+# fallback
+codegen(::JSONTarget, ::NorgFileLocation, ast, node) = error("You found a bug in norg file location JSON code generation.")
 function codegen(t::JSONLocationTarget, ::NorgFileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
@@ -259,7 +282,7 @@ function codegen(t::JSONLocationTarget, ::NorgFileLocation, ast::NorgDocument, n
     else
         start = "" 
     end
-    target_loc = textify(ast, target)
+    target_loc = textify(ast, target, escape_string)
     if kind(subtarget) == K"None"
         subtarget_loc = "" 
     else
@@ -269,9 +292,11 @@ function codegen(t::JSONLocationTarget, ::NorgFileLocation, ast::NorgDocument, n
     start * target_loc * subtarget_loc
 end
 
+# fallback
+codegen(::JSONTarget, ::WikiLocation, ast, node) = error("You found a bug in wiki location JSON code generation.")
 function codegen(t::JSONLocationTarget, ::WikiLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
-    target_loc = textify(ast, target)
+    target_loc = textify(ast, target, escape_string)
     if kind(subtarget) == K"None"
         subtarget_loc = "" 
     else
@@ -280,9 +305,11 @@ function codegen(t::JSONLocationTarget, ::WikiLocation, ast::NorgDocument, node:
     "/" * target_loc * subtarget_loc
 end
 
-codegen(::JSONLocationTarget, ::TimestampLocation, ast::NorgDocument, node::Node) = textify(ast, node)
+# fallback
+codegen(::JSONTarget, ::TimestampLocation, ast, node) = error("You found a bug in timestamp location JSON code generation.")
+codegen(::JSONLocationTarget, ::TimestampLocation, ast::NorgDocument, node::Node) = textify(ast, node, escape_string)
 
-codegen(t::JSONTarget, ::LinkDescription, ast::NorgDocument, node::Node) = collect(Iterators.flatten(codegen_children(t, ast, node)))
+codegen(t::JSONTarget, ::LinkDescription, ast::NorgDocument, node::Node) = jsonify(codegen_children(t, ast, node))
 
 function codegen(t::JSONTarget, ::Anchor, ast::NorgDocument, node::Node)
     text = codegen(t, ast, first(node.children))
@@ -291,35 +318,35 @@ function codegen(t::JSONTarget, ::Anchor, ast::NorgDocument, node::Node)
     else
         target = codegen(JSONLocationTarget(), ast, last(children(node)))
     end
-    OrderedDict([
-        "t"=>"Link"
-        "c"=>[
-            ["", Any[], Any[]],
+    jsonify([
+        :t=>jsonify(:Link)
+        :c=>jsonify([
+            jsonify([Symbol(""), jsonify([]), jsonify([])]),
             text,
-            [target, ""]
-        ]
+            jsonify(["\""*target*"\"", Symbol("")])
+        ])
     ])
 end
 
 function codegen(t::JSONTarget, ::InlineLinkTarget, ast::NorgDocument, node::Node)
-    text = []
+    text = String[]
     for c in children(node)
         r = codegen(t, ast, c)
         if !isempty(r)
-            append!(text, r)
+            push!(text, r)
             push!(text, " ")
         end
     end
     if !isempty(text)
         pop!(text) # remove last space
     end
-    id = idify(join(textify(ast, node)))
-    OrderedDict([
-        "t"=>"Span"
-        "c"=>[
-            [id, Any[], Any[]],
+    id = idify(join(textify(ast, node, escape_string)))
+    jsonify([
+        :t=>jsonify(:Span)
+        :c=>jsonify([
+            jsonify(["\""*id*"\"", jsonify([]), jsonify(Any[])]),
             text
-        ]
+        ])
     ])
 end
 
@@ -335,81 +362,79 @@ function codegen(t::JSONTarget, ::Heading, ast::NorgDocument, node::Node)
     else
         heading_title, heading_content... = codegen_children(t, ast, node)
     end
-    title = textify(ast, heading_title_node)
-    id_title = idify(level * " " * title)
-    heading = OrderedDict([
-        "t"=>"Header"
-        "c"=>[level_num, [id_title, [], []], heading_title]
+    title = "\""*textify(ast, heading_title_node, escape_string)*"\""
+    id_title = "\""*idify(level * " " * title)*"\""
+    heading = jsonify([
+        :t=>jsonify(:Header)
+        :c=>jsonify([level_num, jsonify([id_title, jsonify([]), jsonify([])]), jsonify([heading_title])])
         ])
-    id_section = idify("section " * id_title)
-    OrderedDict([
-        "t"=>"Div"
-        "c"=>[[id_section, [], []], [heading, heading_content...]]
+    id_section = "\""*idify("section " * id_title)*"\""
+    jsonify([
+        :t=>jsonify(:Div)
+        :c=>jsonify([
+            jsonify([id_section, jsonify([]), jsonify([])]), 
+            jsonify([heading, heading_content...])
         ])
+    ])
 end
 
-codegen(::JSONTarget, ::StrongDelimiter, ast::NorgDocument, node::Node) = OrderedDict()
-codegen(::JSONTarget, ::WeakDelimiter, ast::NorgDocument, node::Node) = OrderedDict()
-codegen(::JSONTarget, ::HorizontalRule, ast::NorgDocument, node::Node) = OrderedDict(["t"=>"HorizontalRule", "c"=>[]])
+codegen(::JSONTarget, ::StrongDelimiter, ast::NorgDocument, node::Node) = ""
+codegen(::JSONTarget, ::WeakDelimiter, ast::NorgDocument, node::Node) = ""
+codegen(::JSONTarget, ::HorizontalRule, ast::NorgDocument, node::Node) = ""
 
 function codegen_nestable_children(t::JSONTarget, ast::NorgDocument, node::Node)
     res = []
     for c in children(node)
         r = codegen(t, ast, c)
         if !isempty(r)
-            if kind(c) == K"NestableItem"
-                push!(res, r)
-            else
-                push!(res, [r])
-            end
+            push!(res, r)
         end
     end
     res
 end
 
 function codegen(t::JSONTarget, ::UnorderedList, ast::NorgDocument, node::Node)
-    OrderedDict([
-        "t"=>"BulletList"
-        "c"=>codegen_nestable_children(t, ast, node)
+    jsonify([
+    :t=>jsonify(:BulletList)
+        :c=>jsonify(codegen_nestable_children(t, ast, node))
     ])
 end
 
 function codegen(t::JSONTarget, ::OrderedList, ast::NorgDocument, node::Node)
-    OrderedDict([
-        "t"=>"OrderedList"
-        "c"=>[
-            [1, OrderedDict(["t"=>"Decimal"]), OrderedDict(["t"=>"Period"])],
-            codegen_nestable_children(t, ast, node)
-        ]
+    jsonify([
+        :t=>jsonify(:OrderedList)
+        :c=>jsonify([
+            jsonify(["1", jsonify([:t=>jsonify(:Decimal)]), jsonify([:t=>jsonify(:Period)])]),
+            jsonify(codegen_nestable_children(t, ast, node))
+        ])
     ])
 end
 
 function codegen(t::JSONTarget, ::NestableItem, ast::NorgDocument, node::Node)
-    res = []
+    res = String[]
     for c in children(node)
-        if kind(c) ∉ KSet"TimestampExtension PriorityExtension DueDateExtension StartDateExtension"
+        if kind(c) == K"IndentSegment"
+            append!(res, codegen(t, ast, c))
+        elseif kind(c) ∉ KSet"TimestampExtension PriorityExtension DueDateExtension StartDateExtension"
             r = codegen(t, ast, c)
-
-            if r isa Vector
-                append!(res, r)
-            elseif !isempty(r)
+            if !isempty(r)
                 push!(res, r)
             end
         end
     end
-    res
+    jsonify(res)
 end
 
 function codegen(t::JSONTarget, ::Quote, ast::NorgDocument, node::Node)
     # <blockquote> does not have an 'item' notion, so we have to short-circuit
     # that.
-    res = []
+    res = String[]
     for c in children(node)
         append!(res, filter(!isempty, codegen.(Ref(t), Ref(ast), children(c)))|>collect)
     end
-    OrderedDict([
-        "t"=>"BlockQuote"
-        "c"=>res
+    jsonify([
+        :t=>jsonify(:BlockQuote)
+        :c=>jsonify(res)
     ])
 end
 
@@ -417,25 +442,34 @@ function codegen(t::JSONTarget, ::StandardRangedTag, ast::NorgDocument, node::No
     tag, others... = children(node)
     tag_litteral = litteral(ast, tag)
     if tag_litteral == "comment"
-        OrderedDict()
+        ""
     elseif tag_litteral == "example"
-        OrderedDict([
-            "t"=>"CodeBlock"
-            "c"=>[["", ["norg"], []], textify(ast, last(others))]
+        jsonify([
+            :t=>jsonify(:CodeBlock)
+            :c=>jsonify([
+                jsonify([Symbol(""), jsonify(["\"norg\""]), jsonify([])]), 
+                "\""*textify(ast, last(others), escape_string)*"\""
+            ])
         ])
     elseif tag_litteral == "details"
         # TODO
-        OrderedDict()
+        ""
     elseif tag_litteral == "group"
-        OrderedDict([
-            "t"=>"Div",
-            "c"=>[["", [], []], codegen_children(t, ast, last(others))]
+        jsonify([
+            :t=>jsonify(:Div),
+            :c=>jsonify([
+                jsonify([Symbol(""), jsonify([]), jsonify([])]), 
+                jsonify(codegen_children(t, ast, last(others)))
+            ])
         ])
     else
         @warn "Unknown standard ranged tag." tag_litteral ast.tokens[AST.start(node)] ast.tokens[AST.stop(node)]
-        OrderedDict([
-            "t"=>"Div",
-            "c"=>[["", [], []], codegen_children(t, ast, last(others))]
+        jsonify([
+            :t=>jsonify(:Div)
+            :c=>jsonify([
+                jsonify([Symbol(""), jsonify([]), jsonify([])]), 
+                jsonify(codegen_children(t, ast, last(others)))
+            ])
         ])
     end
 end
@@ -444,12 +478,15 @@ function codegen(::JSONTarget, ::Verbatim, ast::NorgDocument, node::Node)
     # cowardly ignore any verbatim that is not code
     tag, others... = children(node)
     if litteral(ast, tag) != "code"
-        return OrderedDict()
+        return ""
     end
     if length(others) == 1
-        OrderedDict([
-            "t"=>"CodeBlock"
-            "c"=>[["", [], []], textify(ast, last(others))]
+        jsonify([
+            :t=>jsonify(:CodeBlock)
+            :c=>jsonify([
+                jsonify([Symbol(""), jsonify([]), jsonify([])]), 
+                "\""*textify(ast, last(others), escape_string)*"\""
+            ])
         ])
     else
         language = if kind(first(others)) == K"TagParameter"
@@ -457,9 +494,12 @@ function codegen(::JSONTarget, ::Verbatim, ast::NorgDocument, node::Node)
         else
             litteral(ast, others[2])
         end
-        OrderedDict([
-            "t"=>"CodeBlock"
-            "c"=>[["", [language], []], textify(ast, last(others))]
+        jsonify([
+            :t=>jsonify(:CodeBlock)
+            :c=>jsonify([
+                jsonify([Symbol(""), jsonify(["\""*language*"\""]), jsonify([])]), 
+                "\""*textify(ast, last(others), escape_string)*"\""
+                ])
         ])
     end
 end
@@ -472,66 +512,66 @@ function codegen(::JSONTarget, ::TodoExtension, ast::NorgDocument, node::Node)
     else
         s = "☐"
     end
-    OrderedDict([
-    "t"=>"Plain"
-    "c"=>[OrderedDict([
-        "t"=>"Str"
-        "c"=>s
-        ])]
+    jsonify([
+        :t=>jsonify(:Plain)
+    :c=>jsonify([jsonify([
+        :t=>jsonify(:Str)
+        :c=>s
+        ])])
     ])
 end
 
 function codegen(t::JSONTarget, c::Union{WeakCarryoverTag, StrongCarryoverTag}, ast::NorgDocument, node::Node)
     content = codegen(t, ast, last(children(node)))
-    label = textify(ast, first(children(node)))
+    label = "\""*textify(ast, first(children(node)), escape_string)*"\""
     # TODO: there's most likely some room for improvement here, as some contents
     # already have a mechanism for attributes, so the Div is not needed.
-    attr = ["", [], []]
+    attr = [Symbol(""), jsonify([]), jsonify([])]
     if length(children(node)) <= 2
-        attr[2] = [label]
+        attr[2] = jsonify([label])
     elseif length(children(node)) == 3
-        attr[3] = [[label, textify(ast, children(node)[2])]]
+        attr[3] = jsonify([jsonify([label, "\""*textify(ast, children(node)[2], escape_string)*"\""])])
     else
-        attr[2] = [join(textify.(Ref(ast), children(node)[1:end-1]), "-")]
+        attr[2] = jsonify(["\""*join(textify.(Ref(ast), children(node)[1:end-1], escape_string), "-")*"\""])
     end
 
     t = if kind(node) == K"WeakCarryoverTag" && kind(last(children(node)))==K"ParagraphSegment"
-        "Span"
+        :Span
     else
-        "Div"
+        :Div
     end
-    if !(content isa Vector)
-        content = [content]
+    if !(first(content) == '[')
+        content = jsonify([content])
     end
-    OrderedDict([
-        "t"=>t,
-        "c"=>[attr, content]
+    jsonify([
+        :t=>jsonify(t),
+        :c=>jsonify([jsonify(attr), content])
     ])
 end
 
 function codegen(t::JSONTarget, ::Definition, ast::NorgDocument, node::Node)
     items = children(node)
-    OrderedDict([
-        "t"=>"DefinitionList"
-        "c"=>map(items) do item
+    jsonify([
+        :t=>jsonify(:DefinitionList)
+        :c=>map(items) do item
             term, def... = children(item)
-            term_id = "def_" * idify(textify(ast, term))
-            term_node = OrderedDict([
-                "t"=>"Span"
-                "c"=>[
-                    (term_id, [], []),
-                    codegen(t, ast, term)
-                ]
+            term_id = "def_" * idify(textify(ast, term, escape_string))
+            term_node = jsonify([
+                :t=>jsonify(:Span)
+                :c=>jsonify([
+                    jsonify(["\""*term_id*"\"", jsonify([]), jsonify([])]),
+                    jsonify([codegen(t, ast, term)])
+                ])
             ])
-            def_node = codegen.(Ref(t), Ref(ast), def)
-            ([term_node], [def_node])
-        end
+            def_node = jsonify(codegen.(Ref(t), Ref(ast), def))
+            jsonify([jsonify([term_node]), jsonify([def_node])])
+        end |> jsonify
     ])
 end
 
-function codegen(t::JSONTarget, ::Footnote, ast::NorgDocument, node::Node)
+function codegen(::JSONTarget, ::Footnote, ast::NorgDocument, node::Node)
     # Return nothing, pandoc expects footnotes to be defined where they are called.
-    []
+    ""
 end
 
 function codegen(t::JSONTarget, ::Slide, ast::NorgDocument, node::Node)

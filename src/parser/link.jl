@@ -173,7 +173,7 @@ function parse_norg(::DetachedModifierLocation, parents::Vector{Kind}, tokens::V
     else
         c = [AST.Node(K"WordNode", [], j, j) for j ∈ start:(p.start-1)]
         children = p.children
-        ps = AST.Node(K"ParagraphSegment", [c...;children[1].children...], start, children[1].stop)
+        ps = AST.Node(K"ParagraphSegment", AST.Node[c...;children[1].children...], start, children[1].stop)
         children[1] = ps
         AST.Node(K"None", children, start, i)
     end
@@ -211,7 +211,7 @@ function parse_norg(::MagicLocation, parents::Vector{Kind}, tokens::Vector{Token
     else
         c = [AST.Node(K"WordNode", [], j, j) for j ∈ start:(p.start-1)]
         children = p.children
-        ps = AST.Node(K"ParagraphSegment", [c...;children[1].children...], start, children[1].stop)
+        ps = AST.Node(K"ParagraphSegment", AST.Node[c...;children[1].children...], start, children[1].stop)
         children[1] = ps
         AST.Node(K"None", children, start, i)
     end
@@ -314,7 +314,7 @@ function parse_norg(::WikiLocation, parents::Vector{Kind}, tokens::Vector{Token}
     else
         c = [AST.Node(K"WordNode", [], j, j) for j ∈ start:(p.start-1)]
         children = p.children
-        ps = AST.Node(K"ParagraphSegment", [c...;children[1].children...], start, children[1].stop)
+        ps = AST.Node(K"ParagraphSegment", AST.Node[c...;children[1].children...], start, children[1].stop)
         children[1] = ps
         return AST.Node(K"None", children, start, i)
     end
