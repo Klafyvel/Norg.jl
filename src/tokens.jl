@@ -49,7 +49,7 @@ function Token(kind, line, char, value)
 end
 function Base.show(io::IO, token::Token)
     print(io,
-    "Token(K\"$(convert(String, kind(token)))\", \"$(value(token))\", line $(string(line(token))), col. $(string(char(token))))")
+    "Token(K\"$(string(kind(token)))\", \"$(value(token))\", line $(string(line(token))), col. $(string(char(token))))")
 end
 SOFToken() = Token(K"StartOfFile", 0, 0, SubString(""))
 EOFToken() = Token(K"EndOfFile", 0, 0, SubString(""))

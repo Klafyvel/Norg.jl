@@ -223,8 +223,6 @@ let kind_int_type = :UInt8,
             return Base.bitcast(Kind, convert($kind_int_type, x))
         end
 
-        Base.convert(::Type{String}, k::Kind) = _kind_names[1 + Base.bitcast($kind_int_type, k)]
-
         let kindstr_to_int = Dict(s=>i-1 for (i,s) in enumerate(_kind_names))
             function Base.convert(::Type{Kind}, s::AbstractString)
                 i = get(kindstr_to_int, s) do
@@ -234,8 +232,8 @@ let kind_int_type = :UInt8,
             end
         end
 
-        Base.string(x::Kind) = convert(String, x)
-        Base.print(io::IO, x::Kind) = print(io, convert(String, x))
+        Base.string(k::Kind) = _kind_names[1 + Base.bitcast($kind_int_type, k)]
+        Base.print(io::IO, x::Kind) = print(io, string(x))
 
         Base.typemin(::Type{Kind}) = Kind(0)
         Base.typemax(::Type{Kind}) = Kind($max_kind_int)
@@ -248,7 +246,7 @@ let kind_int_type = :UInt8,
 end
 
 function Base.show(io::IO, k::Kind)
-    print(io, "K\"$(convert(String, k))\"")
+    print(io, "K\"$(string(k))\"")
 end
 
 """

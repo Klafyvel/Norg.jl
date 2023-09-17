@@ -1,5 +1,4 @@
-using Dates, TimeZones
-
+using Dates
 """
     parse_norg_timestamp(tokens, start, stop)
 
@@ -177,15 +176,7 @@ function parse_one_norg_timestamp(tokens, start, stop)
         stop_timestamp = Parser.consume_until(KSet"Whitespace -", tokens, i)-2
         if stop_timestamp <= stop
             w = join(value.(tokens[i:stop_timestamp]))
-            try
-                timezone = TimeZone(w)
-            catch e
-                if e isa ArgumentError
-                    @warn "Unable to process timezone" w tokens[i]
-                else
-                    rethrow(e)
-                end
-            end
+            timezone = parse_timezone(w)
             i = stop_timestamp + 1
         end
     end
@@ -241,3 +232,12 @@ function parse_year(tokens, start, _)
     w = value(token)
     tryparse(Int64, w)
 end
+
+function parse_timezone(w)
+    if HAS_TIMEZONE_CAPABILITIES
+        parse_timezone(Val(:extension), w)
+    else
+        nothing
+    end
+end
+
