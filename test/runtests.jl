@@ -1,6 +1,7 @@
 using Norg
 using Test
 using AbstractTrees
+using Aqua
 
 import Norg: @K_str, kind, value
 
@@ -25,5 +26,6 @@ import Norg: @K_str, kind, value
     end
     @testset "code analysis" begin
         include("code_analysis_tests/test_jet.jl")
+        Aqua.test_all(Norg)
     end
 end
