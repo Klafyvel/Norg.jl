@@ -11,7 +11,7 @@ Node = Norg.AST.Node
 
     ast = norg(s)
 
-    h1,sd,p = children(ast.root)
+    h1, sd, p = children(ast.root)
 
     @test kind(h1) == K"Heading1"
     @test kind(p) == K"Paragraph"
@@ -164,7 +164,7 @@ end
     $m$m$m
     There
     """)
-    p1,delim,p2 = children(ast.root)
+    p1, delim, p2 = children(ast.root)
     @test Norg.Codegen.textify(ast, p1) == "Hello"
     @test Norg.Codegen.textify(ast, p2) == "There"
 end

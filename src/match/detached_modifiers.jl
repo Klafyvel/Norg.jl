@@ -24,7 +24,9 @@ function match_norg(::Heading, parents, tokens, i)
         # If we are in a standard ranged tag, the relevant parents are those
         # within the tag.
         ancestor_headings = filter(is_heading, relevant_parents)
-        higher_level_ancestor_heading = findfirst(≥(current_level)∘heading_level, ancestor_headings)
+        higher_level_ancestor_heading = findfirst(
+            ≥(current_level) ∘ heading_level, ancestor_headings
+        )
         if !isnothing(higher_level_ancestor_heading)
             MatchClosing(ancestor_headings[higher_level_ancestor_heading], false)
         elseif first(relevant_parents) ∈ [K"ParagraphSegment", K"Paragraph"]
@@ -49,7 +51,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
         return MatchNotFound()
     end
     token = tokens[i]
-    if kind(next_token) == kind(token) 
+    if kind(next_token) == kind(token)
         new_i = nextind(tokens, next_i)
         new_token = tokens[new_i]
         is_delimiting = true
@@ -62,7 +64,8 @@ function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
             new_token = tokens[new_i]
         end
         if is_delimiting
-            if first(parents) ∈ KSet"NorgDocument IndentSegment StandardRangedTagBody" || is_heading(first(parents))
+            if first(parents) ∈ KSet"NorgDocument IndentSegment StandardRangedTagBody" ||
+                is_heading(first(parents))
                 MatchFound(delimitingmodifier(t))
             else
                 MatchClosing(first(parents), false)
@@ -76,7 +79,7 @@ function match_norg(t::T, parents, tokens, i) where {T<:DelimitingModifier}
 end
 
 function nestable(::Quote, l)
-    if l<=1
+    if l <= 1
         K"Quote1"
     elseif l == 2
         K"Quote2"
@@ -91,7 +94,7 @@ function nestable(::Quote, l)
     end
 end
 function nestable(::UnorderedList, l)
-    if l<=1
+    if l <= 1
         K"UnorderedList1"
     elseif l == 2
         K"UnorderedList2"
@@ -106,7 +109,7 @@ function nestable(::UnorderedList, l)
     end
 end
 function nestable(::OrderedList, l)
-    if l<=1
+    if l <= 1
         K"OrderedList1"
     elseif l == 2
         K"OrderedList2"
@@ -131,7 +134,9 @@ function match_norg(t::T, parents, tokens, i) where {T<:Nestable}
     next_token = tokens[new_i]
     if kind(next_token) == K"Whitespace"
         ancestor_nestable = filter(is_nestable, parents)
-        higher_level_ancestor_id = findfirst(>(current_level)∘nestable_level, ancestor_nestable)
+        higher_level_ancestor_id = findfirst(
+            >(current_level) ∘ nestable_level, ancestor_nestable
+        )
         if !isnothing(higher_level_ancestor_id)
             MatchClosing(ancestor_nestable[higher_level_ancestor_id], false)
         elseif first(parents) == nestable(t, current_level)

@@ -1,7 +1,9 @@
 module TimeZonesExt
 using Dates, TimeZones, Norg
 
-Norg.HAS_TIMEZONES_CAPABILITIES = true
+@static if VERSION ≥ v"1.9"
+    Norg.HAS_TIMEZONES_CAPABILITIES = true
+end
 
 function parse_timezone(::Val{:extension}, w)
     timezone = nothing
@@ -9,10 +11,11 @@ function parse_timezone(::Val{:extension}, w)
         timezone = TimeZone(w)
     catch e
         if e isa ArgumentError
-            @warn "Unable to process timezone" w tokens[i]
+            @warn "Unable to process timezone" w
         else
             rethrow(e)
         end
     end
-    timezone
+    return timezone
+end
 end

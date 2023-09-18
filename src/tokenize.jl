@@ -19,7 +19,7 @@ function tokenize(input::AbstractString)
     result = [SOFToken()]
     while i <= lastindex(input)
         sub = SubString(input, i)
-        token = Scanners.scan(sub, line = linenum, charnum = charnum)
+        token = Scanners.scan(sub; line=linenum, charnum=charnum)
         if is_line_ending(token)
             linenum += 1
             charnum = 1
@@ -30,7 +30,7 @@ function tokenize(input::AbstractString)
         i = nextind(input, i, length(token))
     end
     push!(result, EOFToken())
-    result
+    return result
 end
 
 export tokenize

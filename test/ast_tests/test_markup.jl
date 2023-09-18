@@ -5,20 +5,20 @@ AST = Norg.AST
 textify = Norg.Codegen.textify
 
 simple_markups = [
-("*", K"Bold"),
-("/", K"Italic") ,
-("_", K"Underline"),
-("-", K"Strikethrough"),
-("!", K"Spoiler"),
-("^", K"Superscript"),
-(",", K"Subscript"),
-("`", K"InlineCode"),
-("%", K"NullModifier"),
-("\$", K"InlineMath"),
-("&", K"Variable")
+    ("*", K"Bold"),
+    ("/", K"Italic"),
+    ("_", K"Underline"),
+    ("-", K"Strikethrough"),
+    ("!", K"Spoiler"),
+    ("^", K"Superscript"),
+    (",", K"Subscript"),
+    ("`", K"InlineCode"),
+    ("%", K"NullModifier"),
+    ("\$", K"InlineMath"),
+    ("&", K"Variable"),
 ]
 
-@testset "Standalone markup for $m" for (m,k) in simple_markups
+@testset "Standalone markup for $m" for (m, k) in simple_markups
     ast = norg("$(m)inner$(m)")
     @test ast isa Norg.AST.NorgDocument
     p = first(children(ast.root))
@@ -31,7 +31,7 @@ simple_markups = [
     @test kind(ps) == K"ParagraphSegment"
     w = first(children(ps))
     @test kind(w) == K"WordNode"
-    @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
+    @test join(Norg.Tokens.value.(ast.tokens[(w.start):(w.stop)])) == "inner"
 end
 
 @testset "Markup inside a sentence for $m" for (m, k) in simple_markups
@@ -47,7 +47,7 @@ end
     @test kind(ps) == K"ParagraphSegment"
     w = first(children(ps))
     @test kind(w) == K"WordNode"
-    @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
+    @test join(Norg.Tokens.value.(ast.tokens[(w.start):(w.stop)])) == "inner"
 end
 
 simple_nested_outer = [
@@ -62,7 +62,8 @@ simple_nested_outer = [
 ]
 
 @testset "Nested markup $n inside $m" for (m, T) in simple_nested_outer,
-                                          (n, U) in simple_markups
+    (n, U) in simple_markups
+
     if m == n
         continue
     end
@@ -78,16 +79,12 @@ simple_nested_outer = [
     @test kind(ps) == K"ParagraphSegment"
     w = first(children(ps))
     @test kind(w) == K"WordNode"
-    @test join(Norg.Tokens.value.(ast.tokens[w.start:w.stop])) == "inner"
+    @test join(Norg.Tokens.value.(ast.tokens[(w.start):(w.stop)])) == "inner"
 end
 
-verbatim_nested = [
-    ("`", K"InlineCode"),
-    ("\$", K"InlineMath"),
-    ("&", K"Variable")
-]
+verbatim_nested = [("`", K"InlineCode"), ("\$", K"InlineMath"), ("&", K"Variable")]
 
-@testset "Verbatim markup nesting test: $V" for (v,V) in verbatim_nested
+@testset "Verbatim markup nesting test: $V" for (v, V) in verbatim_nested
     @testset "Nested markup $T inside $V" for (m, T) in simple_markups
         if occursin(m, "`\$&")
             continue
@@ -144,7 +141,7 @@ end
     s = "*/Bold and italic*/"
     ast = norg(s)
     ps = first(children(first(children(ast.root))))
-    b,w = children(ps)
+    b, w = children(ps)
     @test kind(b) == K"Bold"
     @test kind(w) == K"WordNode"
     ps = first(children(b))
@@ -196,10 +193,10 @@ end
     @test kind(ic2) == K"InlineCode"
 end
 
-@testset "Link modifier for: $T" for (m,T) in simple_markups
+@testset "Link modifier for: $T" for (m, T) in simple_markups
     ast = norg("Intra:$(m)word$(m):markup")
     ps = first(children(first(children(ast.root))))
-    w1,mark,w2 = children(ps)
+    w1, mark, w2 = children(ps)
     @test kind(w1) == K"WordNode"
     @test kind(mark) == T
     @test kind(w2) == K"WordNode"
@@ -208,19 +205,18 @@ end
     @test textify(ast, w2) == "markup"
 end
 
-
 simple_freeformmarkups = [
-("*",  K"FreeFormBold"),
-("/",  K"FreeFormItalic") ,
-("_",  K"FreeFormUnderline"),
-("-",  K"FreeFormStrikethrough"),
-("!",  K"FreeFormSpoiler"),
-("^",  K"FreeFormSuperscript"),
-(",",  K"FreeFormSubscript"),
-("`",  K"FreeFormInlineCode"),
-("%",  K"FreeFormNullModifier"),
-("\$", K"FreeFormInlineMath"),
-("&",  K"FreeFormVariable")
+    ("*", K"FreeFormBold"),
+    ("/", K"FreeFormItalic"),
+    ("_", K"FreeFormUnderline"),
+    ("-", K"FreeFormStrikethrough"),
+    ("!", K"FreeFormSpoiler"),
+    ("^", K"FreeFormSuperscript"),
+    (",", K"FreeFormSubscript"),
+    ("`", K"FreeFormInlineCode"),
+    ("%", K"FreeFormNullModifier"),
+    ("\$", K"FreeFormInlineMath"),
+    ("&", K"FreeFormVariable"),
 ]
 
 freeform_templates = [
@@ -230,7 +226,7 @@ freeform_templates = [
     " inner "
 ]
 
-@testset "Standalone markup for $k" for (m,k) in simple_freeformmarkups
+@testset "Standalone markup for $k" for (m, k) in simple_freeformmarkups
     for s in freeform_templates
         ast = norg("$(m)|$s|$(m)")
         @test ast isa Norg.AST.NorgDocument
@@ -248,12 +244,10 @@ freeform_templates = [
 end
 
 verbatim_nested = [
-    ("`",  K"FreeFormInlineCode"),
-    ("\$", K"FreeFormInlineMath"),
-    ("&",  K"FreeFormVariable")
+    ("`", K"FreeFormInlineCode"), ("\$", K"FreeFormInlineMath"), ("&", K"FreeFormVariable")
 ]
 
-@testset "Verbatim markup nesting test: $V" for (v,V) in verbatim_nested
+@testset "Verbatim markup nesting test: $V" for (v, V) in verbatim_nested
     @testset "Nested markup $T inside $V" for (m, T) in simple_markups
         if occursin(m, "`\$&")
             continue

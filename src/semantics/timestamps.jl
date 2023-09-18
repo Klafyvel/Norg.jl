@@ -17,7 +17,7 @@ Example usage:
 """
 function parse_norg_timestamp(tokens, start, stop)
     i, t1 = parse_one_norg_timestamp(tokens, start, stop)
-    if kind(tokens[i]) == K"-" || (i <= stop && kind(tokens[i+1]) == K"-")
+    if kind(tokens[i]) == K"-" || (i <= stop && kind(tokens[i + 1]) == K"-")
         if kind(tokens[i]) != K"-"
             i += 1
         end
@@ -28,11 +28,10 @@ function parse_norg_timestamp(tokens, start, stop)
         i, t2 = parse_one_norg_timestamp(tokens, i, stop)
         t1, t2 = complete_timestamps(t1, t2)
         t1, t2 = to_datetime(t1), to_datetime(t2)
-        (;t1, t2)
+        (; t1, t2)
     else
         (t1=to_datetime(t1), t2=nothing)
     end
-    
 end
 
 function to_datetime(t)
@@ -43,11 +42,11 @@ function to_datetime(t)
     end
     stop = findfirst(isnothing.(args))
     if !isnothing(stop)
-        args = args[1:stop-1]
+        args = args[1:(stop - 1)]
     end
     if isempty(args)
         return nothing
-    end    
+    end
     dt = DateTime(args...)
     if isnothing(t.timezone)
         dt
@@ -74,7 +73,7 @@ function complete_timestamps(t1, t2)
             dt2[field] = f1
         end
     end
-    (t1=NamedTuple(dt1), t2=NamedTuple(dt2))
+    return (t1=NamedTuple(dt1), t2=NamedTuple(dt2))
 end
 
 function warn_if_no_separator(param, tokens, i, stop)
@@ -85,7 +84,9 @@ function warn_if_no_separator(param, tokens, i, stop)
 end
 
 function parse_one_norg_timestamp_should_return(tokens, i, stop)
-    i >= stop || kind(tokens[i]) == K"-" || (i <= stop && kind(tokens[i+1]) == K"-")
+    return i >= stop ||
+               kind(tokens[i]) == K"-" ||
+               (i <= stop && kind(tokens[i + 1]) == K"-")
 end
 
 function parse_one_norg_timestamp(tokens, start, stop)
@@ -104,13 +105,13 @@ function parse_one_norg_timestamp(tokens, start, stop)
         i = nextind(tokens, i)
         token = tokens[i]
         if parse_one_norg_timestamp_should_return(tokens, i, stop)
-            return i, (;day, day_of_month, month, year, time, timezone)
+            return i, (; day, day_of_month, month, year, time, timezone)
         elseif kind(token) == K","
             i = nextind(tokens, i)
             token = tokens[i]
         end
         if parse_one_norg_timestamp_should_return(tokens, i, stop)
-            return i, (;day, day_of_month, month, year, time, timezone)
+            return i, (; day, day_of_month, month, year, time, timezone)
         else
             warn_if_no_separator("Day", tokens, i, stop)
             i = nextind(tokens, i)
@@ -124,7 +125,7 @@ function parse_one_norg_timestamp(tokens, start, stop)
         i = nextind(tokens, i)
         token = tokens[i]
         if parse_one_norg_timestamp_should_return(tokens, i, stop)
-            return i, (;day, day_of_month, month, year, time, timezone)
+            return i, (; day, day_of_month, month, year, time, timezone)
         else
             warn_if_no_separator("Day of the month", tokens, i, stop)
             i = nextind(tokens, i)
@@ -137,7 +138,7 @@ function parse_one_norg_timestamp(tokens, start, stop)
         i = nextind(tokens, i)
         token = tokens[i]
         if parse_one_norg_timestamp_should_return(tokens, i, stop)
-            return i, (;day, day_of_month, month, year, time, timezone)
+            return i, (; day, day_of_month, month, year, time, timezone)
         else
             warn_if_no_separator("Month", tokens, i, stop)
             i = nextind(tokens, i)
@@ -150,7 +151,7 @@ function parse_one_norg_timestamp(tokens, start, stop)
         i = nextind(tokens, i)
         token = tokens[i]
         if parse_one_norg_timestamp_should_return(tokens, i, stop)
-            return i, (;day, day_of_month, month, year, time, timezone)
+            return i, (; day, day_of_month, month, year, time, timezone)
         else
             warn_if_no_separator("Year", tokens, i, stop)
             i = nextind(tokens, i)
@@ -162,9 +163,9 @@ function parse_one_norg_timestamp(tokens, start, stop)
         s = join(value.(tokens[i:next_space]))
         time = tryparse(Time, s, dateformat"HH:MM.SS")
         if !isnothing(time)
-            i = next_space+1
+            i = next_space + 1
             if parse_one_norg_timestamp_should_return(tokens, i, stop)
-                return i, (;day, day_of_month, month, year, time, timezone)
+                return i, (; day, day_of_month, month, year, time, timezone)
             else
                 warn_if_no_separator("Time", tokens, i, stop)
                 i = nextind(tokens, i)
@@ -173,14 +174,14 @@ function parse_one_norg_timestamp(tokens, start, stop)
         end
     end
     if i <= stop
-        stop_timestamp = Parser.consume_until(KSet"Whitespace -", tokens, i)-2
+        stop_timestamp = Parser.consume_until(KSet"Whitespace -", tokens, i) - 2
         if stop_timestamp <= stop
             w = join(value.(tokens[i:stop_timestamp]))
             timezone = parse_timezone(w)
             i = stop_timestamp + 1
         end
     end
-    return i, (;day, day_of_month, month, year, time, timezone)
+    return i, (; day, day_of_month, month, year, time, timezone)
 end
 
 function parse_day(tokens, start, _)
@@ -230,7 +231,7 @@ end
 function parse_year(tokens, start, _)
     token = tokens[start]
     w = value(token)
-    tryparse(Int64, w)
+    return tryparse(Int64, w)
 end
 
 function parse_timezone(w)
@@ -240,4 +241,3 @@ function parse_timezone(w)
         nothing
     end
 end
-

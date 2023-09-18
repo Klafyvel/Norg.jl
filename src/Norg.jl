@@ -36,7 +36,11 @@ Path to the Norg semantics specification.
 """
 const NORG_SEMANTICS_PATH = joinpath(NORG_SPEC_ROOT, "1.0-semantics.norg")
 
-HAS_TIMEZONES_CAPABILITIES = false
+@static if VERSION < v"1.9"
+    HAS_TIMEZONES_CAPABILITIES = true
+else
+    HAS_TIMEZONES_CAPABILITIES = false
+end
 
 using AbstractTrees
 
@@ -64,7 +68,6 @@ include("semantics/timestamps.jl")
 include("codegen.jl")
 using .Codegen
 
-
 """
     norg([codegentarget, ] s)
 
@@ -85,8 +88,8 @@ julia> norg(HTMLTarget(), "* Hello world!")
 <div class="norg"><section id="section-h1-hello-world"><h1 id="h1-hello-world">Hello world&#33;</h1></section><section class="footnotes"><ol></ol></section></div>
 ```
 """
-norg(s)= parse_norg(tokenize(s))
-norg(t::T, s) where {T <: Codegen.CodegenTarget} = codegen(t, norg(s))
+norg(s) = parse_norg(tokenize(s))
+norg(t::T, s) where {T<:Codegen.CodegenTarget} = codegen(t, norg(s))
 
 """
 Easily parse Norg string to an AST. This can be used in *e.g.* Pluto notebooks,
@@ -107,12 +110,12 @@ NorgDocument
       └─ Example
 ```
 """
-macro norg_str(s, t ...)
-	norg(s)
+macro norg_str(s, t...)
+    return norg(s)
 end
 
 function Base.show(io::IO, ::MIME"text/html", ast::AST.NorgDocument)
-    print(io, codegen(HTMLTarget(), ast))
+    return print(io, codegen(HTMLTarget(), ast))
 end
 
 using SnoopPrecompile
@@ -204,4 +207,7 @@ end
 export HTMLTarget, JSONTarget
 export @norg_str, norg
 
+if !isdefined(Base, :get_extension)
+    include("../ext/TimeZonesExt.jl")
+end
 end

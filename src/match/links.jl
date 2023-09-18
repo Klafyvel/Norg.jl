@@ -31,7 +31,7 @@ function match_norg(::LinkDescription, parents, tokens, i)
 end
 
 function match_norg(::LinkSubTarget, parents, tokens, i)
-    if kind(first(parents)) == K"FileLocation" 
+    if kind(first(parents)) == K"FileLocation"
         if isnumeric(first(value(tokens[i])))
             MatchFound(K"LineNumberLocation")
         else
@@ -61,7 +61,9 @@ function match_norg(::Anchor, parents, tokens, i)
 end
 
 function match_norg(::InlineLinkTarget, parents, tokens, i)
-    if kind(tokens[i]) == K"<" && kind(tokens[nextind(tokens, i)]) != K"LineEnding" && K"InlineLinkTarget" ∉ parents
+    if kind(tokens[i]) == K"<" &&
+        kind(tokens[nextind(tokens, i)]) != K"LineEnding" &&
+        K"InlineLinkTarget" ∉ parents
         MatchFound(K"InlineLinkTarget")
     else
         MatchNotFound()

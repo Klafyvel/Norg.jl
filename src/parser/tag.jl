@@ -28,7 +28,10 @@ function parse_tag_header(parents::Vector{Kind}, tokens::Vector{Token}, i)
     start_current = i
     while !is_eof(tokens[i]) && kind(token) != K"LineEnding"
         if is_whitespace(token)
-            push!(children, AST.Node(K"TagParameter", AST.Node[], start_current, prevind(tokens, i)))
+            push!(
+                children,
+                AST.Node(K"TagParameter", AST.Node[], start_current, prevind(tokens, i)),
+            )
             i = nextind(tokens, i)
             start_current = i
             token = tokens[i]
@@ -43,12 +46,15 @@ function parse_tag_header(parents::Vector{Kind}, tokens::Vector{Token}, i)
     end
     if kind(token) == K"LineEnding"
         if start_current < i
-            push!(children, AST.Node(K"TagParameter", AST.Node[], start_current, prevind(tokens, i)))
+            push!(
+                children,
+                AST.Node(K"TagParameter", AST.Node[], start_current, prevind(tokens, i)),
+            )
         end
         i = nextind(tokens, i)
         token = tokens[i]
     end
-    children, i
+    return children, i
 end
 
 tag(::Verbatim) = K"Verbatim"
@@ -56,7 +62,7 @@ tag(::StandardRangedTag) = K"StandardRangedTag"
 body(::Verbatim) = K"VerbatimBody"
 body(::StandardRangedTag) = K"StandardRangedTagBody"
 
-function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where {T <: Tag}
+function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where {T<:Tag}
     start = i
     children, i = parse_tag_header(parents, tokens, i)
     token = tokens[i]
@@ -85,7 +91,7 @@ function parse_norg(t::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where
         i = nextind(tokens, AST.stop(c))
     end
     push!(children, AST.Node(body(t), body_children, start_content, stop_content))
-    AST.Node(tag(t), children, start, i)
+    return AST.Node(tag(t), children, start, i)
 end
 
 function parse_norg(::WeakCarryoverTag, parents::Vector{Kind}, tokens::Vector{Token}, i)
@@ -95,7 +101,12 @@ function parse_norg(::WeakCarryoverTag, parents::Vector{Kind}, tokens::Vector{To
     if kind(content) == K"Paragraph" || is_nestable(kind(content))
         content_children = content.children
         first_segment = first(content_children)
-        content_children[1] = AST.Node(K"WeakCarryoverTag", [children..., first_segment], start, AST.stop(first_segment))
+        content_children[1] = AST.Node(
+            K"WeakCarryoverTag",
+            [children..., first_segment],
+            start,
+            AST.stop(first_segment),
+        )
         AST.Node(kind(content), content_children, AST.start(content), AST.stop(content))
     else
         AST.Node(K"WeakCarryoverTag", [children..., content], start, AST.stop(content))

@@ -4,7 +4,7 @@ token_tag(::Verbatim) = K"@"
 token_tag(::StandardRangedTag) = K"|"
 body(::Verbatim) = K"VerbatimBody"
 body(::StandardRangedTag) = K"StandardRangedTagBody"
-function match_norg(t::T, parents, tokens, i) where {T <: Tag}
+function match_norg(t::T, parents, tokens, i) where {T<:Tag}
     i = nextind(tokens, i)
     token = tokens[i]
     if kind(token) == K"Word"
@@ -20,7 +20,11 @@ function match_norg(t::T, parents, tokens, i) where {T <: Tag}
             MatchNotFound()
         elseif kind(first(parents)) ∈ KSet"Slide IndentSegment"
             MatchFound(tag(t))
-        elseif !(is_nestable(first(parents)) || is_heading(first(parents)) || kind(first(parents)) ∈ KSet"NorgDocument StandardRangedTagBody") 
+        elseif !(
+            is_nestable(first(parents)) ||
+            is_heading(first(parents)) ||
+            kind(first(parents)) ∈ KSet"NorgDocument StandardRangedTagBody"
+        )
             MatchClosing(first(parents), false)
         else
             MatchFound(tag(t))
@@ -54,7 +58,9 @@ function match_norg(::StrongCarryoverTag, parents, tokens, i)
         parents
     end
     if kind(token) == K"Word"
-        if is_nestable(first(relevant_parents)) || K"Paragraph" ∈ relevant_parents || K"NestableItem" ∈ relevant_parents
+        if is_nestable(first(relevant_parents)) ||
+            K"Paragraph" ∈ relevant_parents ||
+            K"NestableItem" ∈ relevant_parents
             MatchClosing(first(relevant_parents), false)
         else
             MatchFound(K"StrongCarryoverTag")

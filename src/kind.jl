@@ -12,14 +12,14 @@ module Kinds
 All the defined kind names.
 """
 const _kind_names = [
-  "None"
-  "StartOfFile"
-  "EndOfFile"
-  "BEGIN_WHITESPACE"
+    "None"
+    "StartOfFile"
+    "EndOfFile"
+    "BEGIN_WHITESPACE"
     "LineEnding"
     "Whitespace"
-  "END_WHITESPACE"
-  "BEGIN_PUNCTUATION"
+    "END_WHITESPACE"
+    "BEGIN_PUNCTUATION"
     "Punctuation"
     "\\"
     "*"
@@ -50,37 +50,37 @@ const _kind_names = [
     ")"
     "|"
     "+"
-  "END_PUNCTUATION"
-  "x"
-  "Word"
+    "END_PUNCTUATION"
+    "x"
+    "Word"
 
-  # AST stuff
-  "NorgDocument"
-  "BEGIN_AST_NODE"
+    # AST stuff
+    "NorgDocument"
+    "BEGIN_AST_NODE"
     # Leafs contain a set of tokens.
     "BEGIN_AST_LEAF"
-      "WordNode" 
-      "Number"
-      "TagName"
-      "TagParameter"
-      "VerbatimBody"
-      "HeadingPreamble"
-      "NestablePreamble"
-      "LineNumberTarget"
-      "URLTarget"
-      "FileTarget"
-      "FileNorgRootTarget"
-      "Timestamp"
-      "BEGIN_TODO_STATUS"
-        "StatusUndone"
-        "StatusDone"
-        "StatusNeedFurtherInput"
-        "StatusUrgent"
-        "StatusRecurring"
-        "StatusInProgress"
-        "StatusOnHold"
-        "StatusCancelled"
-      "END_TODO_STATUS"
+    "WordNode"
+    "Number"
+    "TagName"
+    "TagParameter"
+    "VerbatimBody"
+    "HeadingPreamble"
+    "NestablePreamble"
+    "LineNumberTarget"
+    "URLTarget"
+    "FileTarget"
+    "FileNorgRootTarget"
+    "Timestamp"
+    "BEGIN_TODO_STATUS"
+    "StatusUndone"
+    "StatusDone"
+    "StatusNeedFurtherInput"
+    "StatusUrgent"
+    "StatusRecurring"
+    "StatusInProgress"
+    "StatusOnHold"
+    "StatusCancelled"
+    "END_TODO_STATUS"
     "END_AST_LEAF"
     "Paragraph"
     "ParagraphSegment"
@@ -92,117 +92,116 @@ const _kind_names = [
     "RangeableItem"
     "StandardRangedTagBody"
     "BEGIN_TAG"
-        "BEGIN_RANGED_TAG"
-            "Verbatim"
-        "END_RANGED_TAG"
-        "BEGIN_CARRYOVER_TAG"
-            "WeakCarryoverTag"
-            "StrongCarryoverTag"
-        "END_CARRYOVER_TAG"
-        "StandardRangedTag"
+    "BEGIN_RANGED_TAG"
+    "Verbatim"
+    "END_RANGED_TAG"
+    "BEGIN_CARRYOVER_TAG"
+    "WeakCarryoverTag"
+    "StrongCarryoverTag"
+    "END_CARRYOVER_TAG"
+    "StandardRangedTag"
     "END_TAG"
     "HeadingTitle"
     "BEGIN_MATCHED_INLINE"
-      "BEGIN_ATTACHED_MODIFIER"
-        "Bold"
-        "Italic"
-        "Underline" 
-        "Strikethrough"
-        "Spoiler"
-        "Superscript"
-        "Subscript"
-        "InlineCode"
-        "NullModifier"
-        "InlineMath"
-        "Variable"
-        "BEGIN_FREE_FORM_ATTACHED_MODIFIER"
-          "FreeFormBold"
-          "FreeFormItalic"
-          "FreeFormUnderline" 
-          "FreeFormStrikethrough"
-          "FreeFormSpoiler"
-          "FreeFormSuperscript"
-          "FreeFormSubscript"
-          "FreeFormInlineCode"
-          "FreeFormNullModifier"
-          "FreeFormInlineMath"
-          "FreeFormVariable"
-        "END_FREE_FORM_ATTACHED_MODIFIER"
-      "END_ATTACHED_MODIFIER"
-      "BEGIN_LINK_LOCATION"
-        "URLLocation"
-        "LineNumberLocation"
-        "DetachedModifierLocation"
-        "MagicLocation"
-        "FileLocation"
-        "NorgFileLocation"
-        "WikiLocation"
-        "TimestampLocation"
-      "END_LINK_LOCATION"
-      "LinkDescription"
-      "LinkLocation"
-      "InlineLinkTarget"
+    "BEGIN_ATTACHED_MODIFIER"
+    "Bold"
+    "Italic"
+    "Underline"
+    "Strikethrough"
+    "Spoiler"
+    "Superscript"
+    "Subscript"
+    "InlineCode"
+    "NullModifier"
+    "InlineMath"
+    "Variable"
+    "BEGIN_FREE_FORM_ATTACHED_MODIFIER"
+    "FreeFormBold"
+    "FreeFormItalic"
+    "FreeFormUnderline"
+    "FreeFormStrikethrough"
+    "FreeFormSpoiler"
+    "FreeFormSuperscript"
+    "FreeFormSubscript"
+    "FreeFormInlineCode"
+    "FreeFormNullModifier"
+    "FreeFormInlineMath"
+    "FreeFormVariable"
+    "END_FREE_FORM_ATTACHED_MODIFIER"
+    "END_ATTACHED_MODIFIER"
+    "BEGIN_LINK_LOCATION"
+    "URLLocation"
+    "LineNumberLocation"
+    "DetachedModifierLocation"
+    "MagicLocation"
+    "FileLocation"
+    "NorgFileLocation"
+    "WikiLocation"
+    "TimestampLocation"
+    "END_LINK_LOCATION"
+    "LinkDescription"
+    "LinkLocation"
+    "InlineLinkTarget"
     "END_MATCHED_INLINE"
     "BEGIN_DETACHED_MODIFIER"
-      "BEGIN_HEADING"
-        "Heading1"
-        "Heading2"
-        "Heading3"
-        "Heading4"
-        "Heading5"
-        "Heading6"
-      "END_HEADING"
-      "BEGIN_DELIMITING_MODIFIER"
-        "WeakDelimitingModifier"
-        "StrongDelimitingModifier"
-        "HorizontalRule"
-      "END_DELIMITING_MODIFIER"
-      "BEGIN_NESTABLE"
-        "BEGIN_UNORDERED_LIST"
-          "UnorderedList1"
-          "UnorderedList2"
-          "UnorderedList3"
-          "UnorderedList4"
-          "UnorderedList5"
-          "UnorderedList6"
-        "END_UNORDERED_LIST"
-        "BEGIN_ORDERED_LIST"
-          "OrderedList1"
-          "OrderedList2"
-          "OrderedList3"
-          "OrderedList4"
-          "OrderedList5"
-          "OrderedList6"
-        "END_ORDERED_LIST"
-        "BEGIN_QUOTE"
-          "Quote1"
-          "Quote2"
-          "Quote3"
-          "Quote4"
-          "Quote5"
-          "Quote6"
-        "END_QUOTE"
-      "END_NESTABLE"
-      "BEGIN_DETACHED_MODIFIER_EXTENSIONS"
-        "TodoExtension"
-        "TimestampExtension"
-        "PriorityExtension"
-        "DueDateExtension"
-        "StartDateExtension"
-      "END_DETACHED_MODIFIER_EXTENSIONS"
-      "BEGIN_RANGEABLE_DETACHED_MODIFIERS"
-        "Definition"
-        "TableCell"
-        "Footnote"
-      "END_RANGEABLE_DETACHED_MODIFIERS"
-      "BEGIN_DETACHED_MODIFIER_SUFFIX"
-        "Slide"
-        "IndentSegment"
-      "END_DETACHED_MODIFIER_SUFFIX"
+    "BEGIN_HEADING"
+    "Heading1"
+    "Heading2"
+    "Heading3"
+    "Heading4"
+    "Heading5"
+    "Heading6"
+    "END_HEADING"
+    "BEGIN_DELIMITING_MODIFIER"
+    "WeakDelimitingModifier"
+    "StrongDelimitingModifier"
+    "HorizontalRule"
+    "END_DELIMITING_MODIFIER"
+    "BEGIN_NESTABLE"
+    "BEGIN_UNORDERED_LIST"
+    "UnorderedList1"
+    "UnorderedList2"
+    "UnorderedList3"
+    "UnorderedList4"
+    "UnorderedList5"
+    "UnorderedList6"
+    "END_UNORDERED_LIST"
+    "BEGIN_ORDERED_LIST"
+    "OrderedList1"
+    "OrderedList2"
+    "OrderedList3"
+    "OrderedList4"
+    "OrderedList5"
+    "OrderedList6"
+    "END_ORDERED_LIST"
+    "BEGIN_QUOTE"
+    "Quote1"
+    "Quote2"
+    "Quote3"
+    "Quote4"
+    "Quote5"
+    "Quote6"
+    "END_QUOTE"
+    "END_NESTABLE"
+    "BEGIN_DETACHED_MODIFIER_EXTENSIONS"
+    "TodoExtension"
+    "TimestampExtension"
+    "PriorityExtension"
+    "DueDateExtension"
+    "StartDateExtension"
+    "END_DETACHED_MODIFIER_EXTENSIONS"
+    "BEGIN_RANGEABLE_DETACHED_MODIFIERS"
+    "Definition"
+    "TableCell"
+    "Footnote"
+    "END_RANGEABLE_DETACHED_MODIFIERS"
+    "BEGIN_DETACHED_MODIFIER_SUFFIX"
+    "Slide"
+    "IndentSegment"
+    "END_DETACHED_MODIFIER_SUFFIX"
     "END_DETACHED_MODIFIER"
-  "END_AST_NODE"
+    "END_AST_NODE"
 ]
-
 
 """
     Kind(name)
@@ -212,9 +211,7 @@ This is type tag, used to specify the type of tokens and AST nodes.
 """
 primitive type Kind 8 end
 
-let kind_int_type = :UInt8,
-    max_kind_int = length(_kind_names)-1
-
+let kind_int_type = :UInt8, max_kind_int = length(_kind_names) - 1
     @eval begin
         function Kind(x::Integer)
             if x < 0 || x > $max_kind_int
@@ -223,12 +220,12 @@ let kind_int_type = :UInt8,
             return Base.bitcast(Kind, convert($kind_int_type, x))
         end
 
-        let kindstr_to_int = Dict(s=>i-1 for (i,s) in enumerate(_kind_names))
+        let kindstr_to_int = Dict(s => i - 1 for (i, s) in enumerate(_kind_names))
             function Base.convert(::Type{Kind}, s::AbstractString)
                 i = get(kindstr_to_int, s) do
                     error("unknown Kind name $(repr(s))")
                 end
-                Kind(i)
+                return Kind(i)
             end
         end
 
@@ -238,15 +235,29 @@ let kind_int_type = :UInt8,
         Base.typemin(::Type{Kind}) = Kind(0)
         Base.typemax(::Type{Kind}) = Kind($max_kind_int)
 
-        Base.instances(::Type{Kind}) = (Kind(i) for i in reinterpret($kind_int_type, typemin(Kind)):reinterpret($kind_int_type, typemax(Kind)))
-        Base.:<(x::Kind, y::Kind) = reinterpret($kind_int_type, x) < reinterpret($kind_int_type, y)
+        function Base.instances(::Type{Kind})
+            return (
+                Kind(i) for i in
+                reinterpret($kind_int_type, typemin(Kind)):reinterpret(
+                    $kind_int_type, typemax(Kind)
+                )
+            )
+        end
+        function Base.:<(x::Kind, y::Kind)
+            return reinterpret($kind_int_type, x) < reinterpret($kind_int_type, y)
+        end
 
-        all_single_punctuation_tokens() = (Kind(i) for i in (reinterpret($kind_int_type, convert(Kind, "Punctuation"))+1):(reinterpret($kind_int_type, convert(Kind, "END_PUNCTUATION"))-1))
+        function all_single_punctuation_tokens()
+            return (
+                Kind(i) for i in
+                (reinterpret($kind_int_type, convert(Kind, "Punctuation")) + 1):(reinterpret($kind_int_type, convert(Kind, "END_PUNCTUATION")) - 1)
+            )
+        end
     end
 end
 
 function Base.show(io::IO, k::Kind)
-    print(io, "K\"$(string(k))\"")
+    return print(io, "K\"$(string(k))\"")
 end
 
 """
@@ -256,7 +267,7 @@ For example
 * K">" is the kind of the greater than sign token
 """
 macro K_str(s)
-    convert(Kind, s)
+    return convert(Kind, s)
 end
 
 """
@@ -286,11 +297,17 @@ kind(::Nothing) = K"None"
 is_leaf(k::Kind) = K"BEGIN_AST_LEAF" < k < K"END_AST_LEAF"
 is_matched_inline(k::Kind) = K"BEGIN_MATCHED_INLINE" < k < K"END_MATCHED_INLINE"
 is_attached_modifier(k::Kind) = K"BEGIN_ATTACHED_MODIFIER" < k < K"END_ATTACHED_MODIFIER"
-is_free_form_attached_modifier(k::Kind) = K"BEGIN_FREE_FORM_ATTACHED_MODIFIER" < k < K"END_FREE_FORM_ATTACHED_MODIFIER"
+function is_free_form_attached_modifier(k::Kind)
+    return K"BEGIN_FREE_FORM_ATTACHED_MODIFIER" < k < K"END_FREE_FORM_ATTACHED_MODIFIER"
+end
 is_link_location(k::Kind) = K"BEGIN_LINK_LOCATION" < k < K"END_LINK_LOCATION"
 is_detached_modifier(k::Kind) = K"BEGIN_DETACHED_MODIFIER" < k < K"END_DETACHED_MODIFIER"
-is_detached_modifier_extension(k::Kind) = K"BEGIN_DETACHED_MODIFIER_EXTENSIONS" < k < K"END_DETACHED_MODIFIER_EXTENSIONS"
-is_delimiting_modifier(k::Kind) = K"BEGIN_DELIMITING_MODIFIER" < k < K"END_DELIMITING_MODIFIER"
+function is_detached_modifier_extension(k::Kind)
+    return K"BEGIN_DETACHED_MODIFIER_EXTENSIONS" < k < K"END_DETACHED_MODIFIER_EXTENSIONS"
+end
+function is_delimiting_modifier(k::Kind)
+    return K"BEGIN_DELIMITING_MODIFIER" < k < K"END_DELIMITING_MODIFIER"
+end
 is_nestable(k::Kind) = K"BEGIN_NESTABLE" < k < K"END_NESTABLE"
 is_heading(k::Kind) = K"BEGIN_HEADING" < k < K"END_HEADING"
 is_unordered_list(k::Kind) = K"BEGIN_UNORDERED_LIST" < k < K"END_UNORDERED_LIST"

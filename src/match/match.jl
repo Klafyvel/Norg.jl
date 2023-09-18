@@ -14,7 +14,7 @@ be `found`, can be `closing` (*i.e.* closing an attached modifier), `continued`
 (as in "ignore this token and continue parsing"). Whether the parser should 
 `consume` or not the current token is given by the `consume` field.
 """
-struct MatchResult 
+struct MatchResult
     kind::Kind
     found::Bool
     closing::Bool
@@ -31,7 +31,7 @@ isclosing(m::MatchResult) = m.closing
 iscontinue(m::MatchResult) = m.continued
 isnotfound(m::MatchResult) = !m.found
 consume(m::MatchResult) = m.consume
-matched(m::MatchResult)= m.kind
+matched(m::MatchResult) = m.kind
 
 function Base.show(io::IO, m::MatchResult)
     if isclosing(m)
@@ -43,7 +43,7 @@ function Base.show(io::IO, m::MatchResult)
     else
         print(io, "MatchFound(")
     end
-    print(io, "kind=$(matched(m)), consume=$(consume(m)))")
+    return print(io, "kind=$(matched(m)), consume=$(consume(m)))")
 end
 
 """
@@ -99,7 +99,7 @@ function match_norg(parents, tokens, i)
         match_norg(LineEnding(), parents, tokens, i)
     elseif kind(token) == K"*"
         match_norg(Star(), parents, tokens, i)
-    elseif kind(token) == K"/" 
+    elseif kind(token) == K"/"
         match_norg(Slash(), parents, tokens, i)
     elseif kind(token) == K"_"
         match_norg(Underscore(), parents, tokens, i)
@@ -118,25 +118,25 @@ function match_norg(parents, tokens, i)
     elseif kind(token) == K"&"
         match_norg(Ampersand(), parents, tokens, i)
     elseif kind(token) == K"\\"
-        match_norg(BackSlash(), parents, tokens, i)        
+        match_norg(BackSlash(), parents, tokens, i)
     elseif kind(token) == K"="
-        match_norg(EqualSign(), parents, tokens, i)        
+        match_norg(EqualSign(), parents, tokens, i)
     elseif kind(token) == K"{"
-        match_norg(LeftBrace(), parents, tokens, i)        
+        match_norg(LeftBrace(), parents, tokens, i)
     elseif kind(token) == K"}"
-        match_norg(RightBrace(), parents, tokens, i)        
+        match_norg(RightBrace(), parents, tokens, i)
     elseif kind(token) == K"]"
-        match_norg(RightSquareBracket(), parents, tokens, i)        
+        match_norg(RightSquareBracket(), parents, tokens, i)
     elseif kind(token) == K"["
-        match_norg(LeftSquareBracket(), parents, tokens, i)        
+        match_norg(LeftSquareBracket(), parents, tokens, i)
     elseif kind(token) == K"~"
-        match_norg(Tilde(), parents, tokens, i)        
+        match_norg(Tilde(), parents, tokens, i)
     elseif kind(token) == K">"
-        match_norg(GreaterThanSign(), parents, tokens, i)        
+        match_norg(GreaterThanSign(), parents, tokens, i)
     elseif kind(token) == K"<"
-        match_norg(LesserThanSign(), parents, tokens, i)        
+        match_norg(LesserThanSign(), parents, tokens, i)
     elseif kind(token) == K"@"
-        match_norg(CommercialAtSign(), parents, tokens, i)        
+        match_norg(CommercialAtSign(), parents, tokens, i)
     elseif kind(token) == K"("
         match_norg(LeftParenthesis(), parents, tokens, i)
     elseif kind(token) == K")"
@@ -159,10 +159,10 @@ function match_norg(parents, tokens, i)
     if isnotfound(m)
         m = match_norg(Word(), parents, tokens, i)
     end
-    m
+    return m
 end
 
-function match_norg(::Word, parents, tokens, i) 
+function match_norg(::Word, parents, tokens, i)
     if is_nestable(first(parents))
         MatchClosing(first(parents), false)
     else
@@ -211,7 +211,7 @@ end
 
 function match_norg(::LineEnding, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
-    if first(parents) == K"NorgDocument" 
+    if first(parents) == K"NorgDocument"
         MatchContinue()
     elseif is_line_ending(prev_token)
         nestable_parents = filter(is_nestable, parents[2:end])
@@ -244,7 +244,7 @@ function match_norg(::LineEnding, parents, tokens, i)
             MatchContinue()
         end
     elseif K"ParagraphSegment" ∈ parents
-        MatchClosing(K"ParagraphSegment", first(parents)==K"ParagraphSegment")
+        MatchClosing(K"ParagraphSegment", first(parents) == K"ParagraphSegment")
     elseif K"StandardRangedTagBody" ∈ parents
         i = nextind(tokens, i)
         m = match_norg(StandardRangedTag(), parents, tokens, nextind(tokens, i))
@@ -269,7 +269,7 @@ function match_norg(::Star, parents, tokens, i)
     if isnotfound(m)
         m = match_norg(Bold(), parents, tokens, i)
     end
-    m
+    return m
 end
 
 match_norg(::Slash, parents, tokens, i) = match_norg(Italic(), parents, tokens, i)
@@ -305,12 +305,14 @@ function match_norg(::Minus, parents, tokens, i)
     end
 end
 
-match_norg(::ExclamationMark, parents, tokens, i) = match_norg(Spoiler(), parents, tokens, i)
+function match_norg(::ExclamationMark, parents, tokens, i)
+    return match_norg(Spoiler(), parents, tokens, i)
+end
 
 function match_norg(::Circumflex, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
     m = if is_line_ending(prev_token) || is_sof(prev_token)
-        match_norg(Footnote(), parents, tokens, i)    
+        match_norg(Footnote(), parents, tokens, i)
     else
         MatchNotFound()
     end
@@ -323,9 +325,13 @@ end
 
 match_norg(::Comma, parents, tokens, i) = match_norg(Subscript(), parents, tokens, i)
 
-match_norg(::BackApostrophe, parents, tokens, i) = match_norg(InlineCode(), parents, tokens, i)
+function match_norg(::BackApostrophe, parents, tokens, i)
+    return match_norg(InlineCode(), parents, tokens, i)
+end
 
-match_norg(::PercentSign, parents, tokens, i) = match_norg(NullModifier(), parents, tokens, i)
+function match_norg(::PercentSign, parents, tokens, i)
+    return match_norg(NullModifier(), parents, tokens, i)
+end
 
 match_norg(::Ampersand, parents, tokens, i) = match_norg(Variable(), parents, tokens, i)
 
@@ -338,13 +344,13 @@ function match_norg(::Colon, parents, tokens, i)
         next_token = tokens[next_i]
         prev_i = prevind(tokens, i)
         prev_token = tokens[prev_i]
-        if kind(next_token) ∈ ATTACHED_DELIMITERS 
+        if kind(next_token) ∈ ATTACHED_DELIMITERS
             m = match_norg(parents, tokens, next_i)
             if isfound(m) && AST.is_attached_modifier(kind(matched(m)))
                 return MatchContinue()
             end
         end
-        MatchNotFound()    
+        MatchNotFound()
     else
         m
     end
@@ -395,7 +401,7 @@ function match_norg(::LeftSquareBracket, parents, tokens, i)
     end
     prev_i = prevind(tokens, i)
     last_token = tokens[prev_i]
-    next_i = nextind(tokens,i)
+    next_i = nextind(tokens, i)
     next_token = tokens[next_i]
     if kind(last_token) == K"}" && kind(next_token) != K"LineEnding"
         MatchFound(K"LinkDescription")
@@ -424,13 +430,15 @@ function match_norg(::GreaterThanSign, parents, tokens, i)
     end
 end
 
-match_norg(::LesserThanSign, parents, tokens, i) = match_norg(InlineLinkTarget(), parents, tokens, i)
+function match_norg(::LesserThanSign, parents, tokens, i)
+    return match_norg(InlineLinkTarget(), parents, tokens, i)
+end
 
 tag_to_strategy(::CommercialAtSign) = Verbatim()
 tag_to_strategy(::Plus) = WeakCarryoverTag()
 tag_to_strategy(::NumberSign) = StrongCarryoverTag()
 
-function match_norg(t::Union{CommercialAtSign, Plus, NumberSign}, parents, tokens, i)
+function match_norg(t::Union{CommercialAtSign,Plus,NumberSign}, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
     if is_sof(prev_token) || is_line_ending(prev_token)
         match_norg(tag_to_strategy(t), parents, tokens, i)
@@ -450,7 +458,7 @@ end
 function match_norg(::DollarSign, parents, tokens, i)
     prev_token = tokens[prevind(tokens, i)]
     m = if is_line_ending(prev_token) || is_sof(prev_token)
-        match_norg(Definition(), parents, tokens, i)    
+        match_norg(Definition(), parents, tokens, i)
     else
         MatchNotFound()
     end
@@ -468,7 +476,7 @@ function match_norg(::VerticalBar, parents, tokens, i)
         match_norg(StandardRangedTag(), parents, tokens, i)
     elseif kind(next_token) == K"*"
         match_norg(FreeFormBold(), parents, tokens, i)
-    elseif kind(next_token) == K"/" 
+    elseif kind(next_token) == K"/"
         match_norg(FreeFormItalic(), parents, tokens, i)
     elseif kind(next_token) == K"_"
         match_norg(FreeFormUnderline(), parents, tokens, i)
@@ -494,7 +502,8 @@ function match_norg(::VerticalBar, parents, tokens, i)
 end
 
 function match_norg(::LeftParenthesis, parents, tokens, i)
-    if is_detached_modifier(first(parents)) || (length(parents) > 1 && is_detached_modifier(parents[2]))
+    if is_detached_modifier(first(parents)) ||
+        (length(parents) > 1 && is_detached_modifier(parents[2]))
         match_norg(DetachedModifierExtension(), parents, tokens, i)
     else
         MatchNotFound()

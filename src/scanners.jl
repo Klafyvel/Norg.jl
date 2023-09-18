@@ -16,7 +16,12 @@ matching token was found.
 struct ScanResult
     length::Int64
 end
-ScanResult(res::Bool) = if res ScanResult(1) else ScanResult(0) end
+ScanResult(res::Bool) =
+    if res
+        ScanResult(1)
+    else
+        ScanResult(0)
+    end
 success(scanresult::ScanResult) = scanresult.length > 0
 
 abstract type ScanStrategy end
@@ -60,7 +65,7 @@ function scan(list::AbstractArray, input)
             break
         end
     end
-    res
+    return res
 end
 
 function scan(set::Set{Char}, input)
@@ -81,7 +86,7 @@ function scan(::Whitespace, input)
             break
         end
     end
-    ScanResult(trial_stop)
+    return ScanResult(trial_stop)
 end
 
 function scan(::Word, input)
@@ -97,7 +102,7 @@ function scan(::Word, input)
             break
         end
     end
-    ScanResult(trial_stop)
+    return ScanResult(trial_stop)
 end
 
 scan(::LineEnding, input) = scan(NORG_LINE_ENDING, input)
@@ -123,8 +128,12 @@ end
 All the registered [`Kinds.Kind`](@ref) that [`Scanners.scan`](@ref) will try when consuming entries.
 """
 const TOKENKIND_PARSING_ORDER = [
-        Kinds.all_single_punctuation_tokens()...;
-        K"x"; K"LineEnding"; K"Whitespace"; K"Punctuation"; K"Word"
+    Kinds.all_single_punctuation_tokens()...
+    K"x"
+    K"LineEnding"
+    K"Whitespace"
+    K"Punctuation"
+    K"Word"
 ]
 
 """
@@ -148,7 +157,7 @@ function scan(input; line=0, charnum=0)
     if !success(res)
         error("No suitable token found for input at line $line, char $charnum")
     end
-    Token(tokentype, line, charnum, input[1:res.length])
+    return Token(tokentype, line, charnum, input[1:(res.length)])
 end
 
 export scan

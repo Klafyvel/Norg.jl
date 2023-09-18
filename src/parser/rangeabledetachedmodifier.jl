@@ -1,6 +1,8 @@
 strategy_to_kind(::Definition) = K"Definition"
 strategy_to_kind(::Footnote) = K"Footnote"
-function parse_norg(t::RangeableDetachedModifier, parents::Vector{Kind}, tokens::Vector{Token}, i)
+function parse_norg(
+    t::RangeableDetachedModifier, parents::Vector{Kind}, tokens::Vector{Token}, i
+)
     start = i
     parents = [strategy_to_kind(t), parents...]
     children = AST.Node[]
@@ -13,7 +15,9 @@ function parse_norg(t::RangeableDetachedModifier, parents::Vector{Kind}, tokens:
                 stop = prevind(tokens, consume_until(K"LineEnding", tokens, i))
                 if !isempty(children)
                     child = last(children)
-                    children[end] = AST.Node(K"RangeableItem", child.children, AST.start(child), stop)
+                    children[end] = AST.Node(
+                        K"RangeableItem", child.children, AST.start(child), stop
+                    )
                 end
                 i = stop
             end
@@ -34,7 +38,7 @@ function parse_norg(t::RangeableDetachedModifier, parents::Vector{Kind}, tokens:
         push!(children, child)
     end
 
-    AST.Node(strategy_to_kind(t), children, start, i)
+    return AST.Node(strategy_to_kind(t), children, start, i)
 end
 
 function parse_norg(::RangeableItem, parents::Vector{Kind}, tokens::Vector{Token}, i)
@@ -57,9 +61,11 @@ end
 
 function parse_norg_unranged_rangeable(parents, tokens, i)
     title_segment = parse_norg(ParagraphSegment(), parents, tokens, i)
-    paragraph = parse_norg(Paragraph(), parents, tokens, nextind(tokens, AST.stop(title_segment)))
+    paragraph = parse_norg(
+        Paragraph(), parents, tokens, nextind(tokens, AST.stop(title_segment))
+    )
 
-    AST.Node(K"RangeableItem", [title_segment, paragraph], i, AST.stop(paragraph))
+    return AST.Node(K"RangeableItem", [title_segment, paragraph], i, AST.stop(paragraph))
 end
 
 function parse_norg_ranged_rangeable(parents, tokens, i)
@@ -70,7 +76,7 @@ function parse_norg_ranged_rangeable(parents, tokens, i)
     token = tokens[i]
     while !is_eof(token)
         m = match_norg(parents, tokens, i)
-        if isclosing(m) 
+        if isclosing(m)
             if consume(m)
                 i = consume_until(K"LineEnding", tokens, i)
                 i = prevind(tokens, i)
@@ -97,7 +103,7 @@ function parse_norg_ranged_rangeable(parents, tokens, i)
         else
             parse_norg(Paragraph(), parents, tokens, i)
         end
-        push!(children, child)            
+        push!(children, child)
         i = nextind(tokens, AST.stop(child))
         token = tokens[i]
         if is_eof(token)
@@ -105,5 +111,7 @@ function parse_norg_ranged_rangeable(parents, tokens, i)
             token = tokens[i]
         end
     end
-    AST.Node(K"RangeableItem", [title_segment, children...]::Vector{AST.Node}, start, i)
+    return AST.Node(
+        K"RangeableItem", [title_segment, children...]::Vector{AST.Node}, start, i
+    )
 end

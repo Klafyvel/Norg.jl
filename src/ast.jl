@@ -18,7 +18,7 @@ struct Node
     start::Int
     stop::Int
 end
-Node(kind::Kind)= Node(kind, Node[], 1, 1)
+Node(kind::Kind) = Node(kind, Node[], 1, 1)
 
 """
 Stores the Abstract Syntax Tree (AST) for a Norg document. It implements the
@@ -27,9 +27,11 @@ Stores the Abstract Syntax Tree (AST) for a Norg document. It implements the
 struct NorgDocument
     root::Node
     tokens::Vector{Token}
-    targets::Dict{String, Tuple{Kind,Ref{Node}}}
+    targets::Dict{String,Tuple{Kind,Ref{Node}}}
 end
-NorgDocument(root, tokens) = NorgDocument(root, tokens, Dict{String, Tuple{Kind,Ref{Node}}}())
+function NorgDocument(root, tokens)
+    return NorgDocument(root, tokens, Dict{String,Tuple{Kind,Ref{Node}}}())
+end
 
 Kinds.kind(::NorgDocument) = K"NorgDocument"
 Kinds.kind(node::Node) = node.kind
@@ -70,10 +72,17 @@ Kinds.is_heading(node::Node) = is_heading(kind(node))
 Kinds.is_unordered_list(node::Node) = is_unordered_list(kind(node))
 Kinds.is_ordered_list(node::Node) = is_ordered_list(kind(node))
 Kinds.is_quote(node::Node) = is_quote(kind(node))
-is_first_class_node(k::Kind) = k ∈ [K"Paragraph", K"Verbatim"] || is_detached_modifier(k) || is_nestable(k) || is_heading(k)
+function is_first_class_node(k::Kind)
+    return k ∈ [K"Paragraph", K"Verbatim"] ||
+           is_detached_modifier(k) ||
+           is_nestable(k) ||
+           is_heading(k)
+end
 is_first_class_node(node::Node) = is_first_class_node(kind(node))
 
-litteral(ast::NorgDocument, node::Node) = join(map(value, ast.tokens[start(node):stop(node)]))
+function litteral(ast::NorgDocument, node::Node)
+    return join(map(value, ast.tokens[start(node):stop(node)]))
+end
 
 heading_level(node::Node) = heading_level(kind(node))
 function heading_level(k::Kind)
@@ -109,7 +118,7 @@ function heading_kind(level::Int)
         K"Heading4"
     elseif level == 5
         K"Heading5"
-    else 
+    else
         K"Heading6"
     end
 end
@@ -148,7 +157,7 @@ function unordered_list_level(level::Int)
         K"UnorderedList4"
     elseif level == 5
         K"UnorderedList5"
-    else 
+    else
         K"UnorderedList6"
     end
 end
@@ -187,7 +196,7 @@ function ordered_list_level(level::Int)
         K"OrderedList4"
     elseif level == 5
         K"OrderedList5"
-    else 
+    else
         K"OrderedList6"
     end
 end
@@ -226,7 +235,7 @@ function quote_level(level::Int)
         K"Quote4"
     elseif level == 5
         K"Quote5"
-    else 
+    else
         K"Quote6"
     end
 end
@@ -245,6 +254,15 @@ function nestable_level(k::Kind)
     end
 end
 
-export is_first_class_node, heading_kind, heading_level, unordered_list_level, ordered_list_level, quote_level, nestable_level, litteral, NorgDocument, Node
+export is_first_class_node,
+    heading_kind,
+    heading_level,
+    unordered_list_level,
+    ordered_list_level,
+    quote_level,
+    nestable_level,
+    litteral,
+    NorgDocument,
+    Node
 
 end

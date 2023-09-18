@@ -1,6 +1,6 @@
 function parse_norg(::Slide, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
-    i = consume_until(K"LineEnding", tokens, i)    
+    i = consume_until(K"LineEnding", tokens, i)
     p = [K"Slide", parents...]
     m = match_norg(p, tokens, i)
     children = if isfound(m)
@@ -18,12 +18,12 @@ function parse_norg(::Slide, parents::Vector{Kind}, tokens::Vector{Token}, i)
     else
         AST.Node[]
     end
-    AST.Node(K"Slide", children, start, AST.stop(last(children)))
+    return AST.Node(K"Slide", children, start, AST.stop(last(children)))
 end
 
 function parse_norg(::IndentSegment, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
-    i = consume_until(K"LineEnding", tokens, i)    
+    i = consume_until(K"LineEnding", tokens, i)
     p = [K"IndentSegment", parents...]
     m = Match.MatchClosing(K"IndentSegment")
     children = []
@@ -84,5 +84,5 @@ function parse_norg(::IndentSegment, parents::Vector{Kind}, tokens::Vector{Token
     if isclosing(m) && !(matched(m) == K"IndentSegment" && consume(m))
         i = prevind(tokens, i)
     end
-    AST.Node(K"IndentSegment", children, start, i)
+    return AST.Node(K"IndentSegment", children, start, i)
 end

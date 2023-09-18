@@ -45,11 +45,13 @@ end
 Create a `Token` of kind `kind` with value `value` at `line` and char number `char`.
 """
 function Token(kind, line, char, value)
-    Token(kind, TokenPosition(line, char), value)
+    return Token(kind, TokenPosition(line, char), value)
 end
 function Base.show(io::IO, token::Token)
-    print(io,
-    "Token(K\"$(string(kind(token)))\", \"$(value(token))\", line $(string(line(token))), col. $(string(char(token))))")
+    return print(
+        io,
+        "Token(K\"$(string(kind(token)))\", \"$(value(token))\", line $(string(line(token))), col. $(string(char(token))))",
+    )
 end
 SOFToken() = Token(K"StartOfFile", 0, 0, SubString(""))
 EOFToken() = Token(K"EndOfFile", 0, 0, SubString(""))

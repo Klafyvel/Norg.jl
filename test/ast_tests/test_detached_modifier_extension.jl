@@ -14,9 +14,9 @@ todos = [
     ("_", K"StatusCancelled")
 ]
 
-@testset "Extension on detached modifier '$m'." for m in detached_modifier 
+@testset "Extension on detached modifier '$m'." for m in detached_modifier
     @testset "Level" for n in 1:7
-        @testset "Simple Todos: ($t)" for (t,res) in todos
+        @testset "Simple Todos: ($t)" for (t, res) in todos
             s = "$(repeat(m, n)) ($t) hey"
             ast = norg(s)
             nestable = first(children(ast.root))
@@ -64,7 +64,7 @@ todos = [
             ext, p = children(item)
             @test kind(ext) == K"TimestampExtension"
         end
-        @testset "Todos chained with timestamp: ($t)" for (t,res) in todos
+        @testset "Todos chained with timestamp: ($t)" for (t, res) in todos
             s = "$(repeat(m, n)) ($t|@ Tuesday) hey"
             ast = norg(s)
             nestable = first(children(ast.root))
@@ -78,7 +78,7 @@ todos = [
             ts_ext = last(children(ext))
             @test kind(ts_ext) == K"TimestampExtension"
         end
-        @testset "Todos chained with due date: ($t)" for (t,res) in todos
+        @testset "Todos chained with due date: ($t)" for (t, res) in todos
             s = "$(repeat(m, n)) ($t|< Tuesday) hey"
             ast = norg(s)
             nestable = first(children(ast.root))
@@ -92,7 +92,7 @@ todos = [
             ts_ext = last(children(ext))
             @test kind(ts_ext) == K"DueDateExtension"
         end
-        @testset "Todos chained with start date: ($t)" for (t,res) in todos
+        @testset "Todos chained with start date: ($t)" for (t, res) in todos
             s = "$(repeat(m, n)) ($t|> Tuesday) hey"
             ast = norg(s)
             nestable = first(children(ast.root))
@@ -106,7 +106,7 @@ todos = [
             ts_ext = last(children(ext))
             @test kind(ts_ext) == K"StartDateExtension"
         end
-        @testset "Todos chained with priority: ($t)" for (t,res) in todos
+        @testset "Todos chained with priority: ($t)" for (t, res) in todos
             s = "$(repeat(m, n)) ($t|# A) hey"
             ast = norg(s)
             nestable = first(children(ast.root))
@@ -122,4 +122,3 @@ todos = [
         end
     end
 end
-

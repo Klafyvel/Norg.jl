@@ -23,11 +23,11 @@ abstract type CodegenTarget end
 Do code generation for a given [`AST.NorgDocument`](@ref) to a given target.
 """
 function codegen end
-codegen(t::Type{T}, ast::AST.NorgDocument) where {T <: CodegenTarget} = codegen(t(), ast)
+codegen(t::Type{T}, ast::AST.NorgDocument) where {T<:CodegenTarget} = codegen(t(), ast)
 
-function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: CodegenTarget}
+function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T<:CodegenTarget}
     if kind(node) == K"Paragraph"
-        codegen(t, Paragraph(), ast, node)        
+        codegen(t, Paragraph(), ast, node)
     elseif kind(node) == K"ParagraphSegment"
         codegen(t, ParagraphSegment(), ast, node)
     elseif kind(node) == K"Bold"
@@ -124,7 +124,8 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         codegen(t, StandardRangedTag(), ast, node)
     elseif kind(node) == K"TodoExtension"
         codegen(t, TodoExtension(), ast, node)
-    elseif kind(node) ∈ KSet"TimestampExtension PriorityExtension DueDateExtension StartDateExtension"
+    elseif kind(node) ∈
+        KSet"TimestampExtension PriorityExtension DueDateExtension StartDateExtension"
         codegen(t, Word(), ast, node)
     elseif kind(node) == K"WeakCarryoverTag"
         codegen(t, WeakCarryoverTag(), ast, node)
@@ -143,11 +144,9 @@ function codegen(t::T, ast::AST.NorgDocument, node::AST.Node) where {T <: Codege
         t_stop = ast.tokens[AST.stop(node)]
         error("""$T codegen got an unhandled node type: $(kind(node)). 
         Faulty node starts at line $(line(t_start)), col. $(char(t_start))
-        and stops at line $(line(t_stop)), col. $(char(t_stop))."""
-        )
+        and stops at line $(line(t_stop)), col. $(char(t_stop)).""")
     end
 end
-
 
 include("codegen/html.jl")
 include("codegen/json.jl")
