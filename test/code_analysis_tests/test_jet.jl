@@ -1,5 +1,5 @@
-@static if VERSION ≥ v"1.9"
 using JET, AbstractTrees
+if VERSION ≥ v"1.9"
 @testset "JET.jl -> See https://aviatesk.github.io/JET.jl/stable/jetanalysis/#Errors-kinds-and-how-to-fix-them" begin
     payload = open(Norg.NORG_SPEC_PATH, "r") do f
         read(f, String)
