@@ -2,9 +2,11 @@
 Node = Norg.AST.Node
 AST = Norg.AST
 
-nestable = [('-', K"UnorderedList1")
-            ('~', K"OrderedList1")
-            ('>', K"Quote1")]
+nestable = [
+    ('-', K"UnorderedList1")
+    ('~', K"OrderedList1")
+    ('>', K"Quote1")
+]
 
 @testset "$T should be grouping." for (m, T) in nestable
     s = """$m first item
@@ -18,7 +20,8 @@ nestable = [('-', K"UnorderedList1")
     @test kind(item2) == K"NestableItem"
 end
 
-@testset "$T grouping should not happen when there is a paragraph break." for (m, T) in nestable
+@testset "$T grouping should not happen when there is a paragraph break." for (m, T) in
+                                                                              nestable
     s = """$m first item
 
     $m second item
@@ -33,9 +36,11 @@ end
     @test kind(item2) == K"NestableItem"
 end
 
-nestable_check = [('-', AST.is_unordered_list)
-                  ('~', AST.is_ordered_list)
-                  ('>', AST.is_quote)]
+nestable_check = [
+    ('-', AST.is_unordered_list)
+    ('~', AST.is_ordered_list)
+    ('>', AST.is_quote)
+]
 
 @testset "$m should be nestable." for (m, verif) in nestable_check
     s = """$m item1

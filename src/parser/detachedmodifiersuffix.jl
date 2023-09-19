@@ -1,37 +1,35 @@
 function parse_norg(::Slide, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
-    i = consume_until(K"LineEnding", tokens, i)    
+    i = consume_until(K"LineEnding", tokens, i)
     p = [K"Slide", parents...]
     m = match_norg(p, tokens, i)
-    @debug "ok fréro j'ai ça." tokens[i] m
-    child = if isfound(m)
+    children = if isfound(m)
         if matched(m) == K"Definition"
-            parse_norg(Definition(), p, tokens, i)
+            [parse_norg(Definition(), p, tokens, i)]
         elseif matched(m) == K"Footnote"
-            parse_norg(Footnote(), p, tokens, i)
+            [parse_norg(Footnote(), p, tokens, i)]
         elseif matched(m) == K"Verbatim"
-            parse_norg(Verbatim(), p, tokens, i)
+            [parse_norg(Verbatim(), p, tokens, i)]
         elseif matched(m) == K"StandardRangedTag"
-            parse_norg(StandardRangedTag(), p, tokens, i)
+            [parse_norg(StandardRangedTag(), p, tokens, i)]
         else
-            parse_norg(Paragraph(), p, tokens, i)
+            [parse_norg(Paragraph(), p, tokens, i)]
         end
     else
-        parse_norg(parents, tokens, i)
+        AST.Node[]
     end
-    AST.Node(K"Slide", [child], start, AST.stop(child))
+    return AST.Node(K"Slide", children, start, AST.stop(last(children)))
 end
 
 function parse_norg(::IndentSegment, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
-    i = consume_until(K"LineEnding", tokens, i)    
+    i = consume_until(K"LineEnding", tokens, i)
     p = [K"IndentSegment", parents...]
     m = Match.MatchClosing(K"IndentSegment")
     children = []
 
     while !is_eof(tokens[i])
         m = match_norg(p, tokens, i)
-        @debug "indent segment loop" m tokens[i]
         if isclosing(m)
             break
         elseif iscontinue(m)
@@ -86,5 +84,5 @@ function parse_norg(::IndentSegment, parents::Vector{Kind}, tokens::Vector{Token
     if isclosing(m) && !(matched(m) == K"IndentSegment" && consume(m))
         i = prevind(tokens, i)
     end
-    AST.Node(K"IndentSegment", children, start, i)
+    return AST.Node(K"IndentSegment", children, start, i)
 end

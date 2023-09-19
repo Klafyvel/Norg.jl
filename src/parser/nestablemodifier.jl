@@ -1,4 +1,6 @@
-function parse_norg(::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where {T<:Nestable}
+function parse_norg(
+    ::T, parents::Vector{Kind}, tokens::Vector{Token}, i
+) where {T<:Nestable}
     start = i
     # TODO: This is innefficient because this match has already been done at this
     # point, so we could transmit the information through the strategy. But this
@@ -14,7 +16,6 @@ function parse_norg(::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where 
             end
             break
         end
-        @debug "nestable loop" m tokens[i]
         child = if kind(matched(m)) == K"WeakCarryoverTag"
             parse_norg(WeakCarryoverTag(), [nestable_kind, parents...], tokens, i)
         else
@@ -26,7 +27,7 @@ function parse_norg(::T, parents::Vector{Kind}, tokens::Vector{Token}, i) where 
         end
         push!(children, child)
     end
-    AST.Node(nestable_kind, children, start, i)
+    return AST.Node(nestable_kind, children, start, i)
 end
 
 function parse_norg(::NestableItem, parents::Vector{Kind}, tokens::Vector{Token}, i)
@@ -50,7 +51,6 @@ function parse_norg(::NestableItem, parents::Vector{Kind}, tokens::Vector{Token}
     end
     while !is_eof(tokens[i])
         m = match_norg([K"NestableItem", parents...], tokens, i)
-        @debug "nestable item loop" m tokens[i]
         if isclosing(m)
             if !consume(m)
                 i = prevind(tokens, i)
@@ -61,13 +61,15 @@ function parse_norg(::NestableItem, parents::Vector{Kind}, tokens::Vector{Token}
         if to_parse == K"Verbatim"
             child = parse_norg(Verbatim(), [K"NestableItem", parents...], tokens, i)
         elseif to_parse == K"StandardRangedTag"
-            child = parse_norg(StandardRangedTag(), [K"NestableItem", parents...], tokens, i)
+            child = parse_norg(
+                StandardRangedTag(), [K"NestableItem", parents...], tokens, i
+            )
         elseif is_quote(to_parse)
-            child = parse_norg(Quote(), [K"NestableItem", parents...], tokens, i) 
+            child = parse_norg(Quote(), [K"NestableItem", parents...], tokens, i)
         elseif is_unordered_list(to_parse)
-            child = parse_norg(UnorderedList(), [K"NestableItem", parents...], tokens, i) 
+            child = parse_norg(UnorderedList(), [K"NestableItem", parents...], tokens, i)
         elseif is_ordered_list(to_parse)
-            child = parse_norg(OrderedList(), [K"NestableItem", parents...], tokens, i) 
+            child = parse_norg(OrderedList(), [K"NestableItem", parents...], tokens, i)
         elseif to_parse == K"Slide"
             child = parse_norg(Slide(), [K"NestableItem", parents...], tokens, i)
         elseif to_parse == K"IndentSegment"
@@ -88,5 +90,5 @@ function parse_norg(::NestableItem, parents::Vector{Kind}, tokens::Vector{Token}
     if is_eof(tokens[i])
         i = prevind(tokens, i)
     end
-    AST.Node(K"NestableItem", children, start, i)
+    return AST.Node(K"NestableItem", children, start, i)
 end

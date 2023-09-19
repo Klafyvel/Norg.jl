@@ -14,13 +14,13 @@ rangeable = [
     outside
     """
     ast = norg(s)
-    rang,p = children(ast.root)
+    rang, p = children(ast.root)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
     item = first(children(rang))
     @test kind(item) == K"RangeableItem"
-    title,content = children(item)
+    title, content = children(item)
     @test kind(title) == K"ParagraphSegment"
     @test kind(content) == K"Paragraph"
     @test textify(ast, title) == "title"
@@ -36,13 +36,13 @@ end
     outside
     """
     ast = norg(s)
-    rang,p = children(ast.root)
+    rang, p = children(ast.root)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
     item = first(children(rang))
     @test kind(item) == K"RangeableItem"
-    title,content1,content2 = children(item)
+    title, content1, content2 = children(item)
     @test kind(title) == K"ParagraphSegment"
     @test kind(content1) == K"Paragraph"
     @test kind(content2) == K"Paragraph"
@@ -60,13 +60,13 @@ end
     """
     ast = norg(s)
     t = first(children(ast.root))
-    _,rang,p = children(t)
+    _, rang, p = children(t)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
     item = first(children(rang))
     @test kind(item) == K"RangeableItem"
-    title,content = children(item)
+    title, content = children(item)
     @test kind(title) == K"ParagraphSegment"
     @test kind(content) == K"Paragraph"
     @test textify(ast, title) == "title"
@@ -84,13 +84,13 @@ end
     """
     ast = norg(s)
     t = first(children(ast.root))
-    _,rang,p = children(t)
+    _, rang, p = children(t)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
     item = first(children(rang))
     @test kind(item) == K"RangeableItem"
-    title,content1,content2 = children(item)
+    title, content1, content2 = children(item)
     @test kind(title) == K"ParagraphSegment"
     @test kind(content1) == K"Paragraph"
     @test kind(content2) == K"Paragraph"
@@ -106,13 +106,13 @@ end
     outside
     """
     ast = norg(s)
-    rang,p = children(ast.root)
+    rang, p = children(ast.root)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
     item = first(children(rang))
     @test kind(item) == K"RangeableItem"
-    title,content = children(item)
+    title, content = children(item)
     @test kind(title) == K"ParagraphSegment"
     @test kind(content) == K"Paragraph"
     @test textify(ast, title) == "title"
@@ -128,13 +128,13 @@ end
     outside
     """
     ast = norg(s)
-    rang,p = children(ast.root)
+    rang, p = children(ast.root)
     @test kind(rang) == T
     @test kind(p) == K"Paragraph"
     @test textify(ast, p) == "outside"
     item = first(children(rang))
     @test kind(item) == K"RangeableItem"
-    title,content1,content2 = children(item)
+    title, content1, content2 = children(item)
     @test kind(title) == K"ParagraphSegment"
     @test kind(content1) == K"Paragraph"
     @test kind(content2) == K"Paragraph"
@@ -144,27 +144,28 @@ end
 end
 
 @testset "Rangeables must be grouping: $T" for (m, T) in rangeable
-    make_str(str_kind, label) = if str_kind=="simple"
-        """$m title$(label)
-        content$(label)
-        """
-    else
-        """$m$m title$(label)
-        content$(label)
-        $m$m
-        """
-    end
+    make_str(str_kind, label) =
+        if str_kind == "simple"
+            """$m title$(label)
+            content$(label)
+            """
+        else
+            """$m$m title$(label)
+            content$(label)
+            $m$m
+            """
+        end
     for a in ("simple", "matched")
         s_a = make_str(a, "a")
         for b in ("simple", "matched")
             s_b = make_str(b, "b")
             for c in ("simple", "matched")
                 s_c = make_str(c, "c")
-                s = s_a*s_b*s_c
+                s = s_a * s_b * s_c
                 ast = norg(s)
                 rang = first(children(ast.root))
                 @test kind(rang) == T
-                for (l,item) in zip(["a", "b", "c"], children(rang))
+                for (l, item) in zip(["a", "b", "c"], children(rang))
                     @test kind(item) === K"RangeableItem"
                     title, content = children(item)
                     @test textify(ast, title) == "title$l"

@@ -32,52 +32,61 @@ freeformattachedmodifier(::InlineCode) = K"FreeFormInlineCode"
 freeformattachedmodifier(::NullModifier) = K"FreeFormNullModifier"
 freeformattachedmodifier(::InlineMath) = K"FreeFormInlineMath"
 freeformattachedmodifier(::Variable) = K"FreeFormVariable"
+freeformattachedmodifier(t::T) where {T<:FreeFormAttachedModifier} = attachedmodifier(t)
 
 function match_norg(t::T, parents, tokens, i) where {T<:AttachedModifierStrategy}
     if K"LinkLocation" ∈ parents
         return MatchNotFound()
     end
-    @debug "matching attached modifier"
     next_i = nextind(tokens, i)
     next_token = tokens[next_i]
     prev_i = prevind(tokens, i)
     last_token = tokens[prev_i]
     # if opening modifier is found
-    if (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
+    if (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) &&
+        (!is_eof(next_token) && !is_whitespace(next_token))
         if kind(next_token) == K"|"
             MatchFound(freeformattachedmodifier(t))
         else
             MatchFound(attachedmodifier(t))
         end
-    # Link modifier
+        # Link modifier
     elseif kind(last_token) == K":" && (!is_eof(next_token) && !is_whitespace(next_token))
         prev_prev_i = prevind(tokens, prev_i)
-        if prev_prev_i >= firstindex(tokens) && (is_sof(tokens[prev_prev_i]) || is_punctuation(tokens[prev_prev_i]) || is_whitespace(tokens[prev_prev_i]))
+        if prev_prev_i >= firstindex(tokens) && (
+            is_sof(tokens[prev_prev_i]) ||
+            is_punctuation(tokens[prev_prev_i]) ||
+            is_whitespace(tokens[prev_prev_i])
+        )
             MatchFound(attachedmodifier(t))
         else
             MatchNotFound()
         end
-    # Closing modifier
-    elseif attachedmodifier(t) ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
-        MatchClosing(attachedmodifier(t), first(parents)==attachedmodifier(t))
+        # Closing modifier
+    elseif attachedmodifier(t) ∈ parents &&
+        !is_whitespace(last_token) &&
+        (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
+        MatchClosing(attachedmodifier(t), first(parents) == attachedmodifier(t))
     else
         MatchNotFound()
     end
 end
 
-function match_norg(t::T, parents, tokens, i) where {T <: Union{VerbatimAttachedModifierStrategy, FreeFormAttachedModifier}}
+function match_norg(
+    t::T, parents, tokens, i
+) where {T<:Union{VerbatimAttachedModifierStrategy,FreeFormAttachedModifier}}
     if K"LinkLocation" ∈ parents
         return MatchNotFound()
     end
-    @debug "you know where"
     next_i = nextind(tokens, i)
     next_token = tokens[next_i]
     prev_i = prevind(tokens, i)
     last_token = tokens[prev_i]
     token = tokens[i]
     # Opening modifier
-    if attachedmodifier(t) ∉ parents && (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) && (!is_eof(next_token) && !is_whitespace(next_token))
-        @debug "going to open" last_token token next_token
+    if attachedmodifier(t) ∉ parents &&
+        (is_sof(last_token) || is_punctuation(last_token) || is_whitespace(last_token)) &&
+        (!is_eof(next_token) && !is_whitespace(next_token))
         if kind(next_token) == K"|"
             # Edge case: we want to be able to write `|` (verbatim attached
             # modifiers have higher precedence than free-form attached modifiers)
@@ -85,7 +94,11 @@ function match_norg(t::T, parents, tokens, i) where {T <: Union{VerbatimAttached
             token = tokens[i]
             next_i = nextind(tokens, i)
             next_token = tokens[next_i]
-            if kind(token) == K"`" && (is_punctuation(next_token) || is_whitespace(next_token) || is_eof(next_token))
+            if kind(token) == K"`" && (
+                is_punctuation(next_token) ||
+                is_whitespace(next_token) ||
+                is_eof(next_token)
+            )
                 MatchFound(attachedmodifier(t))
             else
                 MatchFound(freeformattachedmodifier(t))
@@ -95,23 +108,28 @@ function match_norg(t::T, parents, tokens, i) where {T <: Union{VerbatimAttached
         else
             MatchFound(attachedmodifier(t))
         end
-    # Closing modifier
+        # Closing modifier
     elseif attachedmodifier(t) ∈ parents && t isa FreeFormAttachedModifier
-        @debug "closing free-form" t
-        MatchClosing(attachedmodifier(t), first(parents)==attachedmodifier(t))
-    elseif attachedmodifier(t) ∈ parents && !is_whitespace(last_token) && (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
         MatchClosing(attachedmodifier(t), first(parents) == attachedmodifier(t))
-    # Link modifier
-    elseif !(t isa FreeFormAttachedModifier) && kind(last_token) == K":" && (!is_eof(next_token) && !is_whitespace(next_token))
-        @debug "link modifier"
+    elseif attachedmodifier(t) ∈ parents &&
+        !is_whitespace(last_token) &&
+        (is_eof(next_token) || is_whitespace(next_token) || is_punctuation(next_token))
+        MatchClosing(attachedmodifier(t), first(parents) == attachedmodifier(t))
+        # Link modifier
+    elseif !(t isa FreeFormAttachedModifier) &&
+        kind(last_token) == K":" &&
+        (!is_eof(next_token) && !is_whitespace(next_token))
         prev_prev_i = prevind(tokens, prev_i)
-        if prev_prev_i >= firstindex(tokens) && (is_sof(tokens[prev_prev_i]) || is_punctuation(tokens[prev_prev_i]) || is_whitespace(tokens[prev_prev_i]))
+        if prev_prev_i >= firstindex(tokens) && (
+            is_sof(tokens[prev_prev_i]) ||
+            is_punctuation(tokens[prev_prev_i]) ||
+            is_whitespace(tokens[prev_prev_i])
+        )
             MatchFound(attachedmodifier(t))
         else
             MatchNotFound()
         end
     else
-        @debug "nah"
         MatchNotFound()
     end
 end

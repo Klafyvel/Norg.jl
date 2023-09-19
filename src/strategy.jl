@@ -78,12 +78,17 @@ struct FreeFormInlineMath <: VerbatimAttachedModifierStrategy end
 struct FreeFormVariable <: VerbatimAttachedModifierStrategy end
 
 const FreeFormAttachedModifier = Union{
-    FreeFormBold, FreeFormItalic, 
-    FreeFormUnderline, FreeFormStrikethrough,
-    FreeFormSpoiler, FreeFormSuperscript, 
-    FreeFormSubscript, FreeFormNullModifier, 
-    FreeFormInlineCode, FreeFormInlineMath, 
-    FreeFormVariable
+    FreeFormBold,
+    FreeFormItalic,
+    FreeFormUnderline,
+    FreeFormStrikethrough,
+    FreeFormSpoiler,
+    FreeFormSuperscript,
+    FreeFormSubscript,
+    FreeFormNullModifier,
+    FreeFormInlineCode,
+    FreeFormInlineMath,
+    FreeFormVariable,
 }
 
 struct Anchor <: FromNode end
@@ -140,23 +145,23 @@ export Heading, HeadingTitle, DelimitingModifier, StrongDelimiter
 export WeakDelimiter, HorizontalRule, Nestable, UnorderedList, OrderedList
 export Quote, NestableItem
 export Tag, Verbatim, WeakCarryoverTag, StrongCarryoverTag, StandardRangedTag
-export AttachedModifierStrategy, VerbatimAttachedModifierStrategy, Bold, Italic 
-export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode 
+export AttachedModifierStrategy, VerbatimAttachedModifierStrategy, Bold, Italic
+export Underline, Strikethrough, Spoiler, Superscript, Subscript, InlineCode
 export NullModifier, InlineMath, Variable
 export FreeFormBold, FreeFormItalic, FreeFormUnderline, FreeFormStrikethrough
 export FreeFormSpoiler, FreeFormSuperscript, FreeFormSubscript, FreeFormInlineCode
 export FreeFormNullModifier, FreeFormInlineMath, FreeFormVariable, FreeFormAttachedModifier
 
-export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation 
-export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation 
-export WikiLocation, TimestampLocation, LinkDescription, LinkSubTarget, InlineLinkTarget 
+export Anchor, Link, LinkLocation, URLLocation, LineNumberLocation
+export DetachedModifierLocation, FileLocation, MagicLocation, NorgFileLocation
+export WikiLocation, TimestampLocation, LinkDescription, LinkSubTarget, InlineLinkTarget
 export RangeableDetachedModifier, Definition, Footnote, RangeableItem
 export DetachedModifierSuffix, Slide, IndentSegment
 export DetachedModifierExtension
-export TodoExtension, TimestampExtension, PriorityExtension, DueDateExtension, StartDateExtension
+export TodoExtension,
+    TimestampExtension, PriorityExtension, DueDateExtension, StartDateExtension
 export StatusUndone, StatusDone, StatusNeedFurtherInput, StatusUrgent
 export StatusRecurring, StatusInProgress, StatusOnHold, StatusCancelled
 export ParagraphSegment, Paragraph, Escape
 
 end
-

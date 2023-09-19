@@ -11,7 +11,7 @@ Node = Norg.AST.Node
 
     ast = norg(s)
 
-    h1,sd,p = children(ast.root)
+    h1, sd, p = children(ast.root)
 
     @test kind(h1) == K"Heading1"
     @test kind(p) == K"Paragraph"
@@ -49,7 +49,7 @@ And here is some more text that has broken out of the matrix.
     h1 = children(ast.root)[2]
     p = last(children(ast.root))
 
-    @test kind(hi) == AST.heading_level(i)
+    @test kind(hi) == AST.heading_kind(i)
     @test kind(h1) == K"Heading1"
     @test kind(p) == K"Paragraph"
 
@@ -59,7 +59,7 @@ And here is some more text that has broken out of the matrix.
 
     hj = children(h1)[2]
     for j in 2:i
-        @test kind(hj) == AST.heading_level(j)
+        @test kind(hj) == AST.heading_kind(j)
         hj_title = first(children(hj))
         @test kind(hj_title) == K"ParagraphSegment"
         @test length(children(hj_title)) == 9
@@ -164,7 +164,7 @@ end
     $m$m$m
     There
     """)
-    p1,delim,p2 = children(ast.root)
+    p1, delim, p2 = children(ast.root)
     @test Norg.Codegen.textify(ast, p1) == "Hello"
     @test Norg.Codegen.textify(ast, p2) == "There"
 end

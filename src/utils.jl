@@ -13,7 +13,7 @@ function consume_until(k::Kind, tokens::Vector{Token}, i)
     if kind(token) == k
         i = nextind(tokens, i)
     end
-    i
+    return i
 end
 function consume_until(k, tokens::Vector{Token}, i)
     token = tokens[i]
@@ -24,7 +24,7 @@ function consume_until(k, tokens::Vector{Token}, i)
     if kind(token) ∈ k
         i = nextind(tokens, i)
     end
-    i
+    return i
 end
 
 """
@@ -34,19 +34,19 @@ Make some text suitable for using it as an id in a document.
 """
 function idify(text)
     words = map(lowercase, split(text, r"\W+"))
-    join(filter(!isempty, words), '-')
+    return join(filter(!isempty, words), '-')
 end
 
 """
-    textify(ast, node)
+    textify(ast, node, escape=identity)
 
-Return the raw text associated with a node.
+Return the raw text associated with a node. You can specify an escape function.
 """
-function textify(ast::NorgDocument, node::Node)
+function textify(ast::NorgDocument, node::Node, escape=identity)
     if is_leaf(node)
-        AST.litteral(ast, node)
+        escape(AST.litteral(ast, node))
     else
-        join(textify(ast, c) for c in children(node))
+        join(textify(ast, c, escape) for c in children(node))
     end
 end
 
@@ -58,30 +58,18 @@ Return all children and grandchildren of kind `k`. It can also `exclude`
 certain nodes from recursion.
 """
 function getchildren(node::Node, k::Kind)
-    filter(
-        x->kind(x)==k,
-        collect(PreOrderDFS(
-            x->kind(x)!=k,
-            node
-        ))
-    )
+    return filter(x -> kind(x) == k, collect(PreOrderDFS(x -> kind(x) != k, node)))
 end
 function getchildren(node::Node, k::Kind, exclude::Kind)
-    filter(
-        x->kind(x)==k,
-        collect(PreOrderDFS(
-            x->kind(x)!=k && kind(x)!=exclude,
-            node
-        ))
+    return filter(
+        x -> kind(x) == k,
+        collect(PreOrderDFS(x -> kind(x) != k && kind(x) != exclude, node)),
     )
 end
 function getchildren(node::Node, k::Kind, exclude)
-    filter(
-        x->kind(x)==k,
-        collect(PreOrderDFS(
-            x->kind(x)!=k && kind(x)∉exclude,
-            node
-        ))
+    return filter(
+        x -> kind(x) == k,
+        collect(PreOrderDFS(x -> kind(x) != k && kind(x) ∉ exclude, node)),
     )
 end
 
@@ -96,18 +84,21 @@ attribute of the AST first.
 """
 function findtargets!(ast::NorgDocument)
     empty!(ast.targets)
-    for c in children(ast.root)
-        map(PreOrderDFS(x->kind(x) ∉ KSet"Link Anchor", c)) do n
-            findtargets!(ast, n)
+    stack = copy(children(ast.root))
+    while !isempty(stack)
+        c = pop!(stack)
+        findtargets!(ast, c)
+        if kind(c) ∉ KSet"Link Anchor"
+            append!(stack, children(c))
         end
     end
 end
 function findtargets!(ast::NorgDocument, node::Node)
     if AST.is_heading(node)
-        push!(ast.targets, textify(ast, first(children(node)))=>(kind(node), Ref(node)))
+        push!(ast.targets, textify(ast, first(children(node))) => (kind(node), Ref(node)))
     elseif kind(node) ∈ KSet"Definition Footnote"
         for c in children(node)
-            push!(ast.targets, textify(ast, first(children(c)))=>(kind(node), Ref(c)))
+            push!(ast.targets, textify(ast, first(children(c))) => (kind(node), Ref(c)))
         end
     end
 end

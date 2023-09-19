@@ -1,7 +1,9 @@
-function parse_norg(::DetachedModifierExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)
+function parse_norg(
+    ::DetachedModifierExtension, parents::Vector{Kind}, tokens::Vector{Token}, i
+)
     m = match_norg(DetachedModifierExtension(), parents, tokens, i)
     if !Match.isfound(m)
-        return AST.Node(K"None")        
+        return AST.Node(K"None")
     end
     extension = matched(m)
     if extension == K"TodoExtension"
@@ -15,14 +17,14 @@ function parse_norg(::DetachedModifierExtension, parents::Vector{Kind}, tokens::
     elseif extension == K"StartDateExtension"
         parse_norg(StartDateExtension(), parents, tokens, i)
     else
-        error("Unhandled detached modifier extension. Token $token.")
+        error("Unhandled detached modifier extension. Token $(tokens[i]).")
     end
 end
 function parse_norg(::TodoExtension, parents::Vector{Kind}, tokens::Vector{Token}, i)
     start = i
     i = nextind(tokens, i)
     token = tokens[i]
-    statusstart=i
+    statusstart = i
     if kind(token) == K"Whitespace"
         status = K"StatusUndone"
     elseif kind(token) == K"x"
@@ -50,9 +52,16 @@ function parse_norg(::TodoExtension, parents::Vector{Kind}, tokens::Vector{Token
         i = piped.stop
     end
     if kind(piped) == K"None"
-        AST.Node(K"TodoExtension", [AST.Node(status, [], statusstart, statusstart)], start, i)
+        AST.Node(
+            K"TodoExtension", [AST.Node(status, [], statusstart, statusstart)], start, i
+        )
     else
-        AST.Node(K"TodoExtension", [AST.Node(status, [], statusstart, statusstart), piped], start, i)
+        AST.Node(
+            K"TodoExtension",
+            [AST.Node(status, [], statusstart, statusstart), piped],
+            start,
+            i,
+        )
     end
 end
 

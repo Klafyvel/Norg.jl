@@ -22,20 +22,20 @@ heading level `i` by setting `HiFootnotes` or at the root of the document or
 directly as it appears in the Norg document.
 """
 @enum FootnotesLevel begin
-    RootFootnotes=0
-    H1Footnotes=1
-    H2Footnotes=2
-    H3Footnotes=3
-    H4Footnotes=4
-    H5Footnotes=5
-    H6Footnotes=6
-    InplaceFootnotes=7
+    RootFootnotes = 0
+    H1Footnotes = 1
+    H2Footnotes = 2
+    H3Footnotes = 3
+    H4Footnotes = 4
+    H5Footnotes = 5
+    H6Footnotes = 6
+    InplaceFootnotes = 7
 end
 
 """
 HTML target to feed [`codegen`](@ref).
 """
-struct HTMLTarget <: CodegenTarget 
+struct HTMLTarget <: CodegenTarget
     footnotes_level::FootnotesLevel
 end
 
@@ -46,7 +46,7 @@ A special target for link location, this ensure type-stability.
 """
 struct HTMLLocationTarget <: CodegenTarget end
 
-function do_footnote_item(ast, item) 
+function do_footnote_item(ast, item)
     term, note... = children(item)
     term_id = "fn_" * idify(textify(ast, term))
     backref = "#fnref_" * idify(textify(ast, term))
@@ -64,7 +64,9 @@ function codegen(t::HTMLTarget, ast::NorgDocument)
         footnotes = getchildren(ast.root, K"Footnote")
         items = Iterators.flatten(children.(footnotes))
     else # collect all orphan footnotes
-        footnotes = getchildren(ast.root, K"Footnote", AST.heading_level(t.footnotes_level))
+        footnotes = getchildren(
+            ast.root, K"Footnote", AST.heading_kind(Int(t.footnotes_level))
+        )
         items = Iterators.flatten(children.(footnotes))
     end
     footnotes_node = @htl """
@@ -98,25 +100,27 @@ function codegen(t::HTMLTarget, ::ParagraphSegment, ast::NorgDocument, node::Nod
     @htl "$res"
 end
 
-html_node(::Union{FreeFormBold, Bold}) = "b"
-html_node(::Union{FreeFormItalic, Italic}) = "i"
-html_node(::Union{FreeFormUnderline, Underline}) = "ins"
-html_node(::Union{FreeFormStrikethrough, Strikethrough}) = "del"
-html_node(::Union{FreeFormSpoiler, Spoiler}) = "span"
-html_node(::Union{FreeFormSuperscript, Superscript}) = "sup"
-html_node(::Union{FreeFormSubscript, Subscript}) = "sub"
-html_node(::Union{FreeFormInlineCode, InlineCode}) = "code"
+html_node(::Union{FreeFormBold,Bold}) = "b"
+html_node(::Union{FreeFormItalic,Italic}) = "i"
+html_node(::Union{FreeFormUnderline,Underline}) = "ins"
+html_node(::Union{FreeFormStrikethrough,Strikethrough}) = "del"
+html_node(::Union{FreeFormSpoiler,Spoiler}) = "span"
+html_node(::Union{FreeFormSuperscript,Superscript}) = "sup"
+html_node(::Union{FreeFormSubscript,Subscript}) = "sub"
+html_node(::Union{FreeFormInlineCode,InlineCode}) = "code"
 
-html_class(::Union{FreeFormBold, Bold}) = []
-html_class(::Union{FreeFormItalic, Italic}) = []
-html_class(::Union{FreeFormUnderline, Underline}) = []
-html_class(::Union{FreeFormStrikethrough, Strikethrough}) = []
-html_class(::Union{FreeFormSpoiler, Spoiler}) = ["spoiler"]
-html_class(::Union{FreeFormSuperscript, Superscript}) = []
-html_class(::Union{FreeFormSubscript, Subscript}) = []
-html_class(::Union{FreeFormInlineCode, InlineCode}) = []
+html_class(::Union{FreeFormBold,Bold}) = []
+html_class(::Union{FreeFormItalic,Italic}) = []
+html_class(::Union{FreeFormUnderline,Underline}) = []
+html_class(::Union{FreeFormStrikethrough,Strikethrough}) = []
+html_class(::Union{FreeFormSpoiler,Spoiler}) = ["spoiler"]
+html_class(::Union{FreeFormSuperscript,Superscript}) = []
+html_class(::Union{FreeFormSubscript,Subscript}) = []
+html_class(::Union{FreeFormInlineCode,InlineCode}) = []
 
-function codegen(t::HTMLTarget, s::T, ast::NorgDocument, node::Node) where {T<:AttachedModifierStrategy}
+function codegen(
+    t::HTMLTarget, s::T, ast::NorgDocument, node::Node
+) where {T<:AttachedModifierStrategy}
     res = HTR[]
     for c in children(node)
         push!(res, codegen(t, ast, c))
@@ -129,11 +133,15 @@ function codegen(t::HTMLTarget, s::T, ast::NorgDocument, node::Node) where {T<:A
     end
 end
 
-function codegen(t::HTMLTarget, ::Union{NullModifier, FreeFormNullModifier}, ast::NorgDocument, node::Node)
+function codegen(
+    t::HTMLTarget, ::Union{NullModifier,FreeFormNullModifier}, ast::NorgDocument, node::Node
+)
     @htl ""
 end
 
-function codegen(t::HTMLTarget, ::Union{InlineMath, FreeFormInlineMath}, ast::NorgDocument, node::Node)
+function codegen(
+    t::HTMLTarget, ::Union{InlineMath,FreeFormInlineMath}, ast::NorgDocument, node::Node
+)
     res = HTR[]
     for c in children(node)
         push!(res, codegen(t, ast, c))
@@ -141,7 +149,9 @@ function codegen(t::HTMLTarget, ::Union{InlineMath, FreeFormInlineMath}, ast::No
     @htl "\$$res\$"
 end
 
-function codegen(t::HTMLTarget, ::Union{Variable, FreeFormVariable}, ast::NorgDocument, node::Node)
+function codegen(
+    t::HTMLTarget, ::Union{Variable,FreeFormVariable}, ast::NorgDocument, node::Node
+)
     @htl ""
 end
 
@@ -205,15 +215,17 @@ function codegen(t::HTMLTarget, ::Link, ast::NorgDocument, node::Node)
 end
 
 function codegen(t::HTMLLocationTarget, ::URLLocation, ast::NorgDocument, node::Node)
-    textify(ast, first(children(node)))
+    return textify(ast, first(children(node)))
 end
 
 function codegen(t::HTMLLocationTarget, ::LineNumberLocation, ast::NorgDocument, node::Node)
     # Who are you, people who link to line location ?
-    "#l-$(textify(ast, first(children(node))))"
+    return "#l-$(textify(ast, first(children(node))))"
 end
 
-function codegen(t::HTMLLocationTarget, ::DetachedModifierLocation, ast::NorgDocument, node::Node)
+function codegen(
+    t::HTMLLocationTarget, ::DetachedModifierLocation, ast::NorgDocument, node::Node
+)
     kindoftarget = kind(first(children(node)))
     title_node = last(children(node))
     title = textify(ast, title_node)
@@ -226,7 +238,9 @@ function codegen(t::HTMLLocationTarget, ::DetachedModifierLocation, ast::NorgDoc
     elseif kindoftarget == K"Footnote"
         "#" * "fn_" * idify(title)
     else
-        error("HTML code generation received an unknown Detached Modifier location: $kindoftarget")
+        error(
+            "HTML code generation received an unknown Detached Modifier location: $kindoftarget",
+        )
     end
 end
 
@@ -244,56 +258,58 @@ function codegen(t::HTMLLocationTarget, ::MagicLocation, ast::NorgDocument, node
         elseif kindoftarget == K"Footnote"
             "#" * "fn_" * idify(title)
         else
-            error("HTML code generation received an unknown Detached Modifier location: $kindoftarget")
+            error(
+                "HTML code generation received an unknown Detached Modifier location: $kindoftarget",
+            )
         end
     else
-        "" 
+        ""
     end
 end
 
 function codegen(t::HTMLLocationTarget, ::FileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
-        start = "/" 
+        start = "/"
     else
-        start = "" 
+        start = ""
     end
     target_loc = textify(ast, target)
     if kind(subtarget) == K"None"
-        subtarget_loc = "" 
+        subtarget_loc = ""
     else
         subtarget_loc = "#" * codegen(t, ast, subtarget)::String
     end
-    
-    start * target_loc * subtarget_loc
+
+    return start * target_loc * subtarget_loc
 end
 
 function codegen(t::HTMLLocationTarget, ::NorgFileLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     if kind(target) == K"FileNorgRootTarget"
-        start = "/" 
+        start = "/"
     else
-        start = "" 
+        start = ""
     end
     target_loc = textify(ast, target)
     if kind(subtarget) == K"None"
-        subtarget_loc = "" 
+        subtarget_loc = ""
     else
         subtarget_loc = "#" * codegen(t, ast, subtarget)::String
     end
-    
-    start * target_loc * subtarget_loc
+
+    return start * target_loc * subtarget_loc
 end
 
 function codegen(t::HTMLLocationTarget, ::WikiLocation, ast::NorgDocument, node::Node)
     target, subtarget = children(node)
     target_loc = textify(ast, target)
     if kind(subtarget) == K"None"
-        subtarget_loc = "" 
+        subtarget_loc = ""
     else
         subtarget_loc = "#" * codegen(t, ast, subtarget)::String
     end
-    "/" * target_loc * subtarget_loc
+    return "/" * target_loc * subtarget_loc
 end
 
 function codegen(t::HTMLLocationTarget, ::TimestampLocation, ast::NorgDocument, node::Node)
@@ -306,7 +322,7 @@ function codegen(t::HTMLLocationTarget, ::TimestampLocation, ast::NorgDocument, 
         end
         res
     else
-        "" 
+        ""
     end
 end
 
@@ -425,12 +441,14 @@ function codegen(t::HTMLTarget, ::StandardRangedTag, ast::NorgDocument, node::No
         <div>
             $([codegen(t, ast, c) for c in children(last(others))])
         </div>
-        """        
+        """
     else
-        @warn "Unknown standard ranged tag." tag_litteral ast.tokens[AST.start(node)] ast.tokens[AST.stop(node)]
+        @warn "Unknown standard ranged tag." tag_litteral ast.tokens[AST.start(node)] ast.tokens[AST.stop(
+            node
+        )]
         @htl """
         $([codegen(t, ast, c) for c in children(last(others))])
-        """        
+        """
     end
 end
 
@@ -469,7 +487,12 @@ function codegen(::HTMLTarget, ::TodoExtension, ast::NorgDocument, node::Node)
     end
 end
 
-function codegen(t::HTMLTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, ast::NorgDocument, node::Node)
+function codegen(
+    t::HTMLTarget,
+    ::Union{WeakCarryoverTag,StrongCarryoverTag},
+    ast::NorgDocument,
+    node::Node,
+)
     content = codegen(t, ast, last(children(node)))
     params = Dict{Symbol,String}()
     if length(children(node)) <= 2
@@ -479,7 +502,7 @@ function codegen(t::HTMLTarget, ::Union{WeakCarryoverTag, StrongCarryoverTag}, a
         param = textify(ast, children(node)[2])
         params[Symbol(label)] = param
     else
-        class = join(textify.(Ref(ast), children(node)[begin:end-1]), "-")
+        class = join(textify.(Ref(ast), children(node)[begin:(end - 1)]), "-")
         params[:class] = class
     end
     @htl "<div $params>$content</div>"
@@ -487,14 +510,15 @@ end
 
 function codegen(t::HTMLTarget, ::Definition, ast::NorgDocument, node::Node)
     items = children(node)
-    content = Iterators.flatten(map(items) do item
+    content = collect(Iterators.flatten(
+        map(items) do item
             term, def... = children(item)
             term_id = "def_" * idify(textify(ast, term))
             term_node = @htl "<dt id=$term_id>$(codegen(t, ast, term))</dt>"
             def_node = @htl "<dd>$(codegen.(Ref(t), Ref(ast), def))</dd>"
-            term_node,def_node
-        end
-    ) |> collect
+            term_node, def_node
+        end,
+    ))
     @htl "<dl>$content</dl>"
 end
 

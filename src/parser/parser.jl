@@ -30,7 +30,9 @@ function parse_norg_toplevel_one_step(parents::Vector{Kind}, tokens::Vector{Toke
     m = match_norg(parents, tokens, i)
     to_parse = matched(m)
     if isclosing(m)
-        error("Closing token when parsing a top level element at token $(tokens[i]). This is a bug, please report it along with the text you are trying to parse.")
+        error(
+            "Closing token when parsing a top level element at token $(tokens[i]). This is a bug, please report it along with the text you are trying to parse.",
+        )
         return AST.Node(K"None", AST.Node[], i, nextind(tokens, i))
     elseif iscontinue(m)
         return AST.Node(K"None", AST.Node[], i, i)
@@ -40,11 +42,11 @@ function parse_norg_toplevel_one_step(parents::Vector{Kind}, tokens::Vector{Toke
         stop = prevind(tokens, consume_until(K"LineEnding", tokens, i))
         AST.Node(to_parse, AST.Node[], start, stop)
     elseif is_quote(to_parse)
-        parse_norg(Quote(), parents, tokens, i) 
+        parse_norg(Quote(), parents, tokens, i)
     elseif is_unordered_list(to_parse)
-        parse_norg(UnorderedList(), parents, tokens, i) 
+        parse_norg(UnorderedList(), parents, tokens, i)
     elseif is_ordered_list(to_parse)
-        parse_norg(OrderedList(), parents, tokens, i) 
+        parse_norg(OrderedList(), parents, tokens, i)
     elseif kind(to_parse) == K"Verbatim"
         parse_norg(Verbatim(), parents, tokens, i)
     elseif kind(to_parse) == K"StandardRangedTag"
@@ -81,7 +83,6 @@ function parse_norg(tokens::Vector{Token})
     children = AST.Node[]
     while !is_eof(tokens[i])
         child = parse_norg_toplevel_one_step([K"NorgDocument"], tokens, i)
-        @debug "toplevel" i child tokens[i]
         i = AST.stop(child)
         if !is_eof(tokens[i])
             i = nextind(tokens, i)
@@ -93,7 +94,7 @@ function parse_norg(tokens::Vector{Token})
     root = AST.Node(K"NorgDocument", children, firstindex(tokens), lastindex(tokens))
     ast = AST.NorgDocument(root, tokens)
     findtargets!(ast)
-    ast
+    return ast
 end
 
 function parse_norg(::Paragraph, parents::Vector{Kind}, tokens::Vector{Token}, i)
@@ -102,7 +103,6 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens::Vector{Token}, i
     start = i
     while !is_eof(tokens[i])
         m = match_norg([K"Paragraph", parents...], tokens, i)
-        @debug "paragraph loop" m tokens[i]
         if isclosing(m)
             break
         elseif iscontinue(m)
@@ -136,31 +136,33 @@ function parse_norg(::Paragraph, parents::Vector{Kind}, tokens::Vector{Token}, i
     elseif isclosing(m) && matched(m) != K"Paragraph"
         i = prevind(tokens, i)
     end
-    AST.Node(K"Paragraph", segments, start, i)
+    return AST.Node(K"Paragraph", segments, start, i)
 end
 
 """
 Main dispatch utility.
 """
-function parse_norg_dispatch(to_parse::Kind, parents::Vector{Kind}, tokens::Vector{Token}, i)
+function parse_norg_dispatch(
+    to_parse::Kind, parents::Vector{Kind}, tokens::Vector{Token}, i
+)
     if to_parse == K"Escape"
-        parse_norg(Escape(), parents, tokens, i)            
+        parse_norg(Escape(), parents, tokens, i)
     elseif to_parse == K"Bold"
-        parse_norg(Bold(), parents, tokens, i)            
+        parse_norg(Bold(), parents, tokens, i)
     elseif to_parse == K"Italic"
-        parse_norg(Italic(), parents, tokens, i)            
+        parse_norg(Italic(), parents, tokens, i)
     elseif to_parse == K"Underline"
-        parse_norg(Underline(), parents, tokens, i)            
+        parse_norg(Underline(), parents, tokens, i)
     elseif to_parse == K"Strikethrough"
-        parse_norg(Strikethrough(), parents, tokens, i)            
+        parse_norg(Strikethrough(), parents, tokens, i)
     elseif to_parse == K"Spoiler"
-        parse_norg(Spoiler(), parents, tokens, i)            
+        parse_norg(Spoiler(), parents, tokens, i)
     elseif to_parse == K"Superscript"
-        parse_norg(Superscript(), parents, tokens, i)            
+        parse_norg(Superscript(), parents, tokens, i)
     elseif to_parse == K"Subscript"
-        parse_norg(Subscript(), parents, tokens, i)            
+        parse_norg(Subscript(), parents, tokens, i)
     elseif to_parse == K"InlineCode"
-        parse_norg(InlineCode(), parents, tokens, i)            
+        parse_norg(InlineCode(), parents, tokens, i)
     elseif to_parse == K"NullModifier"
         parse_norg(NullModifier(), parents, tokens, i)
     elseif to_parse == K"InlineMath"
@@ -168,21 +170,21 @@ function parse_norg_dispatch(to_parse::Kind, parents::Vector{Kind}, tokens::Vect
     elseif to_parse == K"Variable"
         parse_norg(Variable(), parents, tokens, i)
     elseif to_parse == K"FreeFormBold"
-        parse_norg(FreeFormBold(), parents, tokens, i)            
+        parse_norg(FreeFormBold(), parents, tokens, i)
     elseif to_parse == K"FreeFormItalic"
-        parse_norg(FreeFormItalic(), parents, tokens, i)            
+        parse_norg(FreeFormItalic(), parents, tokens, i)
     elseif to_parse == K"FreeFormUnderline"
-        parse_norg(FreeFormUnderline(), parents, tokens, i)            
+        parse_norg(FreeFormUnderline(), parents, tokens, i)
     elseif to_parse == K"FreeFormStrikethrough"
-        parse_norg(FreeFormStrikethrough(), parents, tokens, i)            
+        parse_norg(FreeFormStrikethrough(), parents, tokens, i)
     elseif to_parse == K"FreeFormSpoiler"
-        parse_norg(FreeFormSpoiler(), parents, tokens, i)            
+        parse_norg(FreeFormSpoiler(), parents, tokens, i)
     elseif to_parse == K"FreeFormSuperscript"
-        parse_norg(FreeFormSuperscript(), parents, tokens, i)            
+        parse_norg(FreeFormSuperscript(), parents, tokens, i)
     elseif to_parse == K"FreeFormSubscript"
-        parse_norg(FreeFormSubscript(), parents, tokens, i)            
+        parse_norg(FreeFormSubscript(), parents, tokens, i)
     elseif to_parse == K"FreeFormInlineCode"
-        parse_norg(FreeFormInlineCode(), parents, tokens, i)            
+        parse_norg(FreeFormInlineCode(), parents, tokens, i)
     elseif to_parse == K"FreeFormNullModifier"
         parse_norg(FreeFormNullModifier(), parents, tokens, i)
     elseif to_parse == K"FreeFormInlineMath"
@@ -190,7 +192,7 @@ function parse_norg_dispatch(to_parse::Kind, parents::Vector{Kind}, tokens::Vect
     elseif to_parse == K"FreeFormVariable"
         parse_norg(FreeFormVariable(), parents, tokens, i)
     elseif to_parse == K"Link"
-        parse_norg(Link(), parents, tokens, i)            
+        parse_norg(Link(), parents, tokens, i)
     elseif to_parse == K"Anchor"
         parse_norg(Anchor(), parents, tokens, i)
     elseif to_parse == K"InlineLinkTarget"
@@ -198,7 +200,9 @@ function parse_norg_dispatch(to_parse::Kind, parents::Vector{Kind}, tokens::Vect
     elseif to_parse == K"Word"
         parse_norg(Word(), parents, tokens, i)
     else
-        error("parse_norg_dispatch got an unhandled node kind $to_parse for token $(tokens[i])")
+        error(
+            "parse_norg_dispatch got an unhandled node kind $to_parse for token $(tokens[i])",
+        )
     end
 end
 
@@ -207,10 +211,9 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens::Vector{To
     children = AST.Node[]
     m = Match.MatchClosing(K"ParagraphSegment")
     parents = [K"ParagraphSegment", parents...]
-    siblings = []
+    siblings = AST.Node[]
     while !is_eof(tokens[i])
         m = match_norg(parents, tokens, i)
-        @debug "ps loop" m
         if isclosing(m)
             break
         elseif iscontinue(m)
@@ -246,7 +249,9 @@ function parse_norg(::ParagraphSegment, parents::Vector{Kind}, tokens::Vector{To
     elseif AST.start(first(siblings)) == start
         AST.Node(K"None", siblings, start, i)
     else
-        ps = AST.Node(K"ParagraphSegment", vcat(children, first(siblings).children), start, i)
+        ps = AST.Node(
+            K"ParagraphSegment", vcat(children, first(siblings).children), start, i
+        )
         if length(siblings) > 1
             AST.Node(K"None", [ps, siblings[2:end]...], start, i)
         else
@@ -258,11 +263,11 @@ end
 function parse_norg(::Escape, parents::Vector{Kind}, tokens::Vector{Token}, i)
     next_i = nextind(tokens, i)
     w = parse_norg(Word(), parents, tokens, next_i)
-    AST.Node(K"Escape", AST.Node[w], i, next_i)
+    return AST.Node(K"Escape", AST.Node[w], i, next_i)
 end
 
 function parse_norg(::Word, parents::Vector{Kind}, tokens::Vector{Token}, i)
-    AST.Node(K"WordNode", AST.Node[], i, i)
+    return AST.Node(K"WordNode", AST.Node[], i, i)
 end
 
 include("attachedmodifier.jl")
