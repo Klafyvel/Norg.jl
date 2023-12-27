@@ -27,6 +27,7 @@ import Norg: @K_str, kind, value
     @testset "codegen.jl" begin
         include("codegen_tests/html.jl")
         include("codegen_tests/json.jl")
+        include("codegen_tests/norg.jl")
     end
     @testset "code analysis" begin
         if VERSION ≥ v"1.9"

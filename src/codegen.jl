@@ -150,9 +150,11 @@ end
 
 include("codegen/html.jl")
 include("codegen/json.jl")
+include("codegen/norg.jl")
 using .HTMLCodegen
 using .JSONCodegen
+using .NorgCodegen
 
-export codegen, HTMLTarget, JSONTarget
+export codegen, HTMLTarget, JSONTarget, NorgTarget
 
 end

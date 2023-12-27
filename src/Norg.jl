@@ -204,7 +204,7 @@ using SnoopPrecompile
     end
 end
 
-export HTMLTarget, JSONTarget
+export HTMLTarget, JSONTarget, NorgTarget
 export @norg_str, norg
 
 if !isdefined(Base, :get_extension)
