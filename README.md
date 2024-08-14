@@ -173,3 +173,7 @@ There are three main steps for turning Norg files into HTML (since it's the only
 3. Code generation (turning the AST into HTML)
 
 Earlier Norg.jl would rely on Julia's type system, but that made the code type-unstable. That's why I refactored it using a kind of enumeration to label each token and node of the AST. I did not invent anything here, it comes straight from [JuliaSyntax.jl](https://github.com/JuliaLang/JuliaSyntax.jl/) super cool ideas.
+
+## Projects using Norg.jl
+
+- [neorg-dashboard](https://github.com/isentropic/neorg-dashboard), a simple filewatcher and renderer of norg in julia.
